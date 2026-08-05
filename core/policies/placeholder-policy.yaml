@@ -1,0 +1,82 @@
+# Placeholder 정책 (SSOT) — MVP-1.md 2장 4항, ROADMAP AFA-004
+#
+# 이름 형식: ${PLACEHOLDER_대문자_스네이크}
+# 검증 정규식: \$\{PLACEHOLDER_[A-Z0-9_]+\}
+# placeholder-audit Skill은 이 정규식 하나로 코드·리소스 전체를 스캔한다.
+
+version: 1
+
+name_pattern: '\$\{PLACEHOLDER_[A-Z0-9_]+\}'
+
+# 게이트 규칙 (gates.yaml의 Placeholder 게이트가 참조)
+gate:
+  # release_blocking=true 인 미해결 Placeholder가 1건이라도 있으면
+  # Placeholder 게이트 실패 → 릴리스 단계 차단
+  fail_on_unresolved_release_blocking: true
+  # 릴리스 빌드 산출물(APK/AAB) 안에 Placeholder 문자열이 잔존하면 무조건 실패
+  fail_on_placeholder_in_release_artifact: true
+  # 테스트 광고 ID가 릴리스 빌드에 남아 있으면 실패 (MVP-1.md 3.11)
+  fail_on_test_ad_ids_in_release: true
+
+# 종류별 기본 속성 (인터뷰가 Placeholder 생성 시 적용)
+kind_defaults:
+  package_name:
+    importance: critical
+    resolve_by: before_init      # 프로젝트 생성 전 확정 요구. 임시 사용은 별도 확인
+    auto_proceed: false
+    release_blocking: true
+  admob_ids:
+    importance: high
+    resolve_by: before_release
+    auto_proceed: true           # 개발 중 테스트 ID 사용
+    release_blocking: true
+  billing_product_ids:
+    importance: high
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: true
+  privacy_policy_url:
+    importance: high
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: true
+  terms_url:
+    importance: normal
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: false
+  support_email:
+    importance: normal
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: true
+  keystore:
+    importance: critical
+    resolve_by: before_release
+    auto_proceed: true           # 디버그 개발은 가능, 릴리스만 차단
+    release_blocking: true
+  store_listing:
+    importance: normal
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: false
+  api_key:
+    importance: high
+    resolve_by: before_implementation   # 해당 기능 구현 전 필요
+    auto_proceed: false          # 크리티컬 패스 차단 시 NEEDS_HUMAN_DECISION
+    release_blocking: true
+  external_service:
+    importance: high
+    resolve_by: before_implementation
+    auto_proceed: false
+    release_blocking: true
+  design_asset:
+    importance: normal
+    resolve_by: before_release
+    auto_proceed: true
+    release_blocking: false
+  other:
+    importance: normal
+    resolve_by: anytime
+    auto_proceed: true
+    release_blocking: false

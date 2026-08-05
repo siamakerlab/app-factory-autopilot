@@ -25,10 +25,10 @@
 | D-001 | M0 결정 | 구현 언어·런타임 확정 | P0 | ✅ |
 | D-002 | M0 결정 | 스킬 카탈로그 설치 소스 확정 | P1 | ✅ |
 | AFA-001 | M1 기반 | 로드맵·작업·상태 스키마 정의 | P0 | 🟦 |
-| AFA-002 | M1 기반 | APP_FACTORY.yaml 스키마 정의 | P0 | ⬜ |
-| AFA-003 | M1 기반 | `.app-factory` 상태 저장소 규약 | P0 | ⬜ |
-| AFA-004 | M1 기반 | Placeholder 모델·정책 | P0 | ⬜ |
-| AFA-005 | M1 기반 | 증거(Evidence) 모델 | P0 | ⬜ |
+| AFA-002 | M1 기반 | APP_FACTORY.yaml 스키마 정의 | P0 | 🟦 |
+| AFA-003 | M1 기반 | `.app-factory` 상태 저장소 규약 | P0 | 🟦 |
+| AFA-004 | M1 기반 | Placeholder 모델·정책 | P0 | 🟦 |
+| AFA-005 | M1 기반 | 증거(Evidence) 모델 | P0 | 🟦 |
 | AFA-010 | M2 MCP | MCP 서버 골격 (`app-factory-core`) | P0 | ⬜ |
 | AFA-011 | M2 MCP | 공정 도구 (`factory_*`) | P0 | ⬜ |
 | AFA-012 | M2 MCP | 로드맵 도구 (`roadmap_*`) | P0 | ⬜ |
@@ -128,16 +128,19 @@
   Completion Verifier가 기계적으로 순회할 수 있게 한다. `verifiable_by`는
   `code | test | build | emulator | manual` enum으로 제한한다.
 
-### AFA-002 APP_FACTORY.yaml 스키마 정의 — ⬜
+### AFA-002 APP_FACTORY.yaml 스키마 정의 — 🟦 (2026-08-05 구현 제출)
 
 - **근거**: MVP-1.md 3.10, 설계서 20장 / **의존성**: 없음 / **위험도**: 중
 - **구현 범위**: `app-factory-config.schema.json` — 설계서 20장의 전 항목
   (프로젝트 종류·SDK 정책·아키텍처·광고·결제·서명·라이선스 정책·Provider
   우선순위·반복 한도·빌드/테스트/Lint 명령·승인 필요 작업·Placeholder 정책)
 - **완료 조건**:
-  - [ ] 설계서 20장 항목이 모두 스키마에 존재한다
-  - [ ] 광고·결제 등 미사용 기능 블록은 생략 가능(optional)하다
-  - [ ] Placeholder 값(`${PLACEHOLDER_*}`)이 문자열 필드에 허용된다
+  - [x] 설계서 20장 항목이 모두 스키마에 존재한다
+  - [x] 광고·결제 등 미사용 기능 블록은 생략 가능(optional)하다
+  - [x] Placeholder 값(`${PLACEHOLDER_*}`)이 문자열 필드에 허용된다
+  - 산출물: `app-factory-config.schema.json` + `defaults.yaml` + 예시 검증
+    통과. 키스토어 임의 생성 금지(`generate_keystore: const false`)·다국어
+    구조 상시(`i18n_structure: const true`)를 스키마 수준에서 강제
 - **지침**: 기본값을 스키마에 내장하지 말고 `core/policies/defaults.yaml`로
   분리한다(전역 CLAUDE.md의 Android 규칙 — DataStore, Hilt, minSdk 커버리지
   90% 등 — 을 defaults에 반영). 스키마는 구조 검증만 담당한다.
@@ -145,44 +148,47 @@
   Kotlin + 권장 스택, 기본 언어 영어, 다국어 구조(strings.xml 분리) 상시
   적용.
 
-### AFA-003 `.app-factory` 상태 저장소 규약 — ⬜
+### AFA-003 `.app-factory` 상태 저장소 규약 — 🟦 (2026-08-05 구현 제출)
 
 - **근거**: MVP-1.md 3.7 / **의존성**: AFA-001 / **위험도**: 상
 - **구현 범위**: 10개 하위 디렉터리의 파일 포맷·명명 규칙·잠금 규약 문서
   (`core/schemas/state-store.md`) 및 각 파일 스키마
 - **완료 조건**:
-  - [ ] 작업 ID(`T-`), Run ID(`R-`), Finding ID(`F-`), Evidence ID(`E-`)
-    채번 규칙이 정의되어 있다
-  - [ ] 동시 쓰기 방지 규약(단일 쓰기 Agent + 잠금 파일)이 정의되어 있다
-  - [ ] 중단 후 재개 시 어떤 파일을 어떤 순서로 읽는지 명세되어 있다
+  - [x] 작업 ID(`T-`), Run ID(`R-`), Finding ID(`F-`), Evidence ID(`E-`)
+    채번 규칙이 정의되어 있다 (+승인 `A-`, 로드맵 `RM-`, counter.json)
+  - [x] 동시 쓰기 방지 규약(단일 쓰기 Agent + 잠금 파일)이 정의되어 있다
+    (O_EXCL 원자 생성, stale 10분+PID 미생존 회수, 클레임 stale 회수 포함)
+  - [x] 중단 후 재개 시 어떤 파일을 어떤 순서로 읽는지 명세되어 있다
+    (6절 — 6단계 읽기 순서)
 - **지침**: 상태 파일은 "1 엔티티 = 1 파일"(JSON)로 저장한다. 단일 대형
   state.json은 부분 손상 시 전체 유실 위험이 있다. 쓰기는 임시 파일 작성 후
   rename(원자적 교체)으로만 수행한다. 잠금은 `.app-factory/state/.lock`
   파일 + PID/타임스탬프로 구현하고 stale lock(예: 10분 초과)은 경고 후 회수.
 
-### AFA-004 Placeholder 모델·정책 — ⬜
+### AFA-004 Placeholder 모델·정책 — 🟦 (2026-08-05 구현 제출)
 
 - **근거**: MVP-1.md 2장 4항, 3.10 / **의존성**: AFA-001 / **위험도**: 중
 - **구현 범위**: `placeholder.schema.json` + `core/policies/placeholder-policy.yaml`
 - **완료 조건**:
-  - [ ] Placeholder가 이름, 종류, 중요도, 해결 시점, 자동 진행 가능 여부,
-    릴리스 차단 여부 필드를 가진다
-  - [ ] 릴리스 차단 Placeholder 존재 시 게이트가 실패해야 한다는 정책이
-    기록되어 있다
+  - [x] Placeholder가 이름, 종류, 중요도, 해결 시점, 자동 진행 가능 여부,
+    릴리스 차단 여부 필드를 가진다 (+임시 값·위치 추적·상태 3종)
+  - [x] 릴리스 차단 Placeholder 존재 시 게이트가 실패해야 한다는 정책이
+    기록되어 있다 (+릴리스 산출물 내 잔존·테스트 광고 ID 잔존 실패 규칙,
+    종류별 기본 속성 12종)
 - **지침**: 이름은 `${PLACEHOLDER_대문자_스네이크}` 형식만 허용하고 정규식
   `\$\{PLACEHOLDER_[A-Z0-9_]+\}`로 검증한다. 코드베이스 잔존 스캔은 이
   정규식 하나로 수행할 수 있어야 한다(placeholder-audit Skill의 근거).
 
-### AFA-005 증거(Evidence) 모델 — ⬜
+### AFA-005 증거(Evidence) 모델 — 🟦 (2026-08-05 구현 제출)
 
 - **근거**: MVP-1.md 3.8 / **의존성**: AFA-003 / **위험도**: 중
 - **구현 범위**: `evidence.schema.json` — 3.8의 증거 종류 enum, 원본 파일
   경로, 해시, 생성 주체(Agent), 연결된 로드맵 항목/작업 ID
 - **완료 조건**:
-  - [ ] 증거 없는 `VERIFIED` 전이를 스키마·규약 수준에서 거부할 수 있다
-    (전이 요청에 evidence ID 배열 필수)
-  - [ ] 증거 파일이 `.app-factory/evidence/<E-ID>/`에 원본과 메타데이터로
-    저장된다
+  - [x] 증거 없는 `VERIFIED` 전이를 스키마·규약 수준에서 거부할 수 있다
+    (roadmap-item 스키마의 조건부 필수 — AFA-001 부정 테스트로 확인)
+  - [x] 증거 파일이 `.app-factory/evidence/<E-ID>/`에 원본과 메타데이터로
+    저장된다 (state-store.md 1절·7절, truncated·sha256 필드)
 - **지침**: 빌드 로그 같은 대용량 원본은 전체 저장 대신 마지막 200줄 + 전체
   해시 + 요약을 저장한다. 스크린샷·녹화는 원본 보존. 증거 위조 방지가 아니라
   "주장과 근거의 연결"이 목적이므로 해시는 무결성 확인 용도로만 쓴다.

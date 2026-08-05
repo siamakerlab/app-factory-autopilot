@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "name": "${PLACEHOLDER_ADMOB_APP_ID}",
+  "kind": "admob_ids",
+  "importance": "high",
+  "resolve_by": "before_release",
+  "auto_proceed": true,
+  "release_blocking": true,
+  "description": "AdMob 앱 ID — 개발 중에는 테스트 ID 사용, 릴리스 전 실제 값 필요",
+  "temporary_value": "ca-app-pub-3940256099942544~3347511713",
+  "status": "temporary",
+  "locations": [
+    "app/src/main/AndroidManifest.xml",
+    "APP_FACTORY.yaml"
+  ],
+  "created_at": "2026-08-05T10:00:00+09:00",
+  "updated_at": "2026-08-05T10:05:00+09:00"
+}

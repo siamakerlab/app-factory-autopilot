@@ -1,0 +1,140 @@
+# App Factory Autopilot — 기본값 정책 (SSOT)
+#
+# APP_FACTORY.yaml 생성 시 미입력 항목에 적용하는 기본값.
+# 스키마(app-factory-config.schema.json)는 구조 검증만 하고 기본값은 여기서
+# 관리한다 (ROADMAP AFA-002 지침).
+#
+# 출처:
+# - 운영자 전역 Android 규칙 (~/.claude/CLAUDE.md)
+# - 2026-08-05 사용자 확정: 언어 미입력 시 Kotlin, 기본 언어 영어,
+#   다국어 구조 상시 적용
+
+version: 1
+
+language:
+  implementation: kotlin        # plan 인터뷰 미입력 시 기본
+  runtime: android-sdk
+
+sdk:
+  # min은 "디바이스 커버리지 90% 이상 목표, 최소 80%" 정책으로
+  # Dependency Version Manager가 생성 시점에 산출한다
+  min_coverage_target_pct: 90
+  min_coverage_floor_pct: 80
+
+toolchain:
+  kotlin: { policy: latest-stable }
+  agp: { policy: latest-stable }
+  gradle: { policy: latest-stable }
+  jdk: { policy: latest-stable }
+
+ui:
+  compose: true
+  material3: true
+  dynamic_color: true
+  dark_mode: true
+  orientations: [portrait]
+  form_factors: [phone, tablet, foldable]
+  adaptive_layout: true
+
+architecture:
+  pattern: mvvm-repository-udf
+  di: hilt
+  async: coroutines-flow
+  persistence: [datastore]      # SharedPreferences 금지, 구조화 필요 시 room 추가
+  background: []
+  navigation: navigation-compose
+  version_catalog: true
+
+localization:
+  default_language: en          # 미입력 시 영어 (2026-08-05 확정)
+  i18n_structure: true          # 상시 적용 — strings.xml 분리, 하드코딩 금지
+  languages: [en]
+
+ads:
+  enabled: true                 # 운영자 정책: 모든 앱 기본 광고 포함
+  network: admob
+  formats: [adaptive_banner, app_open]
+  app_open_interval_minutes: 15
+  consent: { ump: true, gdpr: true, child_directed: false, family_policy: false }
+  test_ids_in_debug: true
+
+billing:
+  enabled: true                 # 광고 제거 상품 기본 포함
+  products:
+    - { id: "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}", kind: non_consumable, purpose: remove_ads }
+  restore_on_start: true
+  server_verification: false
+
+in_app_review:
+  enabled: true
+  min_sessions: 5
+  min_days: 3
+  cooldown_days: 30
+  suppress_after_error: true
+
+in_app_update:
+  enabled: true
+  optional_gap: 2               # 버전 차이 1~2 선택
+  forced_gap: 3                 # 버전 차이 3~5 강제
+
+data_security:
+  tls_only: true
+  android_backup: true
+  local_encryption: false
+  screen_capture_block: false
+  biometric: false
+
+signing:
+  keystore_dir: "../keystores"  # 프로젝트 외부. 임의 생성 절대 금지
+  play_app_signing: true
+  generate_keystore: false
+
+license_policy:
+  profile: commercial-closed
+  check_assets: true
+  notices_screen: true
+  generate_sbom: true
+
+versioning:
+  scheme: semver-yymmddrrr
+  initial_name: "0.1.0"
+
+providers:
+  primary: claude-code
+  cross_check: false
+
+limits:
+  max_iterations: 5
+  max_retries: 3
+  concurrent_read_agents: 4
+  concurrent_write_agents: 1
+
+commands:
+  build: "./gradlew assembleDebug"
+  test: "./gradlew testDebugUnitTest"
+  lint: "./gradlew lintDebug"
+  release_build: "./gradlew bundleRelease"
+
+emulator:
+  required: true
+
+approvals_required:
+  - git_push
+  - deploy
+  - production_release
+  - signing_change
+  - destructive_db_migration
+  - large_architecture_change
+  - payment_product_change
+  - ad_policy_change
+  - privacy_policy_change
+  - external_account_required
+  - api_cost
+  - data_loss_possible
+
+placeholder_policy:
+  auto_proceed_kinds:
+    - admob_ids            # 개발 중 테스트 ID 사용 가능
+    - billing_product_ids  # 개발 진행 가능, 릴리스 차단
+    - store_listing        # 스토어 문구류
+    - privacy_policy_url   # 릴리스 차단이지만 개발 진행 가능

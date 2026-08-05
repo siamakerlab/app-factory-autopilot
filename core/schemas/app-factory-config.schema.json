@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "afa:schemas/app-factory-config/v1",
+  "title": "APP_FACTORY.yaml 설정",
+  "description": "대상 앱 프로젝트 전체 설정의 기준 파일 스키마. 통합 설계서 20장·MVP-1.md 3.10 근거. 미확정 값은 ${PLACEHOLDER_*} 문자열을 허용한다. 기본값은 core/policies/defaults.yaml이 담당하고 이 스키마는 구조 검증만 한다.",
+  "type": "object",
+  "required": ["version", "project", "sdk", "toolchain", "architecture", "language", "localization", "commands", "limits", "providers", "license_policy", "versioning"],
+  "additionalProperties": false,
+  "$defs": {
+    "maybePlaceholder": {
+      "description": "확정 값 또는 Placeholder",
+      "type": "string",
+      "minLength": 1
+    },
+    "policyLevel": {
+      "type": "string",
+      "enum": ["latest-stable", "pinned"],
+      "description": "latest-stable=공식 문서 확인 후 최신 안정화, pinned=pin 필드의 값 고정"
+    },
+    "versionPolicy": {
+      "type": "object",
+      "required": ["policy"],
+      "additionalProperties": false,
+      "properties": {
+        "policy": { "$ref": "#/$defs/policyLevel" },
+        "pin": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "policy": { "const": "pinned" } } },
+          "then": { "required": ["pin"] }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "version": { "const": 1 },
+    "project": {
+      "type": "object",
+      "required": ["type", "name", "package_name", "namespace"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["android-app"] },
+        "name": { "type": "string", "minLength": 1 },
+        "name_english": { "type": "string" },
+        "description": { "type": "string" },
+        "root": { "type": "string", "default": "." },
+        "package_name": { "$ref": "#/$defs/maybePlaceholder" },
+        "namespace": { "$ref": "#/$defs/maybePlaceholder" },
+        "developer": { "type": "string" },
+        "developer_domain": { "type": "string" },
+        "support_email": { "$ref": "#/$defs/maybePlaceholder" },
+        "privacy_policy_url": { "$ref": "#/$defs/maybePlaceholder" },
+        "terms_url": { "$ref": "#/$defs/maybePlaceholder" }
+      }
+    },
+    "sdk": {
+      "type": "object",
+      "required": ["min", "target", "compile"],
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "integer", "minimum": 21 },
+        "target": { "type": "integer", "minimum": 30 },
+        "compile": { "type": "integer", "minimum": 30 }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "required": ["kotlin", "agp", "gradle", "jdk"],
+      "additionalProperties": false,
+      "properties": {
+        "kotlin": { "$ref": "#/$defs/versionPolicy" },
+        "agp": { "$ref": "#/$defs/versionPolicy" },
+        "gradle": { "$ref": "#/$defs/versionPolicy" },
+        "jdk": { "$ref": "#/$defs/versionPolicy" }
+      }
+    },
+    "language": {
+      "type": "object",
+      "description": "구현 언어·런타임 — plan 인터뷰 입력, 미입력 시 defaults(Kotlin)",
+      "required": ["implementation"],
+      "additionalProperties": false,
+      "properties": {
+        "implementation": { "type": "string", "minLength": 1 },
+        "runtime": { "type": "string" }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compose": { "type": "boolean" },
+        "material3": { "type": "boolean" },
+        "dynamic_color": { "type": "boolean" },
+        "dark_mode": { "type": "boolean" },
+        "orientations": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["portrait", "landscape"] },
+          "uniqueItems": true
+        },
+        "form_factors": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["phone", "tablet", "foldable"] },
+          "uniqueItems": true
+        },
+        "adaptive_layout": { "type": "boolean" }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "required": ["pattern", "di", "async"],
+      "additionalProperties": false,
+      "properties": {
+        "pattern": { "type": "string", "enum": ["mvvm-repository-udf"] },
+        "di": { "type": "string", "enum": ["hilt"] },
+        "async": { "type": "string", "enum": ["coroutines-flow"] },
+        "persistence": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["datastore", "room"] },
+          "uniqueItems": true
+        },
+        "background": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["workmanager"] },
+          "uniqueItems": true
+        },
+        "navigation": { "type": "string", "enum": ["navigation-compose", "navigation-3"] },
+        "version_catalog": { "type": "boolean", "const": true }
+      }
+    },
+    "localization": {
+      "type": "object",
+      "required": ["default_language", "i18n_structure"],
+      "additionalProperties": false,
+      "properties": {
+        "default_language": { "type": "string", "minLength": 2 },
+        "i18n_structure": {
+          "type": "boolean",
+          "const": true,
+          "description": "다국어 구조는 항상 적용 (2026-08-05 사용자 결정) — false 불가"
+        },
+        "languages": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "ads": {
+      "type": "object",
+      "description": "광고 미사용 시 블록 전체 생략 또는 enabled=false",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "network": { "type": "string", "enum": ["admob"] },
+        "formats": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["adaptive_banner", "native", "interstitial", "rewarded", "app_open"] },
+          "uniqueItems": true
+        },
+        "app_open_interval_minutes": { "type": "integer", "minimum": 1 },
+        "consent": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ump": { "type": "boolean" },
+            "gdpr": { "type": "boolean" },
+            "child_directed": { "type": "boolean" },
+            "family_policy": { "type": "boolean" }
+          }
+        },
+        "app_id": { "$ref": "#/$defs/maybePlaceholder" },
+        "unit_ids": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/maybePlaceholder" }
+        },
+        "test_ids_in_debug": { "type": "boolean" }
+      }
+    },
+    "billing": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/maybePlaceholder" },
+              "kind": { "type": "string", "enum": ["consumable", "non_consumable", "subscription"] },
+              "purpose": { "type": "string", "enum": ["remove_ads", "premium", "other"] }
+            }
+          }
+        },
+        "restore_on_start": { "type": "boolean" },
+        "server_verification": { "type": "boolean" }
+      }
+    },
+    "in_app_review": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "min_sessions": { "type": "integer", "minimum": 0 },
+        "min_days": { "type": "integer", "minimum": 0 },
+        "cooldown_days": { "type": "integer", "minimum": 0 },
+        "suppress_after_error": { "type": "boolean" }
+      }
+    },
+    "in_app_update": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "optional_gap": { "type": "integer", "minimum": 1, "description": "버전 차이 n 이하 선택 업데이트" },
+        "forced_gap": { "type": "integer", "minimum": 1, "description": "버전 차이 n 이상 강제 업데이트" }
+      }
+    },
+    "data_security": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sensitive_data": { "type": "boolean" },
+        "personal_data": { "type": "boolean" },
+        "local_encryption": { "type": "boolean" },
+        "database_encryption": { "type": "boolean" },
+        "android_backup": { "type": "boolean" },
+        "network": { "type": "boolean" },
+        "tls_only": { "type": "boolean" },
+        "screen_capture_block": { "type": "boolean" },
+        "biometric": { "type": "boolean" }
+      }
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "keystore_dir": { "$ref": "#/$defs/maybePlaceholder", "description": "프로젝트 외부 경로만 허용 (게이트가 검사)" },
+        "release_properties": { "$ref": "#/$defs/maybePlaceholder" },
+        "debug_properties": { "$ref": "#/$defs/maybePlaceholder" },
+        "play_app_signing": { "type": "boolean" },
+        "generate_keystore": { "type": "boolean", "const": false, "description": "키스토어 임의 생성 절대 금지 (운영자 정책) — true 불가" }
+      }
+    },
+    "license_policy": {
+      "type": "object",
+      "required": ["profile"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": { "type": "string", "enum": ["commercial-closed", "open-source", "mixed"] },
+        "overrides_file": { "type": "string", "description": "LICENSE_POLICY.yaml 경로" },
+        "check_assets": { "type": "boolean", "description": "폰트·이미지·아이콘·음원 검사 여부" },
+        "notices_screen": { "type": "boolean" },
+        "generate_sbom": { "type": "boolean" }
+      }
+    },
+    "versioning": {
+      "type": "object",
+      "required": ["scheme"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": { "type": "string", "enum": ["semver-yymmddrrr"] },
+        "initial_name": { "type": "string" },
+        "initial_code": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "required": ["primary"],
+      "additionalProperties": false,
+      "properties": {
+        "primary": { "type": "string", "enum": ["claude-code", "codex"] },
+        "verification": { "type": "string", "enum": ["claude-code", "codex"] },
+        "cross_check": { "type": "boolean" }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "required": ["max_iterations", "max_retries"],
+      "additionalProperties": false,
+      "properties": {
+        "max_iterations": { "type": "integer", "minimum": 1 },
+        "max_retries": { "type": "integer", "minimum": 1 },
+        "concurrent_read_agents": { "type": "integer", "minimum": 1, "default": 4 },
+        "concurrent_write_agents": { "type": "integer", "minimum": 1, "maximum": 1, "default": 1, "description": "쓰기 Agent는 항상 1 (설계서 17장)" },
+        "task_budget": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "required": ["build", "test", "lint"],
+      "additionalProperties": false,
+      "properties": {
+        "build": { "type": "string", "minLength": 1 },
+        "test": { "type": "string", "minLength": 1 },
+        "lint": { "type": "string", "minLength": 1 },
+        "release_build": { "type": "string" }
+      }
+    },
+    "emulator": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "scenarios_file": { "type": "string", "description": "EMULATOR_SCENARIOS.md 경로" }
+      }
+    },
+    "approvals_required": {
+      "type": "array",
+      "description": "사용자 승인이 필요한 작업 태그 (task.schema.json의 dangerous enum과 동일 어휘)",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "placeholder_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auto_proceed_kinds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true,
+          "description": "값 미확정이어도 공정 진행 가능한 Placeholder 종류"
+        }
+      }
+    }
+  }
+}

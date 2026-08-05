@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "project": {
+    "type": "android-app",
+    "name": "메모장",
+    "name_english": "Memo",
+    "description": "빠른 메모 작성과 정리를 위한 앱",
+    "root": ".",
+    "package_name": "com.siamakerlab.memo",
+    "namespace": "com.siamakerlab.memo",
+    "developer": "Sia Makerlab",
+    "developer_domain": "siamakerlab.com",
+    "support_email": "uki0327@gmail.com",
+    "privacy_policy_url": "${PLACEHOLDER_PRIVACY_POLICY_URL}",
+    "terms_url": "${PLACEHOLDER_TERMS_URL}"
+  },
+  "sdk": { "min": 26, "target": 35, "compile": 35 },
+  "toolchain": {
+    "kotlin": { "policy": "latest-stable" },
+    "agp": { "policy": "latest-stable" },
+    "gradle": { "policy": "latest-stable" },
+    "jdk": { "policy": "pinned", "pin": "17" }
+  },
+  "language": { "implementation": "kotlin", "runtime": "android-sdk" },
+  "ui": {
+    "compose": true,
+    "material3": true,
+    "dynamic_color": true,
+    "dark_mode": true,
+    "orientations": ["portrait"],
+    "form_factors": ["phone", "tablet"],
+    "adaptive_layout": true
+  },
+  "architecture": {
+    "pattern": "mvvm-repository-udf",
+    "di": "hilt",
+    "async": "coroutines-flow",
+    "persistence": ["datastore", "room"],
+    "background": [],
+    "navigation": "navigation-compose",
+    "version_catalog": true
+  },
+  "localization": {
+    "default_language": "en",
+    "i18n_structure": true,
+    "languages": ["en"]
+  },
+  "ads": {
+    "enabled": true,
+    "network": "admob",
+    "formats": ["adaptive_banner", "app_open"],
+    "app_open_interval_minutes": 15,
+    "consent": { "ump": true, "gdpr": true, "child_directed": false, "family_policy": false },
+    "app_id": "${PLACEHOLDER_ADMOB_APP_ID}",
+    "unit_ids": {
+      "banner": "${PLACEHOLDER_BANNER_AD_UNIT_ID}",
+      "app_open": "${PLACEHOLDER_APP_OPEN_AD_UNIT_ID}"
+    },
+    "test_ids_in_debug": true
+  },
+  "billing": {
+    "enabled": true,
+    "products": [
+      { "id": "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}", "kind": "non_consumable", "purpose": "remove_ads" }
+    ],
+    "restore_on_start": true,
+    "server_verification": false
+  },
+  "in_app_review": {
+    "enabled": true,
+    "min_sessions": 5,
+    "min_days": 3,
+    "cooldown_days": 30,
+    "suppress_after_error": true
+  },
+  "in_app_update": { "enabled": true, "optional_gap": 2, "forced_gap": 3 },
+  "data_security": {
+    "sensitive_data": false,
+    "personal_data": false,
+    "local_encryption": false,
+    "database_encryption": false,
+    "android_backup": true,
+    "network": false,
+    "tls_only": true,
+    "screen_capture_block": false,
+    "biometric": false
+  },
+  "signing": {
+    "keystore_dir": "../keystores",
+    "release_properties": "../keystores/com.siamakerlab.memo-keystore.properties",
+    "debug_properties": "../keystores/com.siamakerlab.memo-debug-keystore.properties",
+    "play_app_signing": true,
+    "generate_keystore": false
+  },
+  "license_policy": {
+    "profile": "commercial-closed",
+    "overrides_file": "LICENSE_POLICY.yaml",
+    "check_assets": true,
+    "notices_screen": true,
+    "generate_sbom": true
+  },
+  "versioning": { "scheme": "semver-yymmddrrr", "initial_name": "0.1.0", "initial_code": 260805001 },
+  "providers": { "primary": "claude-code", "verification": "codex", "cross_check": true },
+  "limits": {
+    "max_iterations": 5,
+    "max_retries": 3,
+    "concurrent_read_agents": 4,
+    "concurrent_write_agents": 1,
+    "task_budget": 200
+  },
+  "commands": {
+    "build": "./gradlew assembleDebug",
+    "test": "./gradlew testDebugUnitTest",
+    "lint": "./gradlew lintDebug",
+    "release_build": "./gradlew bundleRelease"
+  },
+  "emulator": { "required": true, "scenarios_file": "EMULATOR_SCENARIOS.md" },
+  "approvals_required": [
+    "git_push",
+    "deploy",
+    "production_release",
+    "signing_change",
+    "destructive_db_migration",
+    "payment_product_change"
+  ],
+  "placeholder_policy": {
+    "auto_proceed_kinds": ["admob_ids", "billing_product_ids", "privacy_policy_url"]
+  }
+}

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (8차) — M1 완료 (구현 제출)
+
+- AFA-002 🟦: `app-factory-config.schema.json`(설계서 20장 전 항목) +
+  `core/policies/defaults.yaml`. 키스토어 임의 생성 금지·다국어 구조 상시를
+  스키마 const로 강제. Kotlin·영어 기본값 반영
+- AFA-003 🟦: `core/schemas/state-store.md` — 디렉터리 구조, 1엔티티=1파일,
+  원자적 rename 쓰기, ID 채번(counter.json), O_EXCL 잠금·stale 회수,
+  클레임 회수, 재개 읽기 순서 6단계, 버전·마이그레이션 원칙
+- AFA-004 🟦: `placeholder.schema.json` + `placeholder-policy.yaml`
+  (종류별 기본 속성 12종, 릴리스 산출물 잔존·테스트 광고 ID 게이트 규칙)
+- AFA-005 🟦: `evidence.schema.json` (증거 16종 enum, sha256·truncated)
+- 검증: 스키마 7종·예시 7종 전체 통과, YAML 정책 3종 파싱 확인
+
 ### 2026-08-05 (7차) — 로드맵 정밀점검
 
 사용자 요청으로 전체 로드맵을 감사하고 다음을 수정했습니다.

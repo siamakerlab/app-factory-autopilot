@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "id": "E-0001",
+  "kind": "unit_test",
+  "title": "MemoListViewModel 단위 테스트 결과",
+  "created_by": {
+    "role": "worker",
+    "name": "implementation-worker",
+    "run_id": "R-20260805-001"
+  },
+  "roadmap_item_ids": ["RM-001"],
+  "task_id": "T-0001",
+  "files": [
+    {
+      "path": "test-results-summary.txt",
+      "sha256": "a3f5c9e2b1d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a6",
+      "truncated": true,
+      "original_size_bytes": 48213
+    }
+  ],
+  "summary": "테스트 3건 전체 통과 (로드 성공·실패·빈 목록)",
+  "data": {
+    "tests_total": 3,
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "exit_code": 0
+  },
+  "created_at": "2026-08-05T11:25:00+09:00"
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "afa:schemas/placeholder/v1",
+  "title": "Placeholder",
+  "description": "미확정 값의 명시적 표기. 단순 문자열이 아니라 종류·중요도·해결 시점·자동 진행 가능 여부를 함께 관리한다 (MVP-1.md 2장 4항). .app-factory/state/placeholders/에 1건 = 1파일로 저장.",
+  "type": "object",
+  "required": ["version", "name", "kind", "importance", "resolve_by", "auto_proceed", "release_blocking", "status", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "name": {
+      "type": "string",
+      "pattern": "^\\$\\{PLACEHOLDER_[A-Z0-9_]+\\}$",
+      "description": "${PLACEHOLDER_대문자_스네이크} 형식만 허용 (AFA-004 지침 정규식)"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "package_name",
+        "admob_ids",
+        "billing_product_ids",
+        "privacy_policy_url",
+        "terms_url",
+        "support_email",
+        "keystore",
+        "store_listing",
+        "api_key",
+        "external_service",
+        "design_asset",
+        "other"
+      ]
+    },
+    "importance": { "type": "string", "enum": ["critical", "high", "normal"] },
+    "resolve_by": {
+      "type": "string",
+      "enum": ["before_init", "before_implementation", "before_release", "anytime"],
+      "description": "해결 시점 — before_init: 프로젝트 생성 전 필수 (예: 패키지명)"
+    },
+    "auto_proceed": {
+      "type": "boolean",
+      "description": "미해결 상태로 공정 계속 진행 가능 여부 (3.17 질문 지연 원칙과 연동)"
+    },
+    "release_blocking": {
+      "type": "boolean",
+      "description": "true면 미해결 시 Placeholder 게이트 실패 (릴리스 차단)"
+    },
+    "description": { "type": "string" },
+    "recommended_value": { "type": "string", "description": "자동 추천값 (있는 경우)" },
+    "temporary_value": {
+      "type": "string",
+      "description": "임시 값 사용 중이면 기록 (예: 임시 패키지명, 테스트 광고 ID)"
+    },
+    "status": { "type": "string", "enum": ["unresolved", "resolved", "temporary"] },
+    "resolved_value": { "type": "string" },
+    "resolved_at": { "type": "string", "format": "date-time" },
+    "locations": {
+      "type": "array",
+      "description": "이 Placeholder가 사용된 파일 위치 (placeholder-audit가 갱신)",
+      "items": { "type": "string" }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "resolved" } } },
+      "then": { "required": ["resolved_value", "resolved_at"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "temporary" } } },
+      "then": { "required": ["temporary_value"] }
+    }
+  ]
+}

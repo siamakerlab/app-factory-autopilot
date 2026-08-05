@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "afa:schemas/evidence/v1",
+  "title": "증거 (Evidence)",
+  "description": "완료 판정의 근거 자료 메타데이터. 원본은 .app-factory/evidence/<E-ID>/에 저장하고 이 문서가 메타데이터를 담는다 (MVP-1.md 3.8). 증거 없는 완료 주장은 인정하지 않는다.",
+  "type": "object",
+  "required": ["version", "id", "kind", "created_by", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^E-\\d{4}$" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "changed_code",
+        "implementation_location",
+        "call_path",
+        "unit_test",
+        "instrumented_test",
+        "build_log",
+        "lint_result",
+        "dependency_graph",
+        "license_report",
+        "sbom",
+        "screenshot",
+        "screen_recording",
+        "logcat",
+        "emulator_scenario_result",
+        "verifier_report",
+        "gate_result"
+      ],
+      "description": "MVP-1.md 3.8의 증거 종류"
+    },
+    "title": { "type": "string" },
+    "created_by": {
+      "type": "object",
+      "required": ["role", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "role": { "type": "string", "enum": ["orchestrator", "worker", "verifier", "auditor", "gate", "system"] },
+        "name": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "pattern": "^R-\\d{8}-\\d{3}$" }
+      }
+    },
+    "roadmap_item_ids": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^RM-\\d{3}$" },
+      "uniqueItems": true
+    },
+    "task_id": { "type": "string", "pattern": "^T-\\d{4}$" },
+    "files": {
+      "type": "array",
+      "description": "evidence/<E-ID>/ 내 원본 파일 목록. 대용량 로그는 요약본 저장 (AFA-005 지침)",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "truncated": { "type": "boolean", "description": "원본 일부만 저장했으면 true (전체 해시는 원본 기준)" },
+          "original_size_bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "summary": { "type": "string", "description": "증거 내용 요약 (사람이 빠르게 확인용)" },
+    "data": {
+      "type": "object",
+      "description": "구조화 데이터 (예: 테스트 통과 수, exit code, 스크린샷 화면명)",
+      "additionalProperties": true
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}
