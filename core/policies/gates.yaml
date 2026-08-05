@@ -1,0 +1,73 @@
+# 게이트 정의 (SSOT) — MVP-1.md 3.9, ROADMAP AFA-014
+#
+# kind:
+#   command — APP_FACTORY.yaml commands의 명령을 실행해 exit code로 판정
+#   check   — MCP 내부 검사 함수로 판정 (checker 이름은 구현과 1:1)
+# blocking: true면 실패 시 다음 단계 진행 불가
+# 실행 결과는 자동으로 evidence(kind: gate_result)로 등록된다.
+
+version: 1
+
+gates:
+  - id: build
+    title: 빌드 게이트
+    kind: command
+    command_ref: build          # APP_FACTORY.yaml commands.build
+    blocking: true
+
+  - id: unit_test
+    title: 단위 테스트 게이트
+    kind: command
+    command_ref: test
+    blocking: true
+
+  - id: lint
+    title: Lint 게이트
+    kind: command
+    command_ref: lint
+    blocking: true
+    pass_condition: no_fatal    # 중대 오류 없음 (exit 0 또는 보고서에 Fatal 0)
+
+  - id: completion
+    title: 완료 검증 게이트
+    kind: check
+    checker: all_required_items_verified   # P0·P1 로드맵 항목 전부 VERIFIED + 완료 오표기 없음
+    blocking: true
+
+  - id: placeholder
+    title: Placeholder 게이트
+    kind: check
+    checker: no_release_blocking_placeholders
+    blocking: true
+    release_only: true          # 릴리스 단계에서만 차단 (개발 중에는 경고)
+
+  - id: license
+    title: 라이선스 게이트
+    kind: check
+    checker: license_policy_clean   # 불명 의존성 0, 미승인 GPL/AGPL 0
+    blocking: true
+
+  - id: version_policy
+    title: 버전 게이트
+    kind: check
+    checker: version_policy_clean   # 미승인 Preview 0, Version Catalog 외부 버전 0
+    blocking: true
+
+  - id: notices
+    title: 고지 게이트
+    kind: check
+    checker: notices_up_to_date     # Third Party Notices·SBOM 갱신 완료
+    blocking: true
+
+  - id: emulator
+    title: 실행 게이트
+    kind: check
+    checker: emulator_smoke_passed  # 기본 에뮬레이터 검증 (설치·실행·크래시 확인)
+    blocking: true
+    on_unavailable: blocked         # 디바이스 없으면 skip이 아니라 BLOCKED (AFA-052)
+
+execution:
+  timeout_seconds_default: 900      # 15분 (AFA-050)
+  cache_by_commit: true             # 동일 커밋 재실행 시 캐시 허용, --force로 무시
+  log_tail_lines: 200
+  error_line_patterns: ["error:", "FAILURE:", "FAILED", "Exception"]

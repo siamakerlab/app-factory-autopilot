@@ -1,0 +1,26 @@
+{
+  "name": "@app-factory/core-mcp",
+  "version": "0.1.0",
+  "description": "App Factory Autopilot 공통 MCP 서버 (app-factory-core) — 상태 저장, 작업 잠금, 결과 기록, 승인 처리, 증거 검증",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "main": "dist/index.js",
+  "bin": { "app-factory-core": "dist/index.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test 'dist/test/*.test.js'",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0",
+    "yaml": "^2.5.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,43 @@
+# SPDX 기반 라이선스 정책 (SSOT) — MVP-1.md 3.6, 통합 설계서 10장
+#
+# 기본 프로필: 상업용 비공개 소스 앱, 보수적.
+# 대상 앱 프로젝트의 LICENSE_POLICY.yaml이 이 기본을 override할 수 있다
+# (override에서 GPL/AGPL 허용은 사용자 명시 승인 필요).
+# 이 정책은 법률 자문을 대신하지 않는다.
+
+version: 1
+
+policy:
+  allow:
+    - Apache-2.0        # NOTICE 파일·고지 의무 추가 확인 (notices 게이트)
+    - MIT
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - ISC
+    - Zlib
+    - 0BSD
+    - CC0-1.0
+    - Unlicense
+
+  block:
+    - GPL-1.0*
+    - GPL-2.0*
+    - GPL-3.0*
+    - AGPL*
+    - SSPL*
+    - Commons-Clause
+    - CC-BY-NC*         # 비상업 전용
+    - NOASSERTION
+    - NONE
+
+  manual_review:
+    - LGPL*
+    - MPL-2.0
+    - EPL*
+    - CDDL*
+    # WITH 예외(Classpath Exception 등)·Dual License(OR)는 엔진이 자동으로
+    # manual_review 처리한다 (license-policy.ts)
+
+notes:
+  apache_notice: "Apache-2.0 사용 시 NOTICE 파일 존재·앱 내 고지 포함을 notices 게이트에서 확인한다"
+  unknown: "목록에 없는 식별자·출처 불명 커스텀 라이선스는 자동 차단"

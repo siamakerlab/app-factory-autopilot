@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (9차) — M2 MCP 서버 구현 제출
+
+- `mcp-server/` TypeScript(Node 20+) 구현 — 45개 도구 등록, stdio 프로토콜
+  스모크 테스트(initialize + tools/list) 통과, 단위 테스트 47건 전체 통과
+- AFA-010 🟦: 서버 골격 (StateStore 캡슐화, projectRoot 기동 시 고정,
+  도메인별 도구 모듈 분리, 구조화 오류 { code, message, recoverable })
+- AFA-011 🟦: factory_* 12종 — 이중 클레임 거부, 클레임 토큰 검증,
+  complete는 verifier 전용, 결정론적 다음 작업(의존성·우선순위·승인 반영),
+  stale 클레임 회수, 사이클·진행 보고 기록
+- AFA-012 🟦: roadmap_* 5종 — JSON SSOT, 전이 테이블 통합, 거부 전이
+  finding 자동 기록, 추적성 검증(누락·순환), Markdown 렌더러
+- AFA-013 🟦: finding·evidence 7종 — resolve 증거 필수, sha256 무결성 검증,
+  대용량 로그 tail 요약(원본 해시 보존)
+- AFA-014 🟦: gate_* 3종 + gates.yaml 9게이트 — command/check 분리,
+  결과 증거 자동 등록, 실패 finding 자동 기록, 명령 하드코딩 금지
+- AFA-015 🟦: dependency_* 5종 — 양 검토 통과 전 approve 불가, GPL 자동
+  거부, manual_review는 user 승인만, 후속 작업 9건 순차 의존 자동 등록
+- AFA-016 🟦 / AFA-017 🟦: 승인(선택지·근거·위험·추천안), Placeholder
+  (형식·종류별 기본값·차단 목록), 역량(스캔 대조·설치 계획·거절 기록)
+- AFA-021 🟦: transitions.yaml 전이 테이블 + 전수 테스트 (worker→VERIFIED
+  전 조합 거부 증명)
+- AFA-022 🟦 / AFA-023 🟦: SPDX 정책 엔진(AND/OR/WITH 보수 처리) + 버전
+  Stable-only 판정 — license-policy.yaml 신설
+- AFA-050 🟧: 명령 실행 래퍼(타임아웃·tail·오류 라인) — 재시도 정책 연결은
+  AFA-024에서 완성 예정
+
 ### 2026-08-05 (8차) — M1 완료 (구현 제출)
 
 - AFA-002 🟦: `app-factory-config.schema.json`(설계서 20장 전 항목) +

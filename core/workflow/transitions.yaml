@@ -1,0 +1,44 @@
+# 로드맵 상태 머신 전이 테이블 (SSOT) — MVP-1.md 3.4, ROADMAP AFA-021
+#
+# 형식: from → to 별 허용 role 목록과 요구 조건.
+# 여기 없는 전이는 전부 거부된다. worker는 어떤 경로로도 VERIFIED를 만들 수
+# 없다 — 이 파일에 worker→VERIFIED 조합이 존재하지 않는 것이 그 강제다.
+#
+# roles: orchestrator | worker | verifier | auditor | user | system
+
+version: 1
+
+transitions:
+  - { from: NOT_STARTED, to: IN_PROGRESS, roles: [orchestrator] }
+  - { from: NOT_STARTED, to: BLOCKED, roles: [orchestrator, system] }
+  - { from: NOT_STARTED, to: NEEDS_HUMAN_DECISION, roles: [orchestrator, auditor] }
+
+  - { from: IN_PROGRESS, to: IMPLEMENTED, roles: [worker], requires: [submitted_result] }
+  - { from: IN_PROGRESS, to: PARTIAL, roles: [worker, verifier, auditor] }
+  - { from: IN_PROGRESS, to: BLOCKED, roles: [orchestrator, worker, system] }
+  - { from: IN_PROGRESS, to: NEEDS_HUMAN_DECISION, roles: [orchestrator, worker, auditor] }
+  - { from: IN_PROGRESS, to: NOT_STARTED, roles: [orchestrator], note: "클레임 stale 회수" }
+
+  - { from: PARTIAL, to: IN_PROGRESS, roles: [orchestrator] }
+  - { from: PARTIAL, to: BLOCKED, roles: [orchestrator, system] }
+  - { from: PARTIAL, to: NEEDS_HUMAN_DECISION, roles: [orchestrator, auditor] }
+
+  - from: IMPLEMENTED
+    to: VERIFIED
+    roles: [verifier]
+    requires: [evidence, all_criteria_satisfied]
+    note: "유일한 완료 진입점 — verifier + 증거 + 완료 조건 전 항목 충족"
+  - { from: IMPLEMENTED, to: PARTIAL, roles: [verifier, auditor], note: "부분 구현·완료 오표기 강등" }
+  - { from: IMPLEMENTED, to: IN_PROGRESS, roles: [orchestrator], note: "재작업 재개" }
+  - { from: IMPLEMENTED, to: NEEDS_HUMAN_DECISION, roles: [verifier, auditor] }
+
+  - { from: VERIFIED, to: PARTIAL, roles: [auditor, verifier], note: "review에서 완료 오표기 발견 시 재개방" }
+  - { from: VERIFIED, to: NEEDS_HUMAN_DECISION, roles: [auditor] }
+
+  - { from: BLOCKED, to: NOT_STARTED, roles: [orchestrator] }
+  - { from: BLOCKED, to: IN_PROGRESS, roles: [orchestrator] }
+  - { from: BLOCKED, to: NEEDS_HUMAN_DECISION, roles: [orchestrator] }
+
+  - { from: NEEDS_HUMAN_DECISION, to: NOT_STARTED, roles: [user, orchestrator], note: "사용자 결정 후 재개 — orchestrator는 기록된 사용자 결정 대리 반영만" }
+  - { from: NEEDS_HUMAN_DECISION, to: IN_PROGRESS, roles: [user, orchestrator] }
+  - { from: NEEDS_HUMAN_DECISION, to: BLOCKED, roles: [user, orchestrator] }

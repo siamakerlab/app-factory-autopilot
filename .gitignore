@@ -5,6 +5,7 @@ dist/*
 # Node
 node_modules/
 npm-debug.log*
+mcp-server/dist/
 
 # Python
 __pycache__/
