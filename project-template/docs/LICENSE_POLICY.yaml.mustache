@@ -1,0 +1,16 @@
+# 이 프로젝트의 라이선스 정책 — 코어 기본 정책(license-policy.yaml)의 override
+# 기본: {{license_policy.profile}} (보수적). GPL/AGPL 허용 등 완화는 사용자
+# 명시 승인 없이 변경 금지.
+
+version: 1
+profile: {{license_policy.profile}}
+check_assets: {{license_policy.check_assets}}
+notices_screen: {{license_policy.notices_screen}}
+generate_sbom: {{license_policy.generate_sbom}}
+
+overrides:
+  allow: []          # 추가 허용 (사용자 승인 기록 필수)
+  block: []          # 추가 차단
+  manual_review: []  # 추가 수동 검토
+
+approvals: []        # 수동 검토 승인 이력 { spdx, coordinates, approved_by, at, rationale }

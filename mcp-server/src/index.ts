@@ -19,6 +19,7 @@ import * as dep from "./tools/dependency.js";
 import * as ap from "./tools/approval-placeholder.js";
 import * as cap from "./tools/capability.js";
 import { decideNextAction, handleTaskFailure } from "./orchestrator.js";
+import { reviewScore, reviewSaveReport } from "./tools/review.js";
 import { buildProgressReport, renderProgressReport } from "./report.js";
 
 function parseArgs(argv: string[]): { projectRoot: string; coreDir: string } {
@@ -118,6 +119,9 @@ export function buildServer(ctx: Ctx): McpServer {
     ["capability_mark_installed", "설치 결과 기록", any, cap.capabilityMarkInstalled as Handler],
     ["capability_mark_declined", "거절 항목 기록 (반복 제안 금지)", any, cap.capabilityMarkDeclined as Handler],
     ["capability_get_status", "역량 상태 조회", z.object({}), cap.capabilityGetStatus as Handler],
+    // review 점수화
+    ["review_score", "배점표 기반 영역별 점수·격차 산정 (3.16)", any, reviewScore as Handler],
+    ["review_save_report", "review 리포트 저장 (전/후 비교)", any, reviewSaveReport as Handler],
     // 오케스트레이션
     ["orchestrator_decide_next", "상태 기반 다음 행동 결정 (결정론적)", z.object({}), decideNextAction as Handler],
     ["task_report_failure", "작업 실패 보고 — 재시도 정책 적용 (재큐/차단+승인요청)", any, handleTaskFailure as Handler],

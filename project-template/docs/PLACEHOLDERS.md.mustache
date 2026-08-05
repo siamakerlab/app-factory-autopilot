@@ -1,0 +1,24 @@
+# Placeholder 대장
+
+`.app-factory/state/placeholders/`의 렌더링 파생물입니다 (직접 수정 금지).
+해결: `factory` 명령 또는 placeholder_resolve 도구.
+
+## 릴리스 차단 (미해결)
+
+| 이름 | 종류 | 해결 시점 | 임시 값 | 사용 위치 |
+|------|------|-----------|---------|-----------|
+{{#blocking_rows}}
+| {{name}} | {{kind}} | {{resolve_by}} | {{temporary_value}} | {{locations}} |
+{{/blocking_rows}}
+
+## 기타 (미해결·임시)
+
+{{#other_rows}}
+- {{name}} ({{kind}}, {{status}})
+{{/other_rows}}
+
+## 해결됨
+
+{{#resolved_rows}}
+- {{name}} → {{resolved_value}} ({{resolved_at}})
+{{/resolved_rows}}

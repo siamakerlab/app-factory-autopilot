@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (11차) — M4 완료 (구현 제출), 테스트 58건 통과
+
+- AFA-035 🟧: project-template — plan 산출물 17종 mustache 템플릿 + Android
+  스캐폴드 8종 (Version Catalog, 외부 키스토어 SSOT 참조·부재 시 릴리스
+  차단, 디버그 .debug suffix, 버전은 생성 시점 채움). 🟧 사유:
+  "치환 후 assembleDebug 성공" 조건은 Android SDK 환경에서만 검증 가능
+- AFA-036 🟦: review_score·review_save_report MCP 도구 — 배점표 가중 합산,
+  n_a 분모 제외, 미검사=fail 원칙, 전/후 비교 리포트 저장 (테스트 3건)
+- AFA-033 🟧: Doctor 코어(점검·계획·거절 기록·guidance_doc 마커 규약) 완료
+  — 설치 실행·관리문서 반영은 어댑터(M5)에서 연결
+- MCP 도구 50개로 확대
+
 ### 2026-08-05 (10차) — M3 코어 완료 (구현 제출), 테스트 55건 통과
 
 - AFA-020 🟦: `phases.yaml` 9단계 + 결정론적 오케스트레이터

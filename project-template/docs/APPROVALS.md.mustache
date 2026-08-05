@@ -1,0 +1,23 @@
+# 승인 대장
+
+`.app-factory/approvals/`의 렌더링 파생물입니다. 위험 작업·수동 검토
+라이선스·한도 초과 재시도는 여기 기록된 승인 없이 진행되지 않습니다.
+
+## 대기 중
+
+{{#pending_rows}}
+### {{id}} — {{subject}}
+
+- 선택지: {{options}}
+- 근거: {{rationale}}
+- 위험: {{risks}}
+- 추천안: {{recommendation}}
+{{/pending_rows}}
+
+## 결정됨
+
+| ID | 대상 | 결정 | 선택 | 일시 |
+|----|------|------|------|------|
+{{#decided_rows}}
+| {{id}} | {{subject}} | {{status}} | {{decided_option}} | {{decided_at}} |
+{{/decided_rows}}

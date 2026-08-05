@@ -1,0 +1,98 @@
+import java.util.Properties
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+}
+
+// 서명 SSOT: 키스토어 폴더의 properties 파일만 참조한다.
+// 키스토어·properties가 없으면 릴리스 빌드를 차단한다 (임의 생성 절대 금지).
+fun loadSigning(debug: Boolean): Properties? {
+    val name = if (debug) "{{project.package_name}}-debug-keystore.properties"
+               else "{{project.package_name}}-keystore.properties"
+    val file = rootProject.file("{{signing.keystore_dir}}/$name")
+    return if (file.exists()) Properties().apply { file.inputStream().use { load(it) } } else null
+}
+
+android {
+    namespace = "{{project.namespace}}"
+    compileSdk = {{sdk.compile}}
+
+    defaultConfig {
+        applicationId = "{{project.package_name}}"
+        minSdk = {{sdk.min}}
+        targetSdk = {{sdk.target}}
+        versionCode = {{versioning.initial_code}}   // yymmddrrr — Claude Code 자동 관리
+        versionName = "{{versioning.initial_name}}"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        loadSigning(debug = true)?.let { props ->
+            getByName("debug") {
+                storeFile = rootProject.file("{{signing.keystore_dir}}/" + props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+        loadSigning(debug = false)?.let { props ->
+            create("release") {
+                storeFile = rootProject.file("{{signing.keystore_dir}}/" + props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
+                ?: error(
+                    "릴리스 키스토어가 없습니다: {{signing.keystore_dir}}/{{project.package_name}}-keystore.properties — " +
+                    "운영자 절차로 키스토어를 준비하십시오 (자동 생성 금지)."
+                )
+        }
+    }
+
+    buildFeatures { compose = true }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = "17" }
+}
+
+dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.navigation.compose)
+    implementation(libs.datastore.preferences)
+{{#uses_room}}
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+{{/uses_room}}
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+}

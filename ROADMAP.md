@@ -44,13 +44,13 @@
 | AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | 🟦 |
 | AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
 | AFA-026 | M3 코어 | 무중단 진행 드라이버 (One-Prompt Completion) | P0 | 🟦 |
-| AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | ⬜ |
-| AFA-031 | M4 Agent/Skill | 진입 Skill 7종 (plan/init/auto/review/status/doctor/factory) | P0 | ⬜ |
-| AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | ⬜ |
-| AFA-033 | M4 Agent/Skill | Capability Doctor 구현 | P1 | ⬜ |
-| AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름 | P0 | ⬜ |
-| AFA-035 | M4 Agent/Skill | project-template (plan 산출물 17종 템플릿) | P0 | ⬜ |
-| AFA-036 | M4 Agent/Skill | factory review 파이프라인·점수화 | P0 | ⬜ |
+| AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | 🟦 |
+| AFA-031 | M4 Agent/Skill | 진입 Skill 7종 (plan/init/auto/review/status/doctor/factory) | P0 | 🟦 |
+| AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | 🟦 |
+| AFA-033 | M4 Agent/Skill | Capability Doctor 구현 | P1 | 🟧 |
+| AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름·산출물 생성 | P0 | 🟦 |
+| AFA-035 | M4 Agent/Skill | project-template (plan 산출물 17종 템플릿) | P0 | 🟧 |
+| AFA-036 | M4 Agent/Skill | factory review 파이프라인·점수화 | P0 | 🟦 |
 | AFA-040 | M5 어댑터 | Claude Code 어댑터 | P0 | ⬜ |
 | AFA-041 | M5 어댑터 | Codex 어댑터 | P0 | ⬜ |
 | AFA-042 | M5 어댑터 | 코어→어댑터 빌드 파이프라인 | P0 | ⬜ |

@@ -1,0 +1,53 @@
+# {{project.name}} — 프로젝트 명세
+
+- 생성일: {{today}} / 생성: App Factory Autopilot (factory plan)
+- 패키지명: `{{project.package_name}}`
+
+## 개요
+
+{{project.description}}
+
+## 해결하려는 문제와 대상 사용자
+
+{{interview.basics.problem}}
+
+## 핵심가치
+
+{{interview.basics.core_value}}
+
+## 수익 모델
+
+{{interview.basics.monetization}}
+
+## 핵심 기능 (등급별)
+
+### CORE
+{{#core_features}}
+- {{.}}
+{{/core_features}}
+
+### SUPPORTING
+{{#supporting_features}}
+- {{.}}
+{{/supporting_features}}
+
+### OPTIONAL (1차 출시 이후)
+{{#optional_features}}
+- {{.}}
+{{/optional_features}}
+
+## 대표 사용자 시나리오
+
+{{interview.features.main_flow}}
+
+## 기술 스택
+
+{{language.implementation}} / Jetpack Compose / Material 3 / MVVM+Repository+UDF /
+Hilt / Coroutines·Flow / {{persistence_summary}} / Navigation /
+Gradle Version Catalog
+
+## 경쟁·참고 앱
+
+{{#competitors}}
+- {{.}}
+{{/competitors}}

@@ -1,0 +1,38 @@
+# APP_FACTORY_RULES — 공통 규칙 (단일 원본)
+
+이 파일은 {{project.name}} 프로젝트에서 작업하는 모든 AI Provider(Claude
+Code, Codex)가 따라야 하는 규칙의 **단일 원본**입니다. CLAUDE.md와
+AGENTS.md는 이 파일을 참조만 하며 내용을 중복 관리하지 않습니다.
+
+## 완료 판정
+
+- 구현자는 로드맵 항목을 `IMPLEMENTED`까지만 제출할 수 있다.
+- `VERIFIED`(유일한 완료 상태)는 Completion Verifier의 독립 검증으로만
+  부여된다. 로드맵 체크 표시·구현 대화는 완료의 근거가 아니다.
+- 부분 구현(빈 함수·미호출 코드·Mock·TODO·실패 경로 누락·테스트 없는 구현)
+  발견 시 완료가 취소되고 재작업 대상이 된다.
+- 모든 완료 판정에는 증거(Evidence)가 필요하다.
+
+## 상태·작업
+
+- 모든 상태 변경은 app-factory-core MCP 도구를 통해서만 수행한다.
+  `.app-factory/` 파일 직접 수정 금지.
+- 위험 작업(git push, 배포, 서명 변경, 파괴적 마이그레이션, 결제 상품
+  변경 등)은 사용자 승인 없이 실행 금지.
+- 모르는 값은 지어내지 않는다 — `${PLACEHOLDER_*}`로 등록한다.
+
+## 기술 규칙 (이 프로젝트)
+
+- 언어·스택: {{language.implementation}}, Compose+Material3,
+  MVVM+Repository+UDF, Hilt, Coroutines/Flow, DataStore{{#uses_room}}+Room{{/uses_room}}
+- 문자열: strings.xml 전용, 하드코딩 금지 (기본 언어 {{localization.default_language}}, 다국어 구조 상시)
+- 버전: Version Catalog 중앙 관리, 최신 안정화(stable)만, 동적 버전 금지
+- 라이선스: Permissive 허용 / GPL·AGPL 차단 / LGPL 계열 수동 검토
+  (LICENSE_POLICY.yaml)
+- 키스토어: `{{signing.keystore_dir}}` 외부 참조만, 임의 생성 절대 금지
+- 광고: 디버그는 테스트 ID, 릴리스에 테스트 ID 잔존 금지
+- 로그: 공통 Logger, 릴리스 비활성, 개인정보 금지
+
+<!-- app-factory:capabilities:start -->
+<!-- Capability Doctor가 설치된 스킬 사용 지침을 이 블록에 관리한다 -->
+<!-- app-factory:capabilities:end -->

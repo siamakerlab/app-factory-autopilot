@@ -1,0 +1,51 @@
+# Version Catalog — 모든 버전은 여기서만 관리한다 (하드코딩·동적 버전 금지).
+# {{versions.*}} 값은 생성 시점에 Dependency Version Manager가 공식 문서에서
+# 확인한 최신 안정화 버전으로 채운다. Preview 계열은 사용자 승인 없이 금지.
+
+[versions]
+agp = "{{versions.agp}}"
+kotlin = "{{versions.kotlin}}"
+ksp = "{{versions.ksp}}"
+composeBom = "{{versions.composeBom}}"
+activityCompose = "{{versions.activityCompose}}"
+coreKtx = "{{versions.coreKtx}}"
+lifecycle = "{{versions.lifecycle}}"
+hilt = "{{versions.hilt}}"
+hiltNavigationCompose = "{{versions.hiltNavigationCompose}}"
+navigationCompose = "{{versions.navigationCompose}}"
+datastore = "{{versions.datastore}}"
+{{#uses_room}}
+room = "{{versions.room}}"
+{{/uses_room}}
+junit = "{{versions.junit}}"
+coroutinesTest = "{{versions.coroutinesTest}}"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+{{#uses_room}}
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+{{/uses_room}}
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
