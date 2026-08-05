@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "id": "RM-001",
+  "title": "메모 목록 화면",
+  "requirement": "사용자는 저장된 메모를 최신순 목록으로 볼 수 있다",
+  "implementation_scope": "목록 Composable, ViewModel, Repository 연결. 검색·정렬은 RM-004 범위로 제외",
+  "completion_criteria": [
+    {
+      "description": "메모 목록이 Room에서 로드되어 표시된다",
+      "verifiable_by": "test",
+      "satisfied": true,
+      "evidence_ids": ["E-0001"]
+    },
+    {
+      "description": "빈 목록일 때 빈 상태 화면이 표시된다",
+      "verifiable_by": "emulator",
+      "satisfied": true,
+      "evidence_ids": ["E-0002"]
+    }
+  ],
+  "test_criteria": [
+    {
+      "description": "MemoListViewModel 단위 테스트 — 로드 성공·실패·빈 목록",
+      "verifiable_by": "test"
+    }
+  ],
+  "runtime_verification_criteria": [
+    {
+      "description": "앱 실행 후 목록 화면 진입, 크래시 없음",
+      "verifiable_by": "emulator"
+    }
+  ],
+  "depends_on": [],
+  "priority": "P0",
+  "risk": "low",
+  "status": "VERIFIED",
+  "feature_grade": "CORE",
+  "placeholder_refs": [],
+  "evidence_ids": ["E-0001", "E-0002"],
+  "status_history": [
+    {
+      "from": "NOT_STARTED",
+      "to": "IN_PROGRESS",
+      "role": "orchestrator",
+      "at": "2026-08-05T10:00:00+09:00",
+      "task_id": "T-0001"
+    },
+    {
+      "from": "IN_PROGRESS",
+      "to": "IMPLEMENTED",
+      "role": "worker",
+      "at": "2026-08-05T11:30:00+09:00",
+      "task_id": "T-0001",
+      "reason": "구현·테스트 작성 완료, 빌드 성공"
+    },
+    {
+      "from": "IMPLEMENTED",
+      "to": "VERIFIED",
+      "role": "verifier",
+      "at": "2026-08-05T12:00:00+09:00",
+      "task_id": "T-0002",
+      "evidence_ids": ["E-0001", "E-0002"]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "afa:schemas/run/v1",
+  "title": "실행 기록 (Run)",
+  "description": "factory 명령 1회 실행의 기록. .app-factory/runs/에 저장. 턴(사이클)별 진행 보고(MVP-1.md 3.15)와 종료 사유(3.17)를 담는다.",
+  "type": "object",
+  "required": ["version", "id", "command", "provider", "status", "started_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^R-\\d{8}-\\d{3}$",
+      "description": "R-YYYYMMDD-일련번호 (날짜 변경 시 001부터)"
+    },
+    "command": {
+      "type": "string",
+      "enum": ["plan", "init", "auto", "review", "status", "doctor"]
+    },
+    "provider": { "type": "string", "enum": ["claude-code", "codex", "cli"] },
+    "resumed_from_run_id": {
+      "type": "string",
+      "pattern": "^R-\\d{8}-\\d{3}$",
+      "description": "중단 후 재개인 경우 이전 Run ID"
+    },
+    "status": { "type": "string", "enum": ["running", "finished"] },
+    "exit_reason": {
+      "type": "string",
+      "enum": ["completed", "forced_stop", "limit_exceeded", "user_abort", "error"],
+      "description": "3.17 종료 조건: completed=게이트 전체 통과, forced_stop=강제 중단 조건, limit_exceeded=반복·예산 한도"
+    },
+    "cycles": {
+      "type": "array",
+      "description": "턴(사이클) 기록. 각 사이클 종료 시 3.15 진행 보고를 남긴다",
+      "items": {
+        "type": "object",
+        "required": ["seq", "phase", "report"],
+        "additionalProperties": false,
+        "properties": {
+          "seq": { "type": "integer", "minimum": 1 },
+          "phase": { "type": "string", "minLength": 1, "description": "workflow phases.yaml의 단계명" },
+          "task_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^T-\\d{4}$" },
+            "uniqueItems": true
+          },
+          "started_at": { "type": "string", "format": "date-time" },
+          "ended_at": { "type": "string", "format": "date-time" },
+          "report": { "$ref": "#/$defs/progressReport" }
+        }
+      }
+    },
+    "pending_decisions": {
+      "type": "array",
+      "description": "질문 지연·일괄 처리로 적체된 NEEDS_HUMAN_DECISION 항목 (3.17) — 종료 시 일괄 보고 대상",
+      "items": {
+        "type": "object",
+        "required": ["subject", "summary"],
+        "additionalProperties": false,
+        "properties": {
+          "subject": { "type": "string", "description": "로드맵 항목·finding·approval 등의 ID" },
+          "summary": { "type": "string", "minLength": 1 },
+          "blocking_critical_path": { "type": "boolean" }
+        }
+      }
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "finished" } } },
+      "then": { "required": ["exit_reason", "ended_at"] }
+    }
+  ],
+  "$defs": {
+    "progressReport": {
+      "type": "object",
+      "description": "3.15 턴 종료 진행 보고 4요소",
+      "required": ["summary", "goals", "next", "progress_pct"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "type": "string", "minLength": 1, "description": "① 현재까지의 진행 상황" },
+        "goals": { "type": "string", "minLength": 1, "description": "② 앞으로의 목표" },
+        "next": {
+          "type": "object",
+          "description": "③ 다음 턴 예정 — factory_get_next_task 결과를 그대로 사용 (AFA-025 지침)",
+          "required": ["description"],
+          "additionalProperties": false,
+          "properties": {
+            "task_id": { "type": "string", "pattern": "^T-\\d{4}$" },
+            "description": { "type": "string", "minLength": 1 }
+          }
+        },
+        "progress_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "④ 전체 진행도 — 상태 가중치(0/25/50/75/100) 평균, 필수 항목만 분모 (3.15 공식)"
+        }
+      }
+    }
+  }
+}

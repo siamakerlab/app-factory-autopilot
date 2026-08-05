@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (6차) — M1 착수
+
+- AFA-001 구현 제출 (🟦 IMPLEMENTED): 코어 스키마 4종 작성
+  - `core/schemas/roadmap-item.schema.json` — 7상태 enum, 완료 조건
+    구조화(`verifiable_by`), VERIFIED 시 증거 필수(조건부 스키마), 전이 이력
+  - `core/schemas/task.schema.json` — 클레임 토큰, dangerous 태그(강제 중단
+    조건), worker의 requested_status에서 VERIFIED 원천 배제
+  - `core/schemas/finding.schema.json` — 심각도·영역 enum(3.16 점수화 영역과
+    정렬), resolve 시 증거 1건 이상 필수, reopen 이력 보존
+  - `core/schemas/run.schema.json` — 사이클별 3.15 진행 보고 4요소,
+    3.17 종료 사유, pending_decisions(질문 적체) 구조
+  - 예시 인스턴스 4종 + 검증 스크립트(`scripts/validate-schemas.py`) 전체
+    통과, 부정 케이스 7건 거부 확인(`tests/schema-negative-tests.py`)
+
 ### 2026-08-05 (5차)
 
 - 무중단 자동 진행 명세 추가 (MVP-1.md 3.17, 사용자 요구): `factory go/auto`

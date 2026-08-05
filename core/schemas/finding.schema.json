@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "afa:schemas/finding/v1",
+  "title": "발견 사항 (Finding)",
+  "description": "감사·검증·게이트에서 발견된 문제. .app-factory/findings/에 저장. resolve에는 증거가 필수다 — '고쳤다'는 주장에도 증거가 필요하다 (ROADMAP AFA-013 지침).",
+  "type": "object",
+  "required": ["version", "id", "severity", "area", "title", "source", "status", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^F-\\d{4}$" },
+    "severity": {
+      "type": "string",
+      "enum": ["blocker", "major", "minor"],
+      "description": "blocker는 게이트가 자동 참조하므로 enum을 안정적으로 유지한다"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "requirement",
+        "ui_flow",
+        "screen_state",
+        "data_persistence",
+        "security",
+        "privacy",
+        "ads",
+        "billing",
+        "in_app_review",
+        "in_app_update",
+        "testing",
+        "build",
+        "signing",
+        "dependency_version",
+        "license",
+        "performance",
+        "accessibility",
+        "i18n",
+        "placeholder",
+        "completion_mismark",
+        "other"
+      ],
+      "description": "검사 영역 (MVP-1.md 3.16 점수화 영역과 정렬 — review-scoring.yaml이 동일 enum 사용)"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["kind", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "enum": ["agent", "gate", "skill", "user"] },
+        "name": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "pattern": "^R-\\d{8}-\\d{3}$" }
+      }
+    },
+    "roadmap_item_id": { "type": "string", "pattern": "^RM-\\d{3}$" },
+    "task_id": { "type": "string", "pattern": "^T-\\d{4}$" },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "symbol": { "type": "string" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "in_fix", "resolved", "reopened", "needs_human_decision", "wont_fix"]
+    },
+    "auto_fixable": {
+      "type": "boolean",
+      "description": "자동 수정이 안전한지 여부. false면 needs_human_decision 경로 (MVP-1.md 3.2)"
+    },
+    "fix_task_id": { "type": "string", "pattern": "^T-\\d{4}$" },
+    "resolution": {
+      "type": "object",
+      "description": "status가 resolved일 때 필수. evidence_ids 1개 이상 필수",
+      "required": ["description", "evidence_ids", "resolved_at"],
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^E-\\d{4}$" },
+          "uniqueItems": true
+        },
+        "resolved_at": { "type": "string", "format": "date-time" },
+        "resolved_by_role": {
+          "type": "string",
+          "enum": ["worker", "verifier", "auditor", "user"]
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "description": "상태 변경 이력 — reopen 이력 보존 (AFA-013 완료 조건)",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "at": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "resolved" } } },
+      "then": { "required": ["resolution"] }
+    }
+  ]
+}
