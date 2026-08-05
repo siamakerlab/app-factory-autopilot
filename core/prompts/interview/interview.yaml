@@ -1,0 +1,117 @@
+# factory plan 인터뷰 정의 (SSOT) — 설계서 5장, MVP-1.md 3.11, ROADMAP AFA-034
+#
+# 진행 규칙 (진행 로직은 공통 하나 — 질문을 프롬프트에 하드코딩하지 않는다):
+# - 영역(area) 단위 작은 묶음으로 질문한다. 한 번에 수십 개 금지.
+# - 답변 즉시 .app-factory/config/interview/<area>.json 저장 → 재실행 시
+#   남은 질문부터 이어간다. 이미 답한 질문은 다시 묻지 않는다.
+# - when 조건 불충족 질문은 건너뛴다.
+# - "모름/미정" → placeholder.kind 로 placeholder_create 후 config에는
+#   ${PLACEHOLDER_*} 기록. 임의로 지어내지 않는다.
+# - recommend가 있으면 "추천값 + 변경 여부 확인" 1문항으로 압축한다.
+# - 모의 응답 주입: AFA_INTERVIEW_ANSWERS=<json> (E2E용)
+#
+# type: text | boolean | choice | multi | list
+# config: APP_FACTORY.yaml 내 경로 (점 표기)
+
+version: 1
+
+defaults:  # 2026-08-05 사용자 확정 — 질문과 무관하게 항상 적용
+  language.implementation: kotlin
+  localization.default_language: en
+  localization.i18n_structure: true   # 다국어 구조 상시 (strings.xml, 하드코딩 금지)
+
+areas:
+  - id: basics
+    title: 앱 기본 정보
+    questions:
+      - { id: app_name, ask: "앱 이름(한국어)과 영문 이름은 무엇입니까?", type: text, config: project.name }
+      - { id: app_one_liner, ask: "앱을 한 문장으로 설명해 주십시오.", type: text, config: project.description }
+      - { id: problem, ask: "이 앱이 해결하려는 문제와 주요 대상 사용자는 누구입니까?", type: text, config: null, note: "PROJECT_SPEC·USER_VALUE 반영" }
+      - { id: core_value, ask: "사용자가 가장 자주 할 작업과 앱의 핵심가치는 무엇입니까?", type: text, config: null }
+      - { id: competitors, ask: "경쟁 앱 또는 참고 앱이 있습니까?", type: list, config: null, optional: true }
+      - { id: category, ask: "앱 카테고리(스토어 기준)는 무엇입니까?", type: text, config: null }
+      - { id: monetization, ask: "수익 모델을 선택해 주십시오.", type: choice, options: [무료+광고, 무료+광고+광고제거IAP, 유료, 부분유료, 완전무료], recommend: 무료+광고+광고제거IAP, config: null }
+      - id: package_name
+        ask: "패키지명을 확정해 주십시오 (출시 후 변경 불가)."
+        type: text
+        recommend_from: "com.siamakerlab.<앱 영문 소문자>"
+        config: project.package_name
+        placeholder: { kind: package_name, name: "${PLACEHOLDER_APPLICATION_ID}" }
+        followup_if_placeholder: "임시 패키지명으로 프로젝트 생성을 진행해도 됩니까? (미확정 시 factory auto의 프로젝트 생성 전 확정 필요)"
+      - { id: developer, ask: "개발자/회사 이름과 도메인, 지원 이메일을 알려주십시오.", type: text, config: project.developer, placeholder: { kind: support_email, name: "${PLACEHOLDER_SUPPORT_EMAIL}" } }
+      - { id: privacy_url, ask: "개인정보처리방침 URL이 있습니까?", type: text, config: project.privacy_policy_url, placeholder: { kind: privacy_policy_url, name: "${PLACEHOLDER_PRIVACY_POLICY_URL}" } }
+      - { id: language_runtime, ask: "구현 언어·런타임을 지정하시겠습니까? (미지정 시 Kotlin + Android 권장 스택)", type: text, default: kotlin, config: language.implementation }
+
+  - id: features
+    title: 핵심 기능
+    questions:
+      - { id: must_features, ask: "반드시 필요한 기능(CORE)을 나열해 주십시오.", type: list, config: null }
+      - { id: nice_features, ask: "있으면 좋은 기능(SUPPORTING)과 향후 버전 기능(OPTIONAL)은 무엇입니까?", type: list, config: null, optional: true }
+      - { id: main_flow, ask: "첫 실행 화면 → 메인 화면 → 대표 사용자 시나리오를 설명해 주십시오.", type: text, config: null }
+      - { id: data_features, ask: "해당되는 기능을 모두 선택해 주십시오.", type: multi, options: [검색, 정렬, 필터, 공유, 가져오기, 내보내기, 백업/복원, 클라우드 동기화, 오프라인 지원, 알림, 백그라운드 작업, 홈 위젯], config: null }
+      - { id: device_features, ask: "사용할 기기 기능을 선택해 주십시오 (권한 설계에 반영).", type: multi, options: [파일 접근, 카메라, 위치, 블루투스, 마이크, 연락처, 캘린더, 없음], config: null }
+      - { id: network_account, ask: "외부 서버/API, 로그인·계정, 다중 기기 동기화가 필요합니까?", type: multi, options: [외부 서버, 외부 API, 로그인/회원가입, 다중 기기 동기화, 없음], config: data_security.network }
+
+  - id: ui_ux
+    title: UI와 UX
+    questions:
+      - { id: stack_confirm, ask: "권장 스택(Compose, Material3, MVVM+Hilt, Room/DataStore, Navigation, Version Catalog)을 사용합니다. 변경할 부분이 있습니까?", type: text, default: 변경 없음, config: null }
+      - { id: colors, ask: "앱 색상·디자인 방향이 있습니까? (미지정 시 Material3 동적 색상)", type: text, optional: true, config: null }
+      - { id: dark_dynamic, ask: "다크 모드와 Dynamic Color를 지원합니까?", type: boolean, default: true, config: ui.dark_mode }
+      - { id: form_factors, ask: "지원 폼팩터를 선택해 주십시오.", type: multi, options: [휴대폰, 태블릿, 폴더블], default: [휴대폰, 태블릿, 폴더블], config: ui.form_factors }
+      - { id: orientation, ask: "화면 방향은 어떻게 합니까?", type: choice, options: [세로 고정, 세로+가로], default: 세로 고정, config: ui.orientations }
+      - { id: onboarding, ask: "온보딩/튜토리얼이 필요합니까?", type: boolean, default: false, config: null }
+      - { id: app_icon, ask: "앱 아이콘·Feature Graphic·스크린샷 소재가 준비되어 있습니까?", type: boolean, default: false, config: null, placeholder: { kind: design_asset, name: "${PLACEHOLDER_APP_ICON}" } }
+      - { id: languages, ask: "기본 언어는 영어이며 다국어 구조는 기본 적용됩니다. 추가 지원 언어가 있습니까?", type: list, default: [en], config: localization.languages }
+
+  - id: ads
+    title: 광고
+    questions:
+      - { id: ads_enabled, ask: "광고를 사용합니까?", type: boolean, default: true, config: ads.enabled }
+      - { id: ad_formats, ask: "광고 형식을 선택해 주십시오.", type: multi, options: [적응형 배너, 네이티브, 전면, 리워드, 앱 오픈], default: [적응형 배너, 앱 오픈], when: ads_enabled, config: ads.formats }
+      - { id: ad_placement, ask: "광고 노출 위치·빈도·쿨다운 정책이 있습니까? (기본: 배너 하단 고정, 앱 오픈 15분 1회)", type: text, default: 기본 정책, when: ads_enabled, config: null }
+      - { id: remove_ads, ask: "광고 제거 상품을 포함합니까? 제거 시 어떤 광고를 제거합니까?", type: text, default: "전체 제거", when: ads_enabled, config: null }
+      - { id: consent, ask: "GDPR/UMP 동의 관리를 적용합니다. 미성년자·가족 정책 대상입니까?", type: boolean, default: false, when: ads_enabled, config: ads.consent.child_directed }
+      - { id: admob_ids, ask: "실제 AdMob App ID·광고 단위 ID가 있습니까? (없으면 테스트 ID로 개발, 릴리스 전 필요)", type: text, when: ads_enabled, config: ads.app_id, placeholder: { kind: admob_ids, name: "${PLACEHOLDER_ADMOB_APP_ID}" } }
+
+  - id: billing
+    title: 인앱결제
+    questions:
+      - { id: billing_enabled, ask: "인앱결제를 사용합니까? (광고 제거 상품 포함 시 필요)", type: boolean, default: true, config: billing.enabled }
+      - { id: products, ask: "상품 구성(일회성 소모/비소모, 구독)과 상품 ID를 알려주십시오.", type: list, when: billing_enabled, config: billing.products, placeholder: { kind: billing_product_ids, name: "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}" } }
+      - { id: restore, ask: "앱 시작 시 구매 상태 자동 복원을 적용합니까?", type: boolean, default: true, when: billing_enabled, config: billing.restore_on_start }
+      - { id: server_verify, ask: "서버 영수증 검증이 필요합니까? (기본: 클라이언트 검증)", type: boolean, default: false, when: billing_enabled, config: billing.server_verification }
+
+  - id: review
+    title: 인앱리뷰
+    questions:
+      - { id: review_enabled, ask: "인앱리뷰를 사용합니까?", type: boolean, default: true, config: in_app_review.enabled }
+      - { id: review_timing, ask: "리뷰 요청 시점 정책 (기본: 5회 사용+3일 경과+중요 작업 성공 후, 거절 시 30일 쿨다운, 오류 직후 요청 금지)을 변경하시겠습니까?", type: text, default: 기본 정책, when: review_enabled, config: null }
+
+  - id: update
+    title: 인앱업데이트
+    questions:
+      - { id: update_enabled, ask: "인앱업데이트를 사용합니까?", type: boolean, default: true, config: in_app_update.enabled }
+      - { id: update_policy, ask: "업데이트 정책 (기본: 버전 차이 1~2 선택/Flexible, 3+ 강제/Immediate)을 변경하시겠습니까?", type: text, default: 기본 정책, when: update_enabled, config: null }
+
+  - id: data_security
+    title: 데이터와 보안
+    questions:
+      - { id: data_kinds, ask: "저장할 데이터 종류는 무엇입니까? 민감정보·개인정보가 포함됩니까?", type: text, config: data_security.personal_data }
+      - { id: encryption, ask: "로컬 암호화(Keystore/AES-GCM)·DB 암호화가 필요합니까?", type: boolean, default: false, config: data_security.local_encryption }
+      - { id: backup, ask: "Android 자동 백업을 허용합니까?", type: boolean, default: true, config: data_security.android_backup }
+      - { id: capture_bio, ask: "스크린 캡처 방지 또는 생체 인증이 필요합니까?", type: multi, options: [캡처 방지, 생체 인증, 불필요], default: [불필요], config: data_security.screen_capture_block }
+
+  - id: signing_release
+    title: 서명과 배포
+    questions:
+      - { id: keystore, ask: "기존 키스토어가 있습니까? (경로: ../keystores/<패키지명>.keystore — 없으면 운영자 절차로 준비 필요, 자동 생성 금지)", type: text, config: signing.keystore_dir, placeholder: { kind: keystore, name: "${PLACEHOLDER_KEYSTORE_PATH}" } }
+      - { id: play_signing, ask: "Play App Signing을 사용합니까?", type: boolean, default: true, config: signing.play_app_signing }
+      - { id: tracks, ask: "배포 계획(내부 테스트→비공개→프로덕션)과 지원 국가·연령 등급 계획이 있습니까?", type: text, optional: true, config: null, placeholder: { kind: store_listing, name: "${PLACEHOLDER_STORE_LISTING}" } }
+
+  - id: license_policy
+    title: 버전과 라이선스 정책
+    questions:
+      - { id: source_model, ask: "소스 공개 형태는 무엇입니까?", type: choice, options: [상업용 비공개, 오픈소스, 일부 공개], default: 상업용 비공개, config: license_policy.profile }
+      - { id: license_overrides, ask: "기본 정책(Permissive 허용, GPL/AGPL 차단, LGPL 계열 수동 검토)에서 변경할 항목이 있습니까?", type: text, default: 변경 없음, config: null }
+      - { id: asset_check, ask: "폰트·이미지·아이콘·음원 라이선스 검사와 오픈소스 고지 화면·SBOM 생성을 포함합니까?", type: boolean, default: true, config: license_policy.check_assets }

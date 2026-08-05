@@ -1,0 +1,126 @@
+# factory review 점수 산정 기준 (SSOT) — MVP-1.md 3.16, ROADMAP AFA-036
+#
+# 점수는 LLM 인상 평가가 아니라 이 배점표 기반으로 산정한다.
+# 각 검사 항목에 pass / fail / n_a 를 매기고:
+#   영역 점수 = round(100 × Σ(pass 가중치) / Σ(해당 항목 가중치))   (n_a는 분모 제외)
+# 전/후 비교는 반드시 동일 배점표로 수행한다.
+# area 값은 finding.schema.json의 area enum과 정렬되어 있다.
+
+version: 1
+
+targets:
+  default: 90
+  release_blocking: 100   # release_blocking: true 영역의 목표는 100
+
+areas:
+  - area: requirement
+    title: 요구사항·로드맵 일치
+    release_blocking: true
+    checks:
+      - { id: all_p0_verified, desc: "P0·P1 항목 전부 VERIFIED", weight: 3 }
+      - { id: no_mismark, desc: "완료 오표기(open blocker) 없음", weight: 3 }
+      - { id: core_value_implemented, desc: "핵심가치(CORE 기능)가 실제 동작", weight: 3 }
+      - { id: traceability, desc: "요구사항↔구현↔테스트 추적성 무결", weight: 1 }
+
+  - area: ui_flow
+    title: 사용자 흐름·화면 상태
+    checks:
+      - { id: empty_states, desc: "빈 데이터 상태 화면 처리", weight: 2 }
+      - { id: error_states, desc: "오류 상태 화면·재시도 처리", weight: 2 }
+      - { id: loading_states, desc: "로딩 상태 처리", weight: 1 }
+      - { id: back_nav, desc: "뒤로가기·내비게이션 일관성", weight: 1 }
+      - { id: dark_mode, desc: "다크 모드 정상 표시", weight: 1 }
+      - { id: adaptive, desc: "태블릿·폴더블 레이아웃 대응", weight: 1 }
+
+  - area: data_persistence
+    title: 데이터 보존
+    checks:
+      - { id: persist_across_restart, desc: "재시작 후 데이터 보존", weight: 3 }
+      - { id: backup_restore, desc: "백업·복원 동작 (활성 시)", weight: 2 }
+      - { id: migration_safe, desc: "스키마 마이그레이션 안전성", weight: 2 }
+
+  - area: security
+    title: 보안·개인정보
+    release_blocking: true
+    checks:
+      - { id: no_secrets_in_code, desc: "하드코딩된 Secret 없음", weight: 3 }
+      - { id: no_pii_logs, desc: "로그에 개인정보 없음", weight: 2 }
+      - { id: tls_only, desc: "네트워크 HTTPS 전용 (사용 시)", weight: 2 }
+      - { id: permissions_minimal, desc: "권한 최소화·사용 근거 존재", weight: 2 }
+
+  - area: ads
+    title: 광고·동의
+    release_blocking: true
+    checks:
+      - { id: ump_consent, desc: "UMP/GDPR 동의 흐름 구현", weight: 3 }
+      - { id: no_test_ids_release, desc: "릴리스에 테스트 광고 ID 잔존 없음", weight: 3 }
+      - { id: banner_policy, desc: "배너 전역 관리·재생성 금지", weight: 1 }
+      - { id: remove_ads_effective, desc: "광고 제거 구매 시 완전 제거", weight: 2 }
+
+  - area: billing
+    title: 결제
+    release_blocking: true
+    checks:
+      - { id: purchase_flow, desc: "구매 성공·취소·보류 경로 구현", weight: 3 }
+      - { id: restore, desc: "시작 시 구매 상태 복원", weight: 2 }
+      - { id: offline_grace, desc: "오프라인 상태 처리", weight: 1 }
+
+  - area: testing
+    title: 테스트
+    checks:
+      - { id: core_logic_tested, desc: "핵심 로직 단위 테스트 존재·유효", weight: 3 }
+      - { id: failure_paths_tested, desc: "실패 경로 테스트 존재", weight: 2 }
+      - { id: no_fake_tests, desc: "assert 없는 테스트·항상 통과 테스트 없음", weight: 2 }
+
+  - area: build
+    title: 빌드·서명 설정
+    release_blocking: true
+    checks:
+      - { id: build_green, desc: "assembleDebug·(필요 시) Release 성공", weight: 3 }
+      - { id: lint_clean, desc: "Lint 중대 오류 없음", weight: 2 }
+      - { id: signing_external, desc: "키스토어 외부 참조·자동 생성 없음", weight: 2 }
+      - { id: version_from_buildconfig, desc: "버전 표시 BuildConfig 참조", weight: 1 }
+
+  - area: dependency_version
+    title: 의존성 버전
+    release_blocking: true
+    checks:
+      - { id: stable_only, desc: "미승인 Preview 버전 없음", weight: 3 }
+      - { id: catalog_only, desc: "Version Catalog 외부 선언·동적 버전 없음", weight: 2 }
+      - { id: locking_current, desc: "Dependency Locking·Verification 최신", weight: 1 }
+
+  - area: license
+    title: 라이선스·고지
+    release_blocking: true
+    checks:
+      - { id: no_unknown_license, desc: "라이선스 불명 의존성 없음", weight: 3 }
+      - { id: no_gpl, desc: "미승인 GPL/AGPL 없음", weight: 3 }
+      - { id: notices_current, desc: "Third Party Notices·SBOM 최신", weight: 2 }
+
+  - area: performance
+    title: 성능
+    checks:
+      - { id: no_main_thread_io, desc: "메인 스레드 블로킹 IO 없음", weight: 2 }
+      - { id: startup_ok, desc: "콜드 스타트 지연 요인 없음", weight: 1 }
+      - { id: leaks, desc: "명백한 메모리 누수 패턴 없음", weight: 2 }
+
+  - area: accessibility
+    title: 접근성
+    checks:
+      - { id: content_desc, desc: "contentDescription 제공", weight: 2 }
+      - { id: touch_targets, desc: "터치 영역 48dp 이상", weight: 1 }
+      - { id: not_color_only, desc: "색상 단독 상태 구분 없음", weight: 1 }
+      - { id: font_scale, desc: "글꼴 크기 확대 대응", weight: 1 }
+
+  - area: i18n
+    title: 다국어
+    checks:
+      - { id: no_hardcoded_strings, desc: "하드코딩 문자열 없음 (strings.xml)", weight: 3 }
+      - { id: locale_safe, desc: "기기 언어 변경 시 정상 동작", weight: 1 }
+
+  - area: placeholder
+    title: 잔존물
+    release_blocking: true
+    checks:
+      - { id: no_blocking_placeholders, desc: "릴리스 차단 Placeholder 없음", weight: 3 }
+      - { id: no_todo_debug, desc: "TODO·디버그 코드 잔존 없음", weight: 2 }
