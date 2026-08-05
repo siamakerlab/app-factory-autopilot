@@ -491,6 +491,11 @@ build-failure-debugger, gap-analysis-reviewer, android-skill-sweep 등 —
 MVP-1의 에뮬레이터 검증은 "설치·실행·크래시 확인" 기본 수준까지만 포함하며,
 시나리오 자동화·녹화·Logcat 정밀 분석은 MVP-5 범위입니다.
 
+**공통 CLI 범위 명확화 (2026-08-05 정밀점검)**: 3.1 표의 "공통 CLI" 열과
+3.17의 러너는 저장소 내 **개발·테스트용 실행 스크립트**를 의미합니다. npm
+패키지 배포, OS별 설치기, 배포판 CLI는 1.0 범위입니다. MVP-1 DoD는 Claude
+Code와 Codex 두 Provider에서의 동작만 요구합니다 (DoD 1).
+
 ## 5. 저장소 구조 (통합 설계서 27장)
 
 ```
