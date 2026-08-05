@@ -15,7 +15,17 @@ Claude Code와 Codex 양쪽에서 동작하는 플러그인과 공통 CLI를 목
 
 - Claude Code: `/factory plan|init|auto|review`
 - Codex: `$factory plan|init|auto|review`
-- `factory go`는 `factory auto`의 호환 별칭, `factory status`는 보조 명령입니다.
+- `factory go`는 `factory auto`의 호환 별칭이며, 보조 명령으로
+  `factory status`(상태 요약)와 `factory doctor`(개발 환경 필수 스킬·MCP 점검
+  및 설치 제안)를 제공합니다.
+
+## Capability Doctor
+
+Android 앱 제작에 필요한 스킬 40종·MCP 서버·서브에이전트가 설치되어 있는지
+점검하고, 미설치 항목을 카테고리별 체크리스트로 보여 준 뒤 **사용자가 선택한
+항목만** 전역/프로젝트 스코프를 골라 일괄 설치합니다. 사용자 확인 없는 자동
+설치는 하지 않습니다. 카탈로그 SSOT는
+[`core/policies/capability-catalog.yaml`](./core/policies/capability-catalog.yaml)입니다.
 
 ## 핵심 원칙
 

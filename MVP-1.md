@@ -68,7 +68,8 @@ MVP-1은 다음 4개 명령을 **필수**로 포함합니다. (2026-08-05 사용
 | auto | `/factory auto` | `$factory auto` | `factory auto` | **어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행** — 상태 저장소와 실제 코드를 대조해 다음 단계를 스스로 선택하여 전체 공정(빈 폴더면 프로젝트 생성부터, 이후 구현→빌드→테스트→검증→게이트)을 자동 수행 |
 | review | `/factory review` | `$factory review` | `factory review` | 구현을 신뢰하지 않는 전체 재감사 |
 
-보조 명령으로 `factory status`(현재 상태 요약 조회)를 포함합니다. 원본 설계서의
+보조 명령으로 `factory status`(현재 상태 요약 조회)와 `factory doctor`(개발
+환경 필수 역량 점검·설치 제안, 3.14 참조)를 포함합니다. 원본 설계서의
 `factory go`는 `factory auto`의 호환 별칭으로 유지합니다 (`auto`는 중단 지점부터
 이어서 진행하므로 go의 역할을 포괄).
 
@@ -291,6 +292,80 @@ MCP는 자연어 판단보다 정확한 상태 저장, 작업 잠금, 결과 기
 검증을 담당합니다. 상태 변경의 단일 진입점은 MCP이며, Agent가 상태 파일을 직접
 수정하지 않습니다.
 
+### 3.14 필수 역량 점검·설치 제안 (Capability Doctor)
+
+Android 앱 개발 공정에 필요한 스킬, MCP 서버, 서브에이전트("역량")가 현재
+Provider 환경에 설치되어 있는지 점검하고, 미설치 항목을 **사용자 확인 후**
+일괄 설치하도록 제안하는 기능입니다. (2026-08-05 사용자 요구로 MVP-1에 추가)
+
+**동작 방식**
+
+1. **점검(scan)**: 역량 카탈로그(`core/policies/capability-catalog.yaml`,
+   SSOT)와 현재 환경에 설치된 스킬·MCP·서브에이전트 목록을 대조합니다.
+2. **제안(propose)**: 미설치 항목을 카테고리별로 묶어 표로 보여주고, 사용자가
+   설치 원하는 항목을 **체크 방식으로 선택**하게 합니다. 각 항목에는 이름,
+   용도, 우선순위(required / recommended / optional), API 키 필요 여부를
+   표시합니다.
+3. **스코프 선택**: 사용자가 설치 위치를 **전역(사용자 스코프)** 또는
+   **프로젝트 스코프** 중에서 선택할 수 있습니다. 항목별 개별 지정과 일괄
+   지정을 모두 지원합니다.
+4. **일괄 설치(install)**: 선택된 항목을 Provider별 설치 방법(Claude Code
+   플러그인/스킬/MCP 등록, Codex 대응 방식)으로 순차 설치하고, 항목별
+   성공/실패를 보고합니다.
+5. **재검증·기록**: 설치 후 재점검하여 결과를
+   `.app-factory/config/capabilities.yaml`에 기록합니다. 이후 공정에서 관련
+   Agent가 어떤 역량을 사용할 수 있는지 판단하는 근거가 됩니다.
+
+**실행 시점**
+
+- `factory doctor` 명령으로 단독 실행
+- `factory plan` / `factory init` / `factory auto` 시작 시 프리플라이트로 자동
+  점검 — 필수(required) 역량이 빠져 있으면 설치 제안을 먼저 표시
+- 사용자가 거절한 항목은 기록해 두고 같은 세션에서 반복 제안하지 않음
+
+**원칙**
+
+- **사용자 확인 없는 자동 설치 금지.** 점검과 제안까지만 자동이며, 설치는
+  반드시 사용자의 명시적 선택 후 수행합니다.
+- API 키가 필요한 MCP(Firecrawl, Perplexity, GitHub 등)는 기본 required로
+  지정하지 않으며, 키 필요 사실을 명시하고 사용자가 선택한 경우에만 안내합니다.
+- 미설치 역량이 있어도 공정 자체는 진행 가능해야 하며(대체 수단 사용),
+  required 역량 부재로 품질이 저하될 수 있는 단계에서는 경고를 남깁니다.
+- 카탈로그는 코어 SSOT로 관리하고 어댑터가 Provider별 설치 명령으로 변환합니다.
+
+**역량 카탈로그 (초기 등록 대상)**
+
+스킬 40종을 8개 카테고리로 등록합니다. 상세 목록과 용도는
+`core/policies/capability-catalog.yaml`을 SSOT로 합니다.
+
+| 카테고리 | 스킬 | 기본 우선순위 |
+|----------|------|---------------|
+| Android UI·디자인 (11) | material-3, material3-expert, compose-expert, jetpack-compose-expert, compose-architecture-expert, adaptive, adaptive-layout-expert, android-ui-design, design-system-curator, edge-to-edge, navigation-3 | required |
+| Android 코드·아키텍처 (2) | claude-android-ninja, kotlin-expert | required |
+| 디버그·품질·테스트 (8) | android-bug-finder, android-testing, testing-setup, qa-scenario-writer, r8-analyzer, perfetto-trace-analysis, perfetto-sql, android-intent-security | required (perfetto 계열은 recommended) |
+| 빌드·마이그레이션 (1) | agp-9-upgrade | recommended |
+| 수익화·광고·결제·정책 (3) | admob-agent-skill, play-billing, play-policy-insights | required (광고/결제 사용 앱) |
+| Artifact·시각화 (4) | dataviz, artifact-design, artifact-capabilities, artifact-diagramming | optional |
+| Claude Code 하네스·도구 (5) | update-config, keybindings-help, loop, schedule, claude-api | optional |
+| 워크플로 커맨드 (6) | run, init, review, security-review, simplify, fewer-permission-prompts | recommended |
+
+MCP 서버 8종: mobile-docs, context7, mobile-mcp, playwright,
+code-review-graph (recommended, 키 불필요) / app-publish, play-store-mcp,
+github (optional, 계정·키 필요).
+
+서브에이전트: android-architecture-reviewer, security-reviewer,
+build-failure-debugger, gap-analysis-reviewer, android-skill-sweep 등 —
+카탈로그에 등록하되 Provider가 서브에이전트를 지원하는 경우에만 점검합니다.
+
+**MCP 도구 추가**
+
+`capability_scan`, `capability_list_missing`, `capability_install_plan`,
+`capability_mark_installed`, `capability_get_status`
+
+**Skill 추가**
+
+`factory-doctor` (진입), `capability-audit` (공정 내 프리플라이트용)
+
 ## 4. 범위 제외 (Out of Scope — 후속 MVP로 이연)
 
 | 후속 버전 | 이연 항목 |
@@ -355,6 +430,10 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정합니다.
     저장된다.
 11. 모든 완료 판정에 3.8의 증거가 연결되어 있고, 증거 없는 완료 주장이 존재하지
     않는다.
+12. `factory doctor`(및 plan/init/auto 프리플라이트)가 역량 카탈로그와 현재
+    환경을 대조해 미설치 스킬·MCP·서브에이전트를 카테고리별 체크리스트로
+    제시하고, 사용자가 선택한 항목을 전역/프로젝트 스코프 선택과 함께 일괄
+    설치하며, 사용자 확인 없이는 어떤 것도 설치하지 않는다.
 
 ## 7. 용어
 

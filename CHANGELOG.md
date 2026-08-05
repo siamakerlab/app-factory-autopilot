@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (2차)
+
+- 사용자 요구로 Capability Doctor 기능을 MVP-1 범위에 추가 (MVP-1.md 3.14)
+  - Android 개발 필수 스킬·MCP·서브에이전트 미설치 시 사용자 확인 후 일괄
+    설치 제안 (체크리스트 선택 + 전역/프로젝트 스코프 선택)
+  - `factory doctor` 보조 명령 및 plan/init/auto 프리플라이트 점검 추가
+  - MCP 도구 `capability_*` 5종, Skill `factory-doctor`·`capability-audit` 추가
+  - 사용자 확인 없는 자동 설치 금지, API 키 필요 MCP는 기본 required 지정
+    금지 원칙 명시
+- 역량 카탈로그 SSOT 작성: `core/policies/capability-catalog.yaml`
+  (스킬 40종 8개 카테고리, MCP 서버 8종, 서브에이전트 5종)
+- 완료 기준(DoD) 12번 항목 추가
+
 ### 2026-08-05
 
 - 프로젝트 저장소 초기화 (git init, 디렉터리 골격 생성)
