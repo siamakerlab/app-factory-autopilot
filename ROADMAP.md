@@ -37,13 +37,13 @@
 | AFA-015 | M2 MCP | 의존성 도구 (`dependency_*`) | P1 | 🟦 |
 | AFA-016 | M2 MCP | 승인·Placeholder 도구 | P1 | 🟦 |
 | AFA-017 | M2 MCP | 역량 도구 (`capability_*`) | P1 | 🟦 |
-| AFA-020 | M3 코어 | 워크플로 단계 정의·오케스트레이터 | P0 | ⬜ |
+| AFA-020 | M3 코어 | 워크플로 단계 정의·오케스트레이터 | P0 | 🟦 |
 | AFA-021 | M3 코어 | 상태 머신 전이 강제 | P0 | 🟦 |
 | AFA-022 | M3 코어 | SPDX 라이선스 정책 엔진 | P1 | 🟦 |
 | AFA-023 | M3 코어 | 버전 정책 (Stable-only) | P1 | 🟦 |
-| AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | ⬜ |
-| AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | ⬜ |
-| AFA-026 | M3 코어 | 무중단 진행 드라이버 (One-Prompt Completion) | P0 | ⬜ |
+| AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | 🟦 |
+| AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
+| AFA-026 | M3 코어 | 무중단 진행 드라이버 (One-Prompt Completion) | P0 | 🟦 |
 | AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | ⬜ |
 | AFA-031 | M4 Agent/Skill | 진입 Skill 7종 (plan/init/auto/review/status/doctor/factory) | P0 | ⬜ |
 | AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | ⬜ |
@@ -54,7 +54,7 @@
 | AFA-040 | M5 어댑터 | Claude Code 어댑터 | P0 | ⬜ |
 | AFA-041 | M5 어댑터 | Codex 어댑터 | P0 | ⬜ |
 | AFA-042 | M5 어댑터 | 코어→어댑터 빌드 파이프라인 | P0 | ⬜ |
-| AFA-050 | M3 코어 | 빌드·테스트·Lint 게이트 실행기 | P0 | 🟧 |
+| AFA-050 | M3 코어 | 빌드·테스트·Lint 게이트 실행기 | P0 | 🟦 |
 | AFA-051 | M6 검증 | Third Party Notices·SBOM 생성기 | P1 | ⬜ |
 | AFA-052 | M6 검증 | 기본 에뮬레이터 실행 검증 | P1 | ⬜ |
 | AFA-053 | M6 검증 | E2E: 빈 폴더 신규 개발 시나리오 | P0 | ⬜ |

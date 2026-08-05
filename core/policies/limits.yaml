@@ -1,0 +1,23 @@
+# 재시도·예산·강제 중단 한도 (SSOT) — MVP-1.md 3.9, ROADMAP AFA-024
+# APP_FACTORY.yaml limits가 프로젝트별로 override할 수 있다.
+
+version: 1
+
+retries:
+  max_attempts_per_task: 3        # 초과 시 작업 blocked + 승인 요청
+  same_error_threshold: 3         # 정규화 후 동일 오류 반복 한도
+
+budget:
+  max_cycles_per_run: 100         # run당 사이클 상한 (무한 루프 방지)
+  max_total_tasks: 500            # 프로젝트 작업 총량 상한
+
+error_normalization:
+  # 동일 오류 판정 전 마스킹 규칙 (정규식 → 치환)
+  mask_patterns:
+    - { pattern: '/[\w./-]+', replace: "<PATH>" }      # 파일 경로
+    - { pattern: '\b\d+\b', replace: "<N>" }            # 숫자 (라인·시간)
+    - { pattern: '0x[0-9a-fA-F]+', replace: "<HEX>" }
+
+# 강제 중단 조건(태그)은 task.dangerous + APP_FACTORY.yaml approvals_required가
+# SSOT이며, factory_get_next_task가 승인 없는 위험 작업을 건너뛰는 것으로
+# 강제된다. 여기서는 자동 재시도 관련 한도만 정의한다.

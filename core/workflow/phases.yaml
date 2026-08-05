@@ -1,0 +1,77 @@
+# factory auto 워크플로 단계 정의 (SSOT) — 설계서 11장을 MVP-1 범위로 축약.
+# ROADMAP AFA-020. 오케스트레이터는 이 정의와 상태 저장소만으로 다음 행동을
+# 결정한다 (대화 이력 비의존).
+#
+# entry: 단계 진입 조건 (상태 저장소 기반 결정론적 판정 — 판정기 이름)
+# agent: 이 단계의 작업을 수행할 Agent (LLM 위임은 어댑터 담당)
+# done: 단계 완료 판정
+# on_failure: 실패 시 행동 (retry → AFA-024 재시도 정책, block → BLOCKED)
+
+version: 1
+
+phases:
+  - id: check_state
+    title: 상태 확인
+    agent: project-explorer
+    entry: always
+    done: config_snapshot_exists
+    on_failure: block
+
+  - id: project_setup
+    title: 프로젝트 생성·기술 스택 구성
+    agent: implementation-worker
+    entry: no_android_project
+    done: android_project_exists
+    on_failure: retry
+
+  - id: docs_indexing
+    title: 공식 문서 인덱싱 (기본 수준)
+    agent: official-docs-indexer
+    entry: docs_index_missing
+    done: docs_index_exists
+    on_failure: retry
+
+  - id: roadmap_audit
+    title: 1차 로드맵 정밀 감사
+    agent: roadmap-auditor
+    entry: roadmap_not_audited
+    done: roadmap_audit_clean
+    on_failure: block
+
+  - id: implementation_loop
+    title: 구현 루프 (작은 단위 + 작업 후 빌드·테스트)
+    agent: implementation-worker
+    entry: queued_implement_tasks_exist
+    done: no_queued_implement_tasks
+    on_failure: retry
+
+  - id: verification
+    title: 독립 완료 검증
+    agent: completion-verifier
+    entry: implemented_items_exist
+    done: no_implemented_items_pending
+    on_failure: block
+
+  - id: rework_loop
+    title: 누락·부분 구현 재작업
+    agent: implementation-worker
+    entry: partial_items_or_open_blockers_exist
+    done: no_partial_items_and_no_open_blockers
+    on_failure: retry
+
+  - id: emulator_check
+    title: 기본 에뮬레이터 검증
+    agent: emulator-runner            # MVP-1: 게이트 실행 수준 (Emulator QA 완전판은 MVP-5)
+    entry: emulator_evidence_missing
+    done: emulator_gate_passed_or_blocked
+    on_failure: block
+
+  - id: final_gate
+    title: 최종 완료 게이트
+    agent: final-gate                 # gate_run_all — 콜드 컨텍스트 완전판은 MVP-4
+    entry: all_items_verified
+    done: all_gates_passed
+    on_failure: block
+
+# 단계 순서는 위에서 아래로 평가하되, entry 조건을 만족하는 첫 단계를 실행한다.
+# 어떤 단계의 entry도 만족하지 않고 final_gate가 통과되었으면 completed.

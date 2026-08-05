@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (10차) — M3 코어 완료 (구현 제출), 테스트 55건 통과
+
+- AFA-020 🟦: `phases.yaml` 9단계 + 결정론적 오케스트레이터
+  (`orchestrator.ts`) — 상태 저장소 기반 entry/done 판정기 17종, LLM 비호출,
+  재실행 시 동일 지점 재개(멱등) 테스트 증명
+- AFA-024 🟦: `limits.yaml` + 동일 오류 정규화(경로·숫자 마스킹) +
+  `handleTaskFailure` — 한도 내 재큐, 초과 시 blocked + 선택지·근거·위험·
+  추천안 승인 요청 자동 생성
+- AFA-025 🟦: 진행 보고 생성기(`report.ts`) — 4요소를 상태 저장소만으로
+  생성, 다음 턴 예정 = factory_get_next_task 결과 (보고≡행동)
+- AFA-026 🟦: 무중단 드라이버(`driver.ts`) — 종료 조건 3종(완료·강제 중단·
+  한도 초과), 질문 지연·pending_decisions 일괄 보고, 무진전 정체 감지.
+  테스트: 시뮬레이터 executor로 빈 프로젝트→완료 게이트 무중단 완주,
+  중단 후 재실행 시 완료 작업 건너뛰기(DoD 9), 사이클별 3.15 보고 기록
+  (DoD 13) 증명
+- AFA-050 🟧→🟦: task_report_failure 도구로 재시도 정책 연결 완성
+- MCP 도구 3종 추가 (orchestrator_decide_next, task_report_failure,
+  factory_progress_report) — 총 48개
+
 ### 2026-08-05 (9차) — M2 MCP 서버 구현 제출
 
 - `mcp-server/` TypeScript(Node 20+) 구현 — 45개 도구 등록, stdio 프로토콜
