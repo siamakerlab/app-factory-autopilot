@@ -1,0 +1,376 @@
+# App Factory Autopilot — MVP-1 공식 명세서
+
+- 문서 버전: 1.0.0
+- 작성일: 2026-08-05
+- 원본 설계서: [`mvp.txt`](./mvp.txt) (App Factory Autopilot 통합 설계서)
+- 범위 기준: 통합 설계서 21장 "MVP 0.1 범위"를 MVP-1 공식 범위로 채택
+- 상태: 확정 (구현 착수 기준 문서)
+
+---
+
+## 1. 목적
+
+App Factory Autopilot은 빈 폴더에서 Android 앱 기획을 시작하여 요구사항 수집,
+기술 결정, 로드맵 작성, 구현, 빌드/테스트, 검증, 최종 완료 판정까지 자동화하는
+앱 개발 오케스트레이션 시스템입니다.
+
+MVP-1의 목적은 이 시스템의 **최소 완결 공정**을 완성하는 것입니다. 지원하는
+두 가지 시작 경로는 다음과 같습니다.
+
+- **빈 폴더에서 신규 개발**: `factory plan` → `factory auto` → `factory review`
+- **기존 프로젝트에 도입**: `factory init`(코드베이스 분석·온보딩) →
+  `factory plan`(부족한 계획 보완) → `factory auto` → `factory review`
+
+이 명령들만으로 사용자는 다음을 얻을 수 있어야 합니다.
+
+1. 대화형 인터뷰를 통한 프로젝트 계획과 1차 로드맵
+2. 기존 코드베이스 분석과 로드맵·구현 상태 동기화 (기존 프로젝트 도입 시)
+3. 빈 폴더에서 생성된 Android 프로젝트와 1차 로드맵 구현
+4. 중단 지점과 무관하게 현재 상태를 분석해 알아서 이어가는 자동 진행
+5. 구현과 독립된 완료 검증(부분 구현·완료 오표기 탐지 포함)
+
+## 2. 핵심 설계 원칙 (MVP-1에서 반드시 지켜야 함)
+
+1. **구현과 완료 판정의 분리**
+   - 구현 Agent는 자신이 구현한 작업을 완료 상태로 직접 변경할 수 없습니다.
+   - 구현 Agent는 `IMPLEMENTED` 상태까지만 요청할 수 있습니다.
+   - 별도의 Completion Verifier가 독립 검증을 통과시킨 항목만 `VERIFIED`가 됩니다.
+   - 완료로 인정되는 상태는 `VERIFIED`뿐입니다.
+2. **거대 단일 프롬프트 금지**
+   - 결정론적 오케스트레이터 + 상태 머신 + 전문 Agent + 재사용 Skill + MCP 서버로 분리합니다.
+3. **플랫폼 비종속**
+   - Claude Code와 Codex 모두에서 동작해야 하며, 특정 AI 도구 내부 기능에 강하게
+     종속되지 않습니다. 공통 코어 원본은 하나만 유지하고 어댑터가 변환합니다.
+4. **모르는 값은 지어내지 않음**
+   - 확정되지 않은 항목은 명시적 Placeholder(`${PLACEHOLDER_*}`)로 기록하고
+     종류, 중요도, 해결 시점, 자동 진행 가능 여부를 함께 관리합니다.
+5. **증거 기반 완료 판정**
+   - 증거(코드, 호출 경로, 테스트, 빌드 로그, 실행 결과)가 없는 완료 주장은
+     인정하지 않습니다.
+6. **규칙 단일 원본(SSOT)**
+   - 공통 규칙은 `APP_FACTORY_RULES.md` 하나만 원본으로 유지합니다.
+   - `CLAUDE.md`와 `AGENTS.md`에는 플랫폼별 진입 규칙과 "공통 규칙 파일을 읽어라"는
+     지시만 배치하며 내용을 중복 관리하지 않습니다.
+
+## 3. MVP-1 범위 (In Scope)
+
+통합 설계서 21장 기준. 아래 항목은 MVP-1에서 **반드시** 포함합니다.
+
+### 3.1 사용자 명령
+
+MVP-1은 다음 4개 명령을 **필수**로 포함합니다. (2026-08-05 사용자 결정으로
+원본 설계서의 plan/go/review 3종 체계를 확장)
+
+| 명령 | Claude Code | Codex | 공통 CLI | 역할 |
+|------|-------------|-------|----------|------|
+| plan | `/factory plan "앱 설명"` | `$factory plan "앱 설명"` | `factory plan "앱 설명"` | 대화형 인터뷰 → 계획·1차 로드맵 생성 (코드 구현 안 함) |
+| init | `/factory init` | `$factory init` | `factory init` | **기존 프로젝트에 App Factory Autopilot 도입** — 코드베이스 분석(모듈 구조, Gradle 설정, 기존 라이브러리, 구현 상태), `.app-factory` 상태 저장소 생성, 현재 구현 상태와 로드맵 동기화 |
+| auto | `/factory auto` | `$factory auto` | `factory auto` | **어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행** — 상태 저장소와 실제 코드를 대조해 다음 단계를 스스로 선택하여 전체 공정(빈 폴더면 프로젝트 생성부터, 이후 구현→빌드→테스트→검증→게이트)을 자동 수행 |
+| review | `/factory review` | `$factory review` | `factory review` | 구현을 신뢰하지 않는 전체 재감사 |
+
+보조 명령으로 `factory status`(현재 상태 요약 조회)를 포함합니다. 원본 설계서의
+`factory go`는 `factory auto`의 호환 별칭으로 유지합니다 (`auto`는 중단 지점부터
+이어서 진행하므로 go의 역할을 포괄).
+
+모든 표현은 플랫폼과 무관하게 내부적으로 동일한 Factory 워크플로를 실행합니다.
+플러그인은 향후 명령을 추가할 수 있는 확장 가능한 명령 라우팅 구조를 가져야
+합니다.
+
+### 3.2 기능 범위
+
+**계획 단계 (factory plan)**
+- 빈 폴더에서 실행 가능
+- 대화형 요구사항 수집 (묶음 단위 질문, 중복 질문 금지, 자동 결정 가능 항목은 추천값 제시)
+- Placeholder 관리 (생성·목록·해결·릴리스 차단 구분)
+- 1차 로드맵 생성 (항목별 고유 ID, 요구사항, 구현 범위, 완료 조건, 테스트 조건,
+  실행 검증 조건, 의존성, 우선순위, 위험도 포함 — 단순 체크리스트 금지)
+
+**도입 단계 (factory init — 기존 프로젝트 전용)**
+- 기존 코드베이스 분석: 모듈 구조, Gradle 설정, 기존 라이브러리, 현재 구현 상태
+  요약 (Project Explorer 수행)
+- `.app-factory` 상태 저장소 생성 및 로드맵·구현 상태 동기화
+- 분석 결과를 바탕으로 미확정 항목을 Placeholder로 등록
+
+**자동 진행 단계 (factory auto)**
+- 진행 상태 분석: `.app-factory` 상태 저장소와 실제 코드·빌드 결과를 대조해
+  현재 공정 위치를 판정하고, 다음 단계를 스스로 선택해 자동 진행
+- 빈 폴더면 Android 프로젝트 생성부터 시작: 기술 스택 구성, Gradle 설정,
+  Build Type(Debug/Release), 기본 패키지 구조 생성
+- 이미 진행 중이면 중단 지점부터 이어서 진행 (완료 작업 재수행 금지)
+- 공식 문서 인덱싱 (기본 수준: 사용 라이브러리의 공식 문서·릴리스 확인)
+- Version Catalog 중앙 버전 관리, 하드코딩 버전 탐지, 동적/플러스 버전 금지
+- Dependency Locking, Dependency Verification Metadata
+- SPDX 기반 라이선스 정책 (자동 허용 / 자동 차단 / 수동 검토 3분류)
+- Third Party Notices 생성, 기본 SBOM 생성
+- 빌드 게이트, 단위 테스트 게이트, Lint 게이트
+- 기본 에뮬레이터 실행 검증 (설치·실행·크래시 확인 수준)
+- 중단 후 재개 (`.app-factory` 상태 저장소 기반, 완료 작업 재수행 금지 —
+  `factory auto` 재실행만으로 이어짐)
+
+**검증 단계 (factory review + 공정 내 검증)**
+- 독립 완료 검증 (Completion Verifier)
+- 부분 구현·완료 오표기 탐지: 호출되지 않는 코드, 빈 UI, Mock 데이터, TODO,
+  Placeholder 잔존, 실패 경로 누락, 테스트 없는 구현 발견 시 완료 취소 및 재등록
+- 자동 수정이 안전한 항목은 수정 작업으로 재등록, 위험 항목은
+  `NEEDS_HUMAN_DECISION`으로 보류
+
+### 3.3 Agent 범위 (8종)
+
+| Agent | 책임 요약 |
+|-------|-----------|
+| Factory Orchestrator | 전체 공정 제어. 상태 읽기 → 다음 단계 선택 → 전문 Agent 호출 → 결과 형식 검증. 실패 횟수·재시도·작업 예산·승인 차단·중단 후 재개 관리. 직접 대규모 코드 수정 금지 |
+| Project Explorer | 폴더/프로젝트 상태 분석 (빈 폴더 여부, 모듈 구조, Gradle 설정, 기존 라이브러리, 구현 상태 요약) |
+| Roadmap Architect | 인터뷰 결과 기반 1차 로드맵 작성 (기능/비기능 구분, 의존성 정리, 테스트 가능한 완료 조건, Placeholder 명기) |
+| Roadmap Auditor | 로드맵 누락·모순 검사 (불명확한 완료 조건, 테스트 불가 요구사항, 순서 오류, 광고/결제/개인정보/접근성/보안/라이선스/버전 누락) |
+| Implementation Worker | 승인된 로드맵 항목 구현. 한 번에 하나(또는 작은 묶음)만 수행. 코드와 테스트 동시 작성. 변경 파일·빌드 결과 보고. **VERIFIED로 변경 금지**. 새 라이브러리 필요 시 Dependency Request 생성 |
+| Completion Verifier | 구현과 독립적으로 검증. 코드 존재, 호출 경로, UI 연결, 성공/실패 경로, 설정값 반영, Mock/TODO/빈 함수 잔존, 테스트 유효성, 빌드·실행 증거 확인. 통과 항목만 `VERIFIED` 변경 |
+| Dependency Version Manager | 최신 **안정화** 버전을 공식 문서에서 확인 (단순 최대 버전 선택 금지). Kotlin/AGP/Gradle/JDK/SDK 호환성, Compose BOM 정렬 확인. Preview 계열(Alpha/Beta/RC/Canary/Nightly/Snapshot)은 사용자 승인 없이 사용 금지 |
+| License Compliance Auditor | 직접·전이 의존성 및 폰트/이미지/아이콘/음원/로컬 AAR·JAR·SO 라이선스 검사. SPDX 정규화. 불명확 시 자동 차단, 법적 판단 필요 시 `NEEDS_LEGAL_OR_OWNER_APPROVAL` 중단. `LICENSE_REVIEW.md`·Third Party Notices 생성 |
+
+> Official Docs Indexer의 "공식 문서 인덱싱" 기능은 MVP-1에서 기본 수준으로
+> 포함하되(3.2 참조), 고도화(캐시, 호환성 매트릭스, Deprecated 탐지)는 MVP-2로
+> 이연합니다.
+
+### 3.4 로드맵 상태 머신
+
+```
+NOT_STARTED → IN_PROGRESS → IMPLEMENTED → VERIFIED
+                   │              │
+                   ├→ PARTIAL ────┘ (재작업 등록)
+                   ├→ BLOCKED
+                   └→ NEEDS_HUMAN_DECISION
+```
+
+| 상태 | 정의 |
+|------|------|
+| `NOT_STARTED` | 구현 미시작 |
+| `IN_PROGRESS` | 구현 중 |
+| `PARTIAL` | 일부만 구현되었거나 핵심 경로 누락 |
+| `IMPLEMENTED` | 구현 Agent가 완료 제출 (완료 아님) |
+| `VERIFIED` | Completion Verifier 독립 검증 통과 (**유일한 완료 상태**) |
+| `BLOCKED` | 외부 정보·사용자 결정·기술 문제·승인 대기로 진행 불가 |
+| `NEEDS_HUMAN_DECISION` | 자동 판단으로 진행하면 위험 |
+
+### 3.5 라이브러리 추가 승인 절차
+
+1. Implementation Worker가 직접 추가하지 않고 **Dependency Request** 생성
+2. Dependency Version Manager: 공식 문서·릴리스에서 최신 안정화 버전 및 호환성 확인
+3. License Compliance Auditor: 직접·전이 의존성 라이선스 확인 + 보안·공급망 검사
+4. 모든 검사 통과 후에만 Version Catalog에 추가
+5. 추가 후: 의존성 그래프 확인 → Locking 갱신 → Verification Metadata 갱신 →
+   빌드 → 단위 테스트 → Lint → 라이선스 고지 갱신 → SBOM 갱신 → `DEPENDENCIES.md` 갱신
+
+### 3.6 기본 라이선스 정책 (상업용 비공개 소스 기준, 보수적 기본값)
+
+- **자동 허용**: Apache-2.0(NOTICE 의무 추가 확인), MIT, BSD-2-Clause,
+  BSD-3-Clause, ISC, Zlib, 0BSD, CC0-1.0, Unlicense
+- **자동 차단**: GPL-1.0/2.0/3.0 계열, AGPL 계열, SSPL, Commons Clause,
+  비상업 전용, 라이선스 불명, NOASSERTION, 출처 불명 커스텀
+- **수동 검토**: LGPL 계열, MPL-2.0, EPL 계열, CDDL 계열,
+  Classpath Exception 포함 GPL, Dual License, 상용+오픈소스 병행 라이브러리
+- 라이선스 정책은 법률 자문을 대신하지 않으며, 자동 시스템은 보수적으로 차단하고
+  사용자 또는 법률 검토자 승인 시에만 예외를 허용합니다.
+
+### 3.7 상태 저장과 중단 후 재개
+
+전체 상태는 대상 프로젝트의 `.app-factory/` 디렉터리에 저장합니다.
+
+```
+.app-factory/
+├── config/        # 프로젝트 설정 스냅샷
+├── state/         # 워크플로·로드맵 상태
+├── task-queue/    # 작업 큐 (작업별 고유 ID)
+├── findings/      # 발견 사항 (Finding ID)
+├── approvals/     # 승인 요청·결과
+├── budgets/       # 작업 예산
+├── cycles/        # 반복 주기 기록
+├── runs/          # 실행 기록 (Run ID)
+├── evidence/      # 증거 저장소
+└── reports/       # 보고서
+```
+
+- 중단 후 `factory auto` 재실행 시 이전 상태를 읽고 이어서 진행합니다.
+- 완료된 작업은 다시 수행하지 않습니다. 단, `factory review`에서 완료 오표기가
+  발견되면 해당 작업을 다시 엽니다.
+
+### 3.8 증거 관리
+
+모든 완료 판정에 증거가 필요합니다. MVP-1 증거 종류: 변경 코드, 요구사항-구현
+위치 연결, 호출 경로, 단위 테스트, 빌드 로그, Lint 결과, 의존성 그래프, 라이선스
+보고서, SBOM, 에뮬레이터 실행 결과(기본 수준), 검증 Agent 보고서.
+
+### 3.9 게이트와 종료 조건
+
+**MVP-1 필수 게이트**
+
+| 게이트 | 통과 조건 |
+|--------|-----------|
+| 빌드 게이트 | `assembleDebug` 성공 (필요 시 Release 빌드 포함) |
+| 단위 테스트 게이트 | 단위 테스트 전체 성공 |
+| Lint 게이트 | 중대 오류 없음 |
+| 완료 검증 게이트 | 로드맵 필수 항목 모두 `VERIFIED`, 완료 오표기 없음 |
+| Placeholder 게이트 | 릴리스 차단 Placeholder 없음 |
+| 라이선스 게이트 | 라이선스 불명 의존성 없음, 미승인 GPL/AGPL 없음 |
+| 버전 게이트 | 미승인 Preview 라이브러리 없음, Version Catalog 외부 버전 없음 |
+| 고지 게이트 | Third Party Notices·SBOM 갱신 완료 |
+| 실행 게이트 | 기본 에뮬레이터 실행 검증 통과 |
+
+**강제 중단 조건 (사용자에게 선택지·근거·위험·추천안 보고 후 대기)**
+
+동일 오류 최대 재시도 초과, 데이터 손실 가능성, 파괴적 DB 마이그레이션, 대규모
+아키텍처 변경, 서명키 변경, 실제 배포, Git Push, 프로덕션 릴리스, 결제 상품 변경,
+광고 정책 변경, 개인정보처리방침 변경, 라이선스 해석 불명확, GPL/AGPL 예외 승인
+요청, 상업용 라이선스 구매 필요, API 비용 발생, 외부 서비스 계정 필요, 요구사항
+충돌, 테스트 환경 신뢰 불가.
+
+### 3.10 factory plan 산출물 (대상 프로젝트에 생성)
+
+`APP_FACTORY.yaml`(전체 설정 기준 파일), `APP_FACTORY_RULES.md`,
+`PROJECT_SPEC.md`, `ROADMAP.md`, `REQUIREMENTS_TRACEABILITY.md`,
+`TEST_MATRIX.md`, `DOCS_INDEX.md`, `USER_VALUE.md`, `DEPENDENCIES.md`,
+`DEPENDENCY_MIGRATIONS.md`, `LICENSE_POLICY.yaml`, `LICENSE_REVIEW.md`,
+`THIRD_PARTY_NOTICES.md`, `EMULATOR_SCENARIOS.md`, `QUALITY_FINDINGS.md`,
+`PLACEHOLDERS.md`, `APPROVALS.md`
+
+### 3.11 인터뷰 항목 (factory plan)
+
+통합 설계서 5장을 그대로 따릅니다. 묶음 단위로 진행하며 10개 영역을 다룹니다.
+
+1. 앱 기본 정보 (이름, 패키지명, 수익 모델, 개발자 정보 등 — 패키지명은
+   `factory init` 전 확정 요구, 미확정 시 임시 패키지명 사용 여부 별도 확인)
+2. 핵심 기능 (CORE / SUPPORTING / OPTIONAL 3등급 분류)
+3. UI와 UX (미지정 시 권장 스택 제안: Kotlin, Jetpack Compose, Material 3,
+   MVVM, Repository, UDF, Hilt, Coroutines, Flow, Room, DataStore,
+   WorkManager, Navigation, Gradle Version Catalog)
+4. 광고 (미사용 시 질문 생략, 릴리스 빌드 테스트 ID 잔존 검증 필수)
+5. 인앱결제 (미사용 시 관련 라이브러리 미추가)
+6. 인앱리뷰
+7. 인앱업데이트
+8. 데이터와 보안
+9. 서명과 배포 (Keystore 비밀번호·API Secret 일반 텍스트 저장 금지,
+   미확정 서명 정보는 Placeholder + 릴리스 차단)
+10. 버전과 라이선스 정책
+
+### 3.12 공통 Skill (MVP-1 구현 대상)
+
+MVP-1 범위에 해당하는 Skill만 우선 구현합니다.
+
+- 진입: `factory`, `factory-plan`, `factory-init`, `factory-auto`,
+  `factory-review`, `factory-status` (`factory-go`는 `factory-auto` 별칭)
+- 공정: `project-explore`, `roadmap-create`, `roadmap-audit`,
+  `roadmap-implement`, `completion-verify`, `final-gate`
+- 의존성/라이선스: `dependency-version-review`, `license-compliance-review`,
+  `dependency-report`, `license-report`
+- 문서/Placeholder: `official-docs-index`(기본 수준), `placeholder-audit`
+
+각 Skill은 Claude Code와 Codex 공통 원본을 사용하고, 플랫폼별 빌드에서 호출
+방식과 메타데이터만 변환합니다.
+
+### 3.13 공통 MCP 서버 (`app-factory-core`)
+
+MVP-1에서 구현하는 도구 그룹:
+
+- 공정: `factory_initialize`, `factory_get_status`, `factory_get_next_task`,
+  `factory_claim_task`, `factory_submit_result`, `factory_complete_task`,
+  `factory_reopen_task`, `factory_start_cycle`, `factory_finish_cycle`,
+  `factory_abort_cycle`
+- 로드맵: `roadmap_parse`, `roadmap_get_items`, `roadmap_update_status`,
+  `roadmap_validate_traceability`
+- 발견 사항: `finding_create`, `finding_list`, `finding_resolve`, `finding_reopen`
+- 증거: `evidence_register`, `evidence_get`, `evidence_validate`
+- 게이트: `gate_run`, `gate_get_result`
+- 의존성: `dependency_request`, `dependency_review_version`,
+  `dependency_review_license`, `dependency_approve`, `dependency_reject`
+- 승인: `approval_request`, `approval_get_status`
+- Placeholder: `placeholder_create`, `placeholder_resolve`, `placeholder_list_blocking`
+
+> `skill_discover`, `skill_get_next`, `skill_mark_result`는 Quality Sweeper용이므로
+> MVP-4로 이연합니다.
+
+MCP는 자연어 판단보다 정확한 상태 저장, 작업 잠금, 결과 기록, 승인 처리, 증거
+검증을 담당합니다. 상태 변경의 단일 진입점은 MCP이며, Agent가 상태 파일을 직접
+수정하지 않습니다.
+
+## 4. 범위 제외 (Out of Scope — 후속 MVP로 이연)
+
+| 후속 버전 | 이연 항목 |
+|-----------|-----------|
+| MVP-2 (설계서 0.2) | Mobile Docs MCP 고도화, 의존성 자동 발견, 공식 문서 캐시, 호환성 매트릭스, 요구사항 추적표·테스트 매트릭스 자동 생성, Dependency Migration 보고서, Deprecated API 탐지 |
+| MVP-3 (설계서 0.3) | 경쟁 앱·커뮤니티·사용자 리뷰 조사, 사용자 핵심가치 평가(User Value Researcher), 2차 로드맵 생성, Claude Code ↔ Codex 교차 검증 |
+| MVP-4 (설계서 0.4) | Agent/Skill 런타임 발견, 전체 품질 순회(Quality Sweeper), 중요 문제 재발 추적, 자동 수정 후 전체 재검증, 콜드 컨텍스트 감사(Final Gate Reviewer 완전판) |
+| MVP-5 (설계서 0.5) | ADB 자동화 완전판(Emulator QA): 에뮬레이터 자동 부팅, APK 설치, 데이터 초기화, 핵심 시나리오 실행, 스크린샷, 화면 녹화, Logcat 분석, 크래시·ANR 탐지 |
+| 1.0 | 플러그인 패키지(양 플랫폼), 공통 CLI 배포, OS별 설치기, 업데이트 시스템, 버전 호환성 검사, 프로젝트 마이그레이션, 다중 프로젝트 운영, 보고서 통합, Provider 비용·예산 관리 |
+
+MVP-1의 에뮬레이터 검증은 "설치·실행·크래시 확인" 기본 수준까지만 포함하며,
+시나리오 자동화·녹화·Logcat 정밀 분석은 MVP-5 범위입니다.
+
+## 5. 저장소 구조 (통합 설계서 27장)
+
+```
+app-factory-autopilot/
+├── core/                  # 플랫폼 독립 원본 (SSOT)
+│   ├── workflow/          # 워크플로 단계 정의, 상태 머신, 작업 큐
+│   ├── agents/            # Agent 공통 정의
+│   ├── skills/            # Skill 공통 원본
+│   ├── schemas/           # 상태·설정·산출물 스키마
+│   ├── prompts/           # 공통 프롬프트 원본
+│   └── policies/          # 버전·라이선스·승인·재시도 정책
+├── mcp-server/            # app-factory-core MCP 서버
+├── orchestrator/          # 결정론적 오케스트레이터
+├── adapters/
+│   ├── claude-code/       # Plugin Manifest, Agent/Skill 변환, Hook, MCP 설정, CLAUDE.md 생성기
+│   └── codex/             # Plugin Manifest, Agent 설정, Skill 등록, MCP 설정, AGENTS.md 생성기, 실행 래퍼
+├── project-template/      # 빈 폴더 초기화 시 생성되는 파일 템플릿
+├── scripts/               # 빌드·패키징·개발 스크립트
+├── tests/                 # 코어·어댑터 테스트
+├── dist/                  # 최종 배포 패키지 (git 추적 제외)
+├── mvp.txt                # 원본 통합 설계서 (참조용 보존)
+└── MVP-1.md               # 이 문서
+```
+
+## 6. 완료 기준 (Definition of Done)
+
+MVP-1은 다음을 모두 만족할 때 완료로 인정합니다.
+
+1. Claude Code(`/factory ...`)와 Codex(`$factory ...`)에서 필수 4개 명령
+   (plan, init, auto, review)이 모두 동작한다.
+2. 빈 폴더에서 `factory plan` 실행 시 대화형 인터뷰가 진행되고, 3.10의 산출물이
+   생성되며, 미확정 항목은 Placeholder로 기록된다.
+3. 기존 프로젝트에서 `factory init` 실행 시 코드베이스가 분석되어
+   `.app-factory` 상태 저장소가 생성되고 로드맵·구현 상태가 동기화된다.
+4. `factory auto` 실행 시 현재 진행 상태 분석 후 (빈 폴더면 Android 프로젝트
+   생성부터) 1차 로드맵이 구현되며, 각 작업 후 빌드·단위 테스트·Lint 게이트가
+   실행된다.
+5. Implementation Worker는 `VERIFIED` 상태를 만들 수 없고, Completion Verifier의
+   독립 검증을 통과한 항목만 `VERIFIED`가 된다 (상태 머신 강제).
+6. 의도적으로 삽입한 부분 구현(빈 함수, 호출되지 않는 코드, TODO, Mock)이
+   Completion Verifier 또는 `factory review`에서 탐지되어 재작업으로 등록된다.
+7. 라이브러리 추가가 Dependency Request → 버전 검토 → 라이선스 검토 → 승인
+   절차를 거치며, GPL/AGPL 의존성이 자동 차단된다.
+8. Version Catalog 중앙 관리, Dependency Locking, Verification Metadata,
+   Third Party Notices, 기본 SBOM이 생성·갱신된다.
+9. 공정 중단 후 `factory auto` 재실행 시 `.app-factory` 상태를 읽어 완료 작업을
+   건너뛰고 이어서 진행한다.
+10. 기본 에뮬레이터 실행 검증(설치·실행·크래시 확인)이 수행되고 결과가 증거로
+    저장된다.
+11. 모든 완료 판정에 3.8의 증거가 연결되어 있고, 증거 없는 완료 주장이 존재하지
+    않는다.
+
+## 7. 용어
+
+| 용어 | 정의 |
+|------|------|
+| Provider | 워크플로를 실행하는 AI 도구 (Claude Code 또는 Codex) |
+| 어댑터 | 공통 코어를 특정 Provider 형식으로 변환하는 계층 |
+| 게이트 | 다음 단계 진행을 차단할 수 있는 자동 검증 관문 |
+| Placeholder | 미확정 값의 명시적 표기. 종류·중요도·해결 시점·자동 진행 가능 여부를 가짐 |
+| Dependency Request | 라이브러리 추가 요청. 버전·라이선스 검토 통과 전 추가 불가 |
+| Finding | 감사·검증 과정에서 발견된 문제 항목 (고유 Finding ID 부여) |
+| Evidence | 완료 판정의 근거 자료 (Evidence Store에 등록) |
+| 콜드 컨텍스트 감사 | 구현 대화 기록을 배제하고 코드·로드맵·테스트·증거만으로 수행하는 감사 |
+| SSOT | Single Source of Truth. 규칙·Skill·Agent 정의의 단일 원본 |
+
+---
+
+*이 문서는 `mvp.txt` 통합 설계서의 MVP 0.1 범위를 공식화한 것입니다. 설계서와
+이 문서가 충돌하면 이 문서를 우선하되, 충돌 내용을 CHANGELOG.md에 기록합니다.*
