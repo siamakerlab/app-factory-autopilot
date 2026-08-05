@@ -1,0 +1,652 @@
+# App Factory Autopilot — MVP-1 개발 로드맵
+
+- 기준 문서: [MVP-1.md](./MVP-1.md) (범위·완료 기준의 SSOT)
+- 관리 규칙: 이 로드맵은 MVP-1.md 3.4의 상태 머신을 프로젝트 자체에도 적용한다
+  (도그푸딩). 작업 완료 시 상태를 갱신하고 CHANGELOG.md에 기록한다.
+- 상태 갱신 원칙: 구현자는 `IMPLEMENTED`까지만 표기한다. `VERIFIED`는 완료
+  조건을 별도 세션(또는 다른 Provider)에서 검증한 뒤에만 표기한다.
+
+## 상태 범례
+
+| 표기 | 상태 | 의미 |
+|------|------|------|
+| ⬜ | `NOT_STARTED` | 미구현 |
+| 🟨 | `IN_PROGRESS` | 구현 중 |
+| 🟧 | `PARTIAL` | 부분 구현 (핵심 경로 누락) |
+| 🟦 | `IMPLEMENTED` | 구현 제출 (검증 전 — 완료 아님) |
+| ✅ | `VERIFIED` | 독립 검증 통과 (**유일한 완료 상태**) |
+| ⛔ | `BLOCKED` | 외부 요인으로 진행 불가 |
+| ❓ | `NEEDS_HUMAN_DECISION` | 사용자 결정 필요 |
+
+## 전체 현황 요약
+
+| ID | 마일스톤 | 항목 | 우선순위 | 상태 |
+|------|----------|------|----------|------|
+| D-001 | M0 결정 | 구현 언어·런타임 확정 | P0 | ❓ |
+| D-002 | M0 결정 | 스킬 카탈로그 설치 소스 확정 | P1 | ❓ |
+| AFA-001 | M1 기반 | 로드맵·작업·상태 스키마 정의 | P0 | ⬜ |
+| AFA-002 | M1 기반 | APP_FACTORY.yaml 스키마 정의 | P0 | ⬜ |
+| AFA-003 | M1 기반 | `.app-factory` 상태 저장소 규약 | P0 | ⬜ |
+| AFA-004 | M1 기반 | Placeholder 모델·정책 | P0 | ⬜ |
+| AFA-005 | M1 기반 | 증거(Evidence) 모델 | P0 | ⬜ |
+| AFA-010 | M2 MCP | MCP 서버 골격 (`app-factory-core`) | P0 | ⬜ |
+| AFA-011 | M2 MCP | 공정 도구 (`factory_*`) | P0 | ⬜ |
+| AFA-012 | M2 MCP | 로드맵 도구 (`roadmap_*`) | P0 | ⬜ |
+| AFA-013 | M2 MCP | 발견·증거 도구 (`finding_*`, `evidence_*`) | P0 | ⬜ |
+| AFA-014 | M2 MCP | 게이트 도구 (`gate_*`) | P0 | ⬜ |
+| AFA-015 | M2 MCP | 의존성 도구 (`dependency_*`) | P1 | ⬜ |
+| AFA-016 | M2 MCP | 승인·Placeholder 도구 | P1 | ⬜ |
+| AFA-017 | M2 MCP | 역량 도구 (`capability_*`) | P1 | ⬜ |
+| AFA-020 | M3 코어 | 워크플로 단계 정의·오케스트레이터 | P0 | ⬜ |
+| AFA-021 | M3 코어 | 상태 머신 전이 강제 | P0 | ⬜ |
+| AFA-022 | M3 코어 | SPDX 라이선스 정책 엔진 | P1 | ⬜ |
+| AFA-023 | M3 코어 | 버전 정책 (Stable-only) | P1 | ⬜ |
+| AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | ⬜ |
+| AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | ⬜ |
+| AFA-031 | M4 Agent/Skill | 진입 Skill 7종 (plan/init/auto/review/status/doctor/factory) | P0 | ⬜ |
+| AFA-032 | M4 Agent/Skill | 공정 Skill 10종 | P0 | ⬜ |
+| AFA-033 | M4 Agent/Skill | Capability Doctor 구현 | P1 | ⬜ |
+| AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름 | P0 | ⬜ |
+| AFA-035 | M4 Agent/Skill | project-template (plan 산출물 17종 템플릿) | P0 | ⬜ |
+| AFA-040 | M5 어댑터 | Claude Code 어댑터 | P0 | ⬜ |
+| AFA-041 | M5 어댑터 | Codex 어댑터 | P0 | ⬜ |
+| AFA-042 | M5 어댑터 | 코어→어댑터 빌드 파이프라인 | P0 | ⬜ |
+| AFA-050 | M6 검증 | 빌드·테스트·Lint 게이트 실행기 | P0 | ⬜ |
+| AFA-051 | M6 검증 | Third Party Notices·SBOM 생성기 | P1 | ⬜ |
+| AFA-052 | M6 검증 | 기본 에뮬레이터 실행 검증 | P1 | ⬜ |
+| AFA-053 | M6 검증 | E2E: 빈 폴더 신규 개발 시나리오 | P0 | ⬜ |
+| AFA-054 | M6 검증 | E2E: 중단 후 재개 시나리오 | P0 | ⬜ |
+| AFA-055 | M6 검증 | E2E: 기존 프로젝트 init 시나리오 | P0 | ⬜ |
+| AFA-056 | M6 검증 | E2E: 부분 구현 탐지 시나리오 | P0 | ⬜ |
+
+- 우선순위: P0 = MVP-1 완료에 필수, P1 = MVP-1 필수이나 후순위 착수 가능
+- 마일스톤 순서: M0 → M1 → M2 → (M3 ∥ M4) → M5 → M6.
+  M2까지가 다른 모든 작업의 토대이므로 최우선으로 완성한다.
+
+---
+
+## M0. 선행 결정 (NEEDS_HUMAN_DECISION)
+
+### D-001 구현 언어·런타임 확정 — ❓
+
+- **결정 내용**: MCP 서버·오케스트레이터·CLI의 구현 언어와 런타임.
+- **추천안**: TypeScript + Node.js 20 LTS.
+  - 근거: MCP 공식 SDK(`@modelcontextprotocol/sdk`)가 TypeScript 우선이고,
+    Claude Code·Codex 어댑터 모두 npm 배포로 단일화할 수 있다. 스키마 검증은
+    zod, YAML은 yaml 패키지 사용.
+- **대안**: Python(FastMCP) — Perfetto·ADB 연동 스크립트와 친화적이나 배포
+  체인이 이원화됨.
+- **차단 범위**: AFA-010 이후 모든 구현 작업의 착수를 차단한다. M1(스키마
+  정의)은 언어 중립(JSON Schema/YAML)이므로 진행 가능.
+
+### D-002 스킬 카탈로그 설치 소스 확정 — ❓
+
+- **결정 내용**: capability-catalog.yaml 각 항목의 실제 설치 소스
+  (마켓플레이스 플러그인명, git 저장소, 로컬 경로 등).
+- **필요 이유**: 40종 스킬의 설치 명령은 소스가 확정되어야 생성할 수 있다.
+  현재 카탈로그에는 `install:` 블록이 비어 있다 (`source: TBD`).
+- **차단 범위**: AFA-033(Capability Doctor)의 "설치 실행" 부분만 차단.
+  점검·제안·스코프 선택 UI는 소스 없이도 구현 가능.
+
+---
+
+## M1. 기반 — 스키마·상태 모델 (`core/schemas`)
+
+> M1 공통 지침: 스키마는 전부 **JSON Schema(draft 2020-12)** 로 작성해
+> `core/schemas/*.schema.json`에 둔다. 언어 결정(D-001)과 무관하게 진행할 수
+> 있고, TypeScript(zod)·Python 어느 쪽에서도 코드 생성이 가능하다. 모든
+> 스키마에 `version` 필드를 두어 향후 마이그레이션에 대비한다.
+
+### AFA-001 로드맵·작업·상태 스키마 정의 — ⬜
+
+- **근거**: MVP-1.md 3.4, 6장 / **의존성**: 없음 / **위험도**: 중
+- **구현 범위**: `roadmap-item.schema.json`, `task.schema.json`,
+  `finding.schema.json`, `run.schema.json`
+- **완료 조건**:
+  - [ ] 로드맵 항목이 ID, 요구사항, 구현 범위, 완료 조건, 테스트 조건,
+    실행 검증 조건, 의존성, 우선순위, 위험도, 상태 필드를 가진다
+  - [ ] 상태 enum이 3.4의 7개 상태와 정확히 일치한다
+  - [ ] 예시 인스턴스 파일이 스키마 검증을 통과한다
+- **지침**: 로드맵 항목 ID는 `RM-<3자리>` 형식으로 고정한다. 완료 조건은
+  자유 텍스트가 아니라 `{ description, verifiable_by }` 배열로 구조화해
+  Completion Verifier가 기계적으로 순회할 수 있게 한다. `verifiable_by`는
+  `code | test | build | emulator | manual` enum으로 제한한다.
+
+### AFA-002 APP_FACTORY.yaml 스키마 정의 — ⬜
+
+- **근거**: MVP-1.md 3.10, 설계서 20장 / **의존성**: 없음 / **위험도**: 중
+- **구현 범위**: `app-factory-config.schema.json` — 설계서 20장의 전 항목
+  (프로젝트 종류·SDK 정책·아키텍처·광고·결제·서명·라이선스 정책·Provider
+  우선순위·반복 한도·빌드/테스트/Lint 명령·승인 필요 작업·Placeholder 정책)
+- **완료 조건**:
+  - [ ] 설계서 20장 항목이 모두 스키마에 존재한다
+  - [ ] 광고·결제 등 미사용 기능 블록은 생략 가능(optional)하다
+  - [ ] Placeholder 값(`${PLACEHOLDER_*}`)이 문자열 필드에 허용된다
+- **지침**: 기본값을 스키마에 내장하지 말고 `core/policies/defaults.yaml`로
+  분리한다(전역 CLAUDE.md의 Android 규칙 — DataStore, Hilt, minSdk 커버리지
+  90% 등 — 을 defaults에 반영). 스키마는 구조 검증만 담당한다.
+
+### AFA-003 `.app-factory` 상태 저장소 규약 — ⬜
+
+- **근거**: MVP-1.md 3.7 / **의존성**: AFA-001 / **위험도**: 상
+- **구현 범위**: 10개 하위 디렉터리의 파일 포맷·명명 규칙·잠금 규약 문서
+  (`core/schemas/state-store.md`) 및 각 파일 스키마
+- **완료 조건**:
+  - [ ] 작업 ID(`T-`), Run ID(`R-`), Finding ID(`F-`), Evidence ID(`E-`)
+    채번 규칙이 정의되어 있다
+  - [ ] 동시 쓰기 방지 규약(단일 쓰기 Agent + 잠금 파일)이 정의되어 있다
+  - [ ] 중단 후 재개 시 어떤 파일을 어떤 순서로 읽는지 명세되어 있다
+- **지침**: 상태 파일은 "1 엔티티 = 1 파일"(JSON)로 저장한다. 단일 대형
+  state.json은 부분 손상 시 전체 유실 위험이 있다. 쓰기는 임시 파일 작성 후
+  rename(원자적 교체)으로만 수행한다. 잠금은 `.app-factory/state/.lock`
+  파일 + PID/타임스탬프로 구현하고 stale lock(예: 10분 초과)은 경고 후 회수.
+
+### AFA-004 Placeholder 모델·정책 — ⬜
+
+- **근거**: MVP-1.md 2장 4항, 3.10 / **의존성**: AFA-001 / **위험도**: 중
+- **구현 범위**: `placeholder.schema.json` + `core/policies/placeholder-policy.yaml`
+- **완료 조건**:
+  - [ ] Placeholder가 이름, 종류, 중요도, 해결 시점, 자동 진행 가능 여부,
+    릴리스 차단 여부 필드를 가진다
+  - [ ] 릴리스 차단 Placeholder 존재 시 게이트가 실패해야 한다는 정책이
+    기록되어 있다
+- **지침**: 이름은 `${PLACEHOLDER_대문자_스네이크}` 형식만 허용하고 정규식
+  `\$\{PLACEHOLDER_[A-Z0-9_]+\}`로 검증한다. 코드베이스 잔존 스캔은 이
+  정규식 하나로 수행할 수 있어야 한다(placeholder-audit Skill의 근거).
+
+### AFA-005 증거(Evidence) 모델 — ⬜
+
+- **근거**: MVP-1.md 3.8 / **의존성**: AFA-003 / **위험도**: 중
+- **구현 범위**: `evidence.schema.json` — 3.8의 증거 종류 enum, 원본 파일
+  경로, 해시, 생성 주체(Agent), 연결된 로드맵 항목/작업 ID
+- **완료 조건**:
+  - [ ] 증거 없는 `VERIFIED` 전이를 스키마·규약 수준에서 거부할 수 있다
+    (전이 요청에 evidence ID 배열 필수)
+  - [ ] 증거 파일이 `.app-factory/evidence/<E-ID>/`에 원본과 메타데이터로
+    저장된다
+- **지침**: 빌드 로그 같은 대용량 원본은 전체 저장 대신 마지막 200줄 + 전체
+  해시 + 요약을 저장한다. 스크린샷·녹화는 원본 보존. 증거 위조 방지가 아니라
+  "주장과 근거의 연결"이 목적이므로 해시는 무결성 확인 용도로만 쓴다.
+
+---
+
+## M2. MCP 서버 `app-factory-core` (`mcp-server/`)
+
+> M2 공통 지침: 모든 도구는 **입력·출력을 JSON Schema로 선언**하고, 상태
+> 변경은 반드시 MCP 도구를 통해서만 일어난다(Agent의 상태 파일 직접 수정
+> 금지 — MVP-1.md 3.13). 도구 핸들러는 순수 함수 + 상태 저장소 어댑터로
+> 분리해 단위 테스트를 가능하게 한다. 각 도구는 실패 시 구조화된 오류
+> (`{ code, message, recoverable }`)를 반환한다.
+
+### AFA-010 MCP 서버 골격 — ⬜
+
+- **근거**: MVP-1.md 3.13 / **의존성**: D-001, AFA-003 / **위험도**: 상
+- **구현 범위**: stdio 기반 MCP 서버 부트스트랩, 도구 등록 프레임, 상태
+  저장소 접근 계층, 로깅
+- **완료 조건**:
+  - [ ] MCP Inspector(또는 동급 도구)로 서버 연결·도구 목록 조회가 된다
+  - [ ] 상태 저장소 접근이 단일 모듈로 캡슐화되어 있다
+  - [ ] 단위 테스트 러너와 CI 가능한 테스트 스크립트가 동작한다
+- **지침**: 프로젝트 루트를 도구 인자(`projectRoot`)로 받지 말고 서버 실행
+  시 인자로 고정한다 — 세션 중 루트 변경은 상태 오염의 주원인. 도구 수가
+  40개를 넘으므로 도구를 도메인별 모듈(factory/roadmap/finding/evidence/
+  gate/dependency/approval/placeholder/capability)로 분리 등록한다.
+
+### AFA-011 공정 도구 (`factory_*`) — ⬜
+
+- **근거**: MVP-1.md 3.13 / **의존성**: AFA-010 / **위험도**: 상
+- **구현 범위**: `factory_initialize`, `factory_get_status`,
+  `factory_get_next_task`, `factory_claim_task`, `factory_submit_result`,
+  `factory_complete_task`, `factory_reopen_task`, `factory_start_cycle`,
+  `factory_finish_cycle`, `factory_abort_cycle`
+- **완료 조건**:
+  - [ ] `factory_claim_task`는 이미 클레임된 작업을 이중 클레임할 수 없다
+  - [ ] `factory_complete_task`는 호출 주체 role이 verifier가 아니면 거부한다
+  - [ ] `factory_get_next_task`가 의존성·우선순위·상태를 반영해 결정론적으로
+    다음 작업을 반환한다
+  - [ ] 도구별 단위 테스트가 있다
+- **지침**: 호출 주체 role(orchestrator / worker / verifier / auditor)은
+  도구 인자 + 클레임 토큰으로 전달한다. worker가 verifier를 사칭하는 것을
+  MCP 수준에서 완전히 막을 수는 없으므로, 클레임 시 발급한 토큰과 제출
+  주체가 일치하는지 검사하고 모든 전이를 감사 로그(`runs/`)에 남기는 것을
+  1차 방어로 삼는다. 완전한 강제는 AFA-021에서 규정.
+
+### AFA-012 로드맵 도구 (`roadmap_*`) — ⬜
+
+- **근거**: MVP-1.md 3.13 / **의존성**: AFA-001, AFA-010 / **위험도**: 중
+- **구현 범위**: `roadmap_parse`, `roadmap_get_items`,
+  `roadmap_update_status`, `roadmap_validate_traceability`
+- **완료 조건**:
+  - [ ] ROADMAP.md(대상 앱 프로젝트의) ↔ 구조화 상태(JSON) 양방향 동기화가
+    된다 (Markdown이 표시용, JSON이 SSOT)
+  - [ ] `roadmap_update_status`가 3.4 상태 머신의 허용 전이만 수행한다
+  - [ ] 요구사항 ↔ 로드맵 항목 ↔ 테스트의 추적성 검증이 누락 목록을 반환한다
+- **지침**: Markdown 파싱에 의존한 상태 관리는 취약하므로, 상태의 SSOT는
+  `.app-factory/state/roadmap.json`으로 두고 ROADMAP.md는 렌더링 산출물로
+  취급한다. 사람이 ROADMAP.md를 직접 고친 경우를 대비해 `roadmap_parse`가
+  diff를 감지하고 동기화 확인을 요구하게 한다.
+
+### AFA-013 발견·증거 도구 — ⬜
+
+- **근거**: MVP-1.md 3.13, 3.8 / **의존성**: AFA-005, AFA-010 / **위험도**: 중
+- **구현 범위**: `finding_create/list/resolve/reopen`,
+  `evidence_register/get/validate`
+- **완료 조건**:
+  - [ ] finding이 심각도(blocker/major/minor)·영역·연결 로드맵 항목을 가진다
+  - [ ] `evidence_validate`가 파일 존재·해시 일치·타입 적합성을 검사한다
+  - [ ] resolve된 finding의 reopen 이력이 보존된다
+- **지침**: finding resolve에는 evidence ID를 필수로 요구한다("고쳤다"는
+  주장에도 증거가 필요하다). 심각도 blocker는 게이트(AFA-014)가 자동
+  참조하므로 enum을 안정적으로 유지한다.
+
+### AFA-014 게이트 도구 (`gate_*`) — ⬜
+
+- **근거**: MVP-1.md 3.9, 3.13 / **의존성**: AFA-010, AFA-013 / **위험도**: 상
+- **구현 범위**: `gate_run`, `gate_get_result` + 3.9의 9개 게이트 정의
+  (빌드/단위 테스트/Lint/완료 검증/Placeholder/라이선스/버전/고지/실행)
+- **완료 조건**:
+  - [ ] 게이트가 선언적 정의(YAML: 이름, 실행 명령 또는 검사 함수, 통과
+    조건, 차단 여부)로 등록된다
+  - [ ] 게이트 결과가 증거로 자동 등록된다
+  - [ ] 하나라도 차단 게이트가 실패하면 공정이 다음 단계로 넘어가지 않는다
+- **지침**: 게이트 정의는 `core/policies/gates.yaml`에 두고 MCP는 실행만
+  담당한다. 빌드·테스트 게이트의 실행 명령은 APP_FACTORY.yaml의
+  `build/test/lint 명령`을 참조한다(하드코딩 금지). 게이트 실행은 멱등해야
+  하며, 동일 커밋에 대한 재실행은 캐시된 결과 재사용을 허용하되
+  `--force` 옵션을 둔다.
+
+### AFA-015 의존성 도구 (`dependency_*`) — ⬜
+
+- **근거**: MVP-1.md 3.5, 3.13 / **의존성**: AFA-010, AFA-022, AFA-023 / **위험도**: 중
+- **구현 범위**: `dependency_request/review_version/review_license/approve/reject`
+- **완료 조건**:
+  - [ ] 버전 검토·라이선스 검토를 모두 통과하지 않은 요청은 approve가 거부된다
+  - [ ] approve 시 Version Catalog 반영 → Locking → Verification → 빌드 →
+    테스트 → 고지 갱신의 후속 작업이 작업 큐에 자동 등록된다
+  - [ ] GPL/AGPL 의존성 요청이 자동 reject된다 (정책 예외 승인 없이)
+- **지침**: 검토 결과는 사람이 재검토할 수 있게 근거 URL(공식 문서·릴리스
+  페이지)을 필수 필드로 저장한다. "최신 안정화 버전 확인"은 웹 조회가
+  필요하므로 MCP가 직접 조회하지 않고 검토 Agent가 조회 후 결과를 제출하는
+  구조로 한다(MCP는 기록·검증 담당).
+
+### AFA-016 승인·Placeholder 도구 — ⬜
+
+- **근거**: MVP-1.md 3.13 / **의존성**: AFA-004, AFA-010 / **위험도**: 하
+- **구현 범위**: `approval_request/get_status`,
+  `placeholder_create/resolve/list_blocking`
+- **완료 조건**:
+  - [ ] 승인 요청이 선택지·근거·위험·추천안 필드를 갖는다 (3.9 강제 중단
+    조건의 보고 형식)
+  - [ ] `placeholder_list_blocking`이 릴리스 차단 항목만 정확히 반환한다
+  - [ ] 승인 대기 중 해당 작업 상태가 `BLOCKED`로 유지된다
+- **지침**: 승인은 비동기다 — 요청 후 폴링(`approval_get_status`)로 확인하고,
+  사용자 응답은 어댑터(플랫폼별 대화)가 받아 MCP에 기록한다. MCP가 직접
+  사용자에게 묻지 않는다.
+
+### AFA-017 역량 도구 (`capability_*`) — ⬜
+
+- **근거**: MVP-1.md 3.14 / **의존성**: AFA-010 / **위험도**: 중
+- **구현 범위**: `capability_scan/list_missing/install_plan/mark_installed/get_status`
+- **완료 조건**:
+  - [ ] 카탈로그(capability-catalog.yaml) 로드·검증이 된다
+  - [ ] `capability_install_plan`이 선택 항목+스코프를 받아 Provider별 설치
+    명령 목록을 반환한다
+  - [ ] 거절 이력이 기록되어 같은 세션에서 반복 제안되지 않는다
+- **지침**: 설치된 스킬·MCP 목록의 탐지는 Provider마다 다르므로(Claude Code:
+  설정 파일·플러그인 목록, Codex: 대응 설정) 탐지 로직은 어댑터에 두고 MCP
+  도구는 "탐지 결과를 받아 카탈로그와 대조"만 한다. 설치 실행 자체도
+  어댑터·사용자 몫이며 MCP는 계획 생성과 결과 기록만 담당한다.
+
+---
+
+## M3. 코어 워크플로·정책 (`core/workflow`, `core/policies`, `orchestrator/`)
+
+### AFA-020 워크플로 단계 정의·오케스트레이터 — ⬜
+
+- **근거**: MVP-1.md 3.3(Factory Orchestrator), 설계서 11장 / **의존성**:
+  AFA-011 / **위험도**: 상
+- **구현 범위**: `core/workflow/phases.yaml`(설계서 11장 17단계를 MVP-1
+  범위로 축약한 단계 정의: 상태확인 → 프로젝트 생성 → 문서 인덱싱 → 로드맵
+  감사 → 구현 루프 → 독립 검증 → 재작업 루프 → 에뮬레이터 검증 → 최종
+  게이트) + 오케스트레이터 루프
+- **완료 조건**:
+  - [ ] 각 단계가 진입 조건·수행 Agent·완료 조건·실패 시 행동을 선언한다
+  - [ ] 오케스트레이터가 현재 상태만 보고 다음 행동을 결정한다 (대화 이력
+    비의존 — `factory auto` 재실행 시 동일 지점에서 재개)
+  - [ ] 단계 전이가 모두 `runs/`에 기록된다
+- **지침**: 오케스트레이터는 "상태 읽기 → 다음 작업 선택 → Agent 프롬프트
+  생성 → 결과 형식 검증 → 상태 기록"의 루프이며 **코드를 직접 수정하지
+  않는다**. LLM 호출 부분과 결정 로직을 분리해 결정 로직은 LLM 없이 단위
+  테스트한다. `factory auto`의 "알아서 진행"은 이 루프가 상태 저장소와 실제
+  코드(빌드 결과 존재 여부 등)를 대조하는 것으로 구현한다.
+
+### AFA-021 상태 머신 전이 강제 — ⬜
+
+- **근거**: MVP-1.md 2장 1항, 3.4 / **의존성**: AFA-011, AFA-012 / **위험도**: 상
+- **구현 범위**: 전이 테이블(허용 전이 × 허용 role) + 전이 검증 미들웨어
+- **완료 조건**:
+  - [ ] worker role은 어떤 경로로도 `VERIFIED` 전이를 만들 수 없다 (테스트로
+    증명)
+  - [ ] `VERIFIED` 전이는 verifier role + evidence 필수 + 완료 조건 전 항목
+    체크를 요구한다
+  - [ ] 허용되지 않은 전이 시도가 finding으로 자동 기록된다
+- **지침**: 전이 테이블은 코드가 아니라 데이터
+  (`core/workflow/transitions.yaml`)로 정의해 리뷰·테스트를 쉽게 한다.
+  이 항목은 MVP-1의 존재 이유이므로 테스트를 가장 두텁게 작성한다
+  (전이 조합 전수 테스트).
+
+### AFA-022 SPDX 라이선스 정책 엔진 — ⬜
+
+- **근거**: MVP-1.md 3.6 / **의존성**: 없음 (M1과 병행 가능) / **위험도**: 중
+- **구현 범위**: `core/policies/license-policy.yaml`(허용/차단/수동검토
+  SPDX 목록) + 판정 함수(정규화 포함)
+- **완료 조건**:
+  - [ ] 3.6의 자동 허용 9종·자동 차단·수동 검토 목록이 기본 정책으로 들어
+    있다
+  - [ ] `GPL-2.0-with-classpath-exception` 같은 예외 표기, `OR`/`AND` 복합
+    표현식이 처리된다 (Dual License → 더 관대한 쪽 선택 가능 여부는 수동
+    검토로 분류)
+  - [ ] 알 수 없는 식별자는 무조건 차단으로 판정된다
+- **지침**: SPDX 표현식 파싱은 직접 구현하지 말고 검증된 파서 라이브러리를
+  쓴다(이 의존성 추가 자체도 라이선스 확인 후 도입 — 도그푸딩). 판정 결과는
+  `allow | block | manual_review` 3값 + 근거 문자열로 반환한다.
+
+### AFA-023 버전 정책 (Stable-only) — ⬜
+
+- **근거**: MVP-1.md 3.3(Dependency Version Manager) / **의존성**: 없음 / **위험도**: 하
+- **구현 범위**: 버전 문자열 판정 함수(stable vs alpha/beta/rc/preview/
+  canary/nightly/snapshot/dev) + 동적 버전(`+`, `latest.release`) 탐지
+- **완료 조건**:
+  - [ ] `2.1.0-alpha03`, `1.0.0-RC1`, `1.2.+`, `[1.0,2.0)` 등이 모두 비허용
+    판정된다
+  - [ ] Version Catalog(libs.versions.toml) 외부에 선언된 버전을 탐지한다
+- **지침**: Maven/Gradle 버전 체계는 SemVer가 아니다. 판정은 "stable 패턴
+  화이트리스트"가 아니라 "pre-release 마커 블랙리스트 + 숫자·점 구성 검사"
+  로 구현하는 편이 오탐이 적다. 판정 불가 문자열은 수동 확인으로 분류한다.
+
+### AFA-024 재시도·예산·강제 중단 정책 — ⬜
+
+- **근거**: MVP-1.md 3.9 / **의존성**: AFA-011 / **위험도**: 중
+- **구현 범위**: `core/policies/limits.yaml`(최대 재시도, 최대 반복, 작업
+  예산) + 동일 오류 반복 감지 + 3.9 강제 중단 조건 검사기
+- **완료 조건**:
+  - [ ] 동일 작업 3회 실패 시 자동 재시도가 멈추고 `BLOCKED` + 승인 요청이
+    생성된다 (횟수는 설정 가능)
+  - [ ] 강제 중단 조건(서명키 변경, Git Push, 실제 배포 등)에 해당하는 작업
+    유형이 승인 없이 실행되지 않는다
+- **지침**: "동일 오류"는 오류 메시지 완전 일치가 아니라 정규화(경로·숫자
+  마스킹) 후 비교로 판정한다. 강제 중단 조건 검사는 작업 유형 태그 기반으로
+  한다 — 작업 생성 시 `dangerous: [git_push, release, ...]` 태그를 붙이고
+  실행 전 검사.
+
+---
+
+## M4. Agent·Skill 원본 (`core/agents`, `core/skills`, `core/prompts`)
+
+> M4 공통 지침: Agent·Skill 원본은 플랫폼 중립 Markdown + frontmatter로
+> 작성한다. frontmatter에는 이름, 역할(role), 사용 도구 목록, 입출력 계약을
+> 선언하고 본문에 지시를 작성한다. Claude Code·Codex 형식으로의 변환은
+> AFA-042 빌드가 담당하므로 원본에 플랫폼 고유 문법을 넣지 않는다.
+
+### AFA-030 Agent 정의 8종 — ⬜
+
+- **근거**: MVP-1.md 3.3 / **의존성**: AFA-011 (도구 계약 확정 후) / **위험도**: 상
+- **구현 범위**: Factory Orchestrator, Project Explorer, Roadmap Architect,
+  Roadmap Auditor, Implementation Worker, Completion Verifier,
+  Dependency Version Manager, License Compliance Auditor
+- **완료 조건**:
+  - [ ] 각 Agent가 역할·금지 사항·사용 MCP 도구·출력 형식을 선언한다
+  - [ ] Implementation Worker 정의에 "VERIFIED 전이 금지, IMPLEMENTED까지만
+    제출" 지시가 명시되어 있다
+  - [ ] Completion Verifier 정의에 "로드맵 완료 표시·구현 대화 불신, 코드·
+    테스트·증거만 검토" 지시가 명시되어 있다
+- **지침**: 각 Agent의 출력은 자유 서술이 아니라 JSON 계약(스키마 참조)으로
+  강제한다 — 오케스트레이터가 형식을 검증해야 하기 때문. Verifier 프롬프트에
+  는 검사 체크리스트(코드 존재→호출 경로→UI 연결→실패 경로→Mock/TODO 스캔→
+  테스트 유효성→빌드 증거)를 순서대로 명시하고, 각 검사의 증거 등록을
+  요구한다.
+
+### AFA-031 진입 Skill 7종 — ⬜
+
+- **근거**: MVP-1.md 3.1, 3.12 / **의존성**: AFA-020 / **위험도**: 중
+- **구현 범위**: `factory`(라우터), `factory-plan`, `factory-init`,
+  `factory-auto`, `factory-review`, `factory-status`, `factory-doctor`
+- **완료 조건**:
+  - [ ] `factory` 라우터가 하위 명령을 파싱해 해당 Skill로 위임한다 (미지원
+    명령은 도움말 출력)
+  - [ ] `factory-auto`가 `.app-factory` 부재 시(신규) plan 산출물 확인 →
+    프로젝트 생성 경로, 존재 시 재개 경로로 분기한다
+  - [ ] `factory-init`이 빈 폴더에서 실행되면 "기존 프로젝트 전용" 안내와
+    함께 plan을 권한다
+  - [ ] `factory-go` 별칭이 auto로 연결된다
+- **지침**: 진입 Skill은 얇게 유지한다 — 인자 파싱, 전제 조건 확인
+  (프리플라이트 capability-audit 포함), 오케스트레이터/공정 Skill 위임까지만.
+  공정 로직을 진입 Skill에 넣으면 플랫폼별 변환에서 중복이 생긴다.
+
+### AFA-032 공정 Skill 10종 — ⬜
+
+- **근거**: MVP-1.md 3.12 / **의존성**: AFA-030 / **위험도**: 중
+- **구현 범위**: `project-explore`, `roadmap-create`, `roadmap-audit`,
+  `roadmap-implement`, `completion-verify`, `final-gate`,
+  `dependency-version-review`, `license-compliance-review`,
+  `dependency-report`, `license-report`, `official-docs-index`(기본),
+  `placeholder-audit`, `capability-audit`
+- **완료 조건**:
+  - [ ] 각 Skill이 대응 Agent·MCP 도구와 연결되고 입출력 계약을 갖는다
+  - [ ] `placeholder-audit`가 AFA-004의 정규식으로 코드·리소스 전체를 스캔
+    한다
+- **지침**: Skill과 Agent의 관계를 명확히 한다 — Skill은 "작업 절차서",
+  Agent는 "역할 정의". 하나의 Skill이 여러 Agent를 순서대로 부를 수 있다
+  (예: roadmap-create는 Roadmap Architect 후 Roadmap Auditor를 호출).
+
+### AFA-033 Capability Doctor 구현 — ⬜
+
+- **근거**: MVP-1.md 3.14 / **의존성**: AFA-017, D-002(설치 실행부만) / **위험도**: 중
+- **구현 범위**: 점검→카테고리별 체크리스트 제안→스코프 선택→설치 계획 생성
+  →(사용자 확인 후) 설치 실행→재검증→`capabilities.yaml` 기록
+- **완료 조건**:
+  - [ ] required 부재 시 plan/init/auto 시작 전에 제안이 표시된다
+  - [ ] 사용자가 아무것도 선택하지 않아도 공정이 계속 진행된다 (경고만 기록)
+  - [ ] API 키 필요 항목에 키 필요 표시가 나타난다
+  - [ ] 거절 항목이 같은 세션에서 재제안되지 않는다
+- **지침**: 체크리스트 UI는 플랫폼 기능(Claude Code의 질문 도구 등)에
+  의존하므로 어댑터별로 표현이 달라도 된다 — 코어는 "제안 데이터 구조"만
+  정의한다. 설치 소스 미확정(D-002) 항목은 목록에 표시하되 "설치 소스 미정"
+  으로 비활성 처리한다.
+
+### AFA-034 factory plan 인터뷰 흐름 — ⬜
+
+- **근거**: MVP-1.md 3.11, 설계서 5장 / **의존성**: AFA-004 / **위험도**: 상
+- **구현 범위**: 10개 영역 인터뷰 정의(`core/prompts/interview/`) — 질문
+  묶음, 분기 규칙(광고 미사용 시 광고 질문 생략 등), 기본 추천값, Placeholder
+  생성 규칙
+- **완료 조건**:
+  - [ ] 질문이 영역별 작은 묶음으로 제시된다 (한 번에 수십 개 금지)
+  - [ ] 이미 답한 내용을 다시 묻지 않는다 (답변은 즉시 상태 저장소에 기록)
+  - [ ] "모름/미정" 응답이 올바른 Placeholder + 메타데이터로 변환된다
+  - [ ] 인터뷰 중단 후 재실행 시 남은 질문부터 이어진다
+- **지침**: 인터뷰 정의는 데이터(YAML: 질문 ID, 조건, 기본값, 답변 타입,
+  placeholder 매핑)로 작성하고 진행 로직은 공통 하나로 만든다. 질문을
+  프롬프트에 하드코딩하면 영역 추가·수정 시 회귀가 생긴다. 기술 자동 결정
+  항목(스택 등)은 "추천값 + 변경 여부 확인" 1문항으로 압축한다.
+
+### AFA-035 project-template — ⬜
+
+- **근거**: MVP-1.md 3.10 / **의존성**: AFA-002, AFA-004 / **위험도**: 중
+- **구현 범위**: plan 산출물 17종 템플릿 + Android 프로젝트 스캐폴드 템플릿
+  (settings.gradle.kts, libs.versions.toml, build.gradle.kts, 기본 패키지
+  구조, .gitignore)
+- **완료 조건**:
+  - [ ] 17종 산출물이 모두 템플릿으로 존재하고 변수 치환 지점이 명시되어
+    있다
+  - [ ] Android 스캐폴드가 치환 후 `assembleDebug`에 성공한다 (샘플 값 기준)
+  - [ ] 키스토어 파일을 생성하지 않는다 — 서명 설정은 외부 키스토어 경로
+    참조 + 부재 시 릴리스 빌드 차단 안내 (전역 키스토어 정책 준수)
+- **지침**: 템플릿 변수는 `{{mustache}}` 스타일 단일 문법으로 통일한다.
+  Android 스캐폴드의 라이브러리 버전은 템플릿에 박아 두지 말고 "생성 시점에
+  Dependency Version Manager가 채운다"는 주석과 함께 placeholder로 둔다
+  (템플릿 자체가 구식이 되는 것을 방지).
+
+---
+
+## M5. 어댑터 (`adapters/`)
+
+### AFA-040 Claude Code 어댑터 — ⬜
+
+- **근거**: MVP-1.md 5장, 설계서 3장 / **의존성**: AFA-030~032, AFA-042 / **위험도**: 상
+- **구현 범위**: 플러그인 매니페스트, `/factory` 커맨드 등록, Agent →
+  서브에이전트 변환, Skill 변환, MCP 서버 등록 설정, CLAUDE.md 생성기
+  (공통 규칙 파일을 읽으라는 지시만 배치)
+- **완료 조건**:
+  - [ ] 로컬 설치 후 `/factory plan|init|auto|review|status|doctor`가 모두
+    호출된다
+  - [ ] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
+    중복 없음)
+  - [ ] MCP 서버가 플러그인 설치와 함께 등록된다
+- **지침**: Claude Code 플러그인 규격은 변화가 잦으므로 구현 시점에 공식
+  문서로 매니페스트·커맨드·훅 스펙을 재확인한다(claude-code-guide 에이전트
+  활용). 어댑터는 코어 원본을 수정 없이 소비해야 하며, 변환 불가능한 코어
+  구문이 발견되면 코어를 고친다(어댑터에서 편법 금지).
+
+### AFA-041 Codex 어댑터 — ⬜
+
+- **근거**: MVP-1.md 5장, 설계서 3장 / **의존성**: AFA-040 (패턴 확립 후) / **위험도**: 상
+- **구현 범위**: Codex 매니페스트/설정, `$factory` 진입, AGENTS.md 생성기,
+  MCP 설정, 실행 래퍼
+- **완료 조건**:
+  - [ ] Codex 환경에서 `$factory plan|init|auto|review`가 동작한다
+  - [ ] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
+  - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가
+    호환된다
+- **완료 조건 검증 주의**: Codex의 플러그인·서브에이전트 지원 수준이 Claude
+  Code와 다르면 기능 축소가 필요할 수 있다 — 차이 발견 시 finding으로
+  기록하고 MVP-1.md에 제약을 명시한다.
+- **지침**: Codex 쪽 스킬·명령 규격은 구현 시점의 공식 문서 기준으로
+  조사부터 수행한다. 서브에이전트 미지원 시 Agent를 "프롬프트 전환" 방식
+  (단일 세션 내 역할 교대)으로 강등 구현하되, worker/verifier 분리 원칙은
+  세션 분리(별도 실행)로 유지한다.
+
+### AFA-042 코어→어댑터 빌드 파이프라인 — ⬜
+
+- **근거**: MVP-1.md 2장 6항(SSOT) / **의존성**: AFA-030~032 원본 형식 확정 / **위험도**: 중
+- **구현 범위**: `scripts/build.*` — core 원본을 읽어 adapters 산출물을
+  `dist/claude-code/`, `dist/codex/`에 생성, 검증(변환 손실 검사) 포함
+- **완료 조건**:
+  - [ ] 코어 원본 수정 → 빌드 → 양 플랫폼 산출물 갱신이 명령 한 번으로 된다
+  - [ ] 산출물을 수동 편집하면 다음 빌드에서 덮어써진다는 경고 헤더가 각
+    산출물에 포함된다
+  - [ ] 빌드가 결정론적이다 (같은 입력 → 같은 출력, diff 가능)
+- **지침**: 변환기는 템플릿 치환 수준으로 단순하게 유지한다. 플랫폼별 차이가
+  커지면 변환기를 똑똑하게 만들지 말고 코어 원본의 추상화를 조정한다.
+
+---
+
+## M6. 게이트·검증·통합 (`tests/`)
+
+### AFA-050 빌드·테스트·Lint 게이트 실행기 — ⬜
+
+- **근거**: MVP-1.md 3.9 / **의존성**: AFA-014 / **위험도**: 중
+- **구현 범위**: Gradle 명령 실행 래퍼(타임아웃·출력 캡처·종료 코드 해석),
+  결과 → 증거 등록, 실패 로그 요약
+- **완료 조건**:
+  - [ ] `assembleDebug`/`test`/`lint` 실패가 각각 구분된 finding으로
+    기록된다
+  - [ ] 타임아웃(기본 15분, 설정 가능) 시 프로세스가 정리되고 재시도
+    정책(AFA-024)에 연결된다
+  - [ ] 실패 로그 요약이 원인 라인(첫 error) 중심으로 추출된다
+- **지침**: Gradle 출력은 방대하므로 전체 저장 대신 "exit code + 마지막
+  200줄 + `error:`/`FAILURE:` 매칭 라인"을 구조화 저장한다. Gradle Daemon
+  잔존으로 인한 상태 오염을 피하려면 `--no-daemon`은 쓰지 말고(빌드 시간
+  폭증) 실패 반복 시에만 `--stop` 후 재시도한다.
+
+### AFA-051 Third Party Notices·SBOM 생성기 — ⬜
+
+- **근거**: MVP-1.md 3.5, 3.9 고지 게이트 / **의존성**: AFA-022 / **위험도**: 중
+- **구현 범위**: Gradle 의존성 그래프 → 라이선스 수집 → THIRD_PARTY_NOTICES.md
+  생성, CycloneDX 형식 기본 SBOM 생성, 갱신 검증(의존성 변경 후 미갱신 탐지)
+- **완료 조건**:
+  - [ ] 직접·전이 의존성이 모두 포함된다
+  - [ ] 라이선스 불명 의존성이 있으면 생성이 실패하고 finding이 등록된다
+  - [ ] 의존성 변경 후 고지 미갱신 상태가 고지 게이트에서 탐지된다
+- **지침**: 직접 구현보다 검증된 Gradle 플러그인(라이선스 리포트·CycloneDX
+  계열) 활용을 우선 검토하되, 해당 플러그인 자체의 라이선스·안정 버전 검사를
+  먼저 통과시킨다. 플러그인 출력이 정책 엔진(AFA-022) 입력 형식과 다르면
+  변환 계층을 둔다.
+
+### AFA-052 기본 에뮬레이터 실행 검증 — ⬜
+
+- **근거**: MVP-1.md 3.2, 3.9 실행 게이트 / **의존성**: AFA-050 / **위험도**: 중
+- **구현 범위**: 에뮬레이터/디바이스 감지 → APK 설치 → 앱 실행 → 초기 크래시
+  감지(프로세스 생존 + Logcat FATAL 스캔) → 스크린샷 1장 → 증거 등록
+- **완료 조건**:
+  - [ ] 실행 가능한 디바이스가 없으면 게이트가 `BLOCKED`(skip 아님)로
+    기록되고 사용자 안내가 남는다
+  - [ ] 앱 실행 10초 내 크래시가 탐지되어 finding으로 등록된다
+  - [ ] 스크린샷이 증거로 저장된다
+- **지침**: MVP-1 범위는 "설치·실행·크래시 확인"까지다 — 시나리오 자동화는
+  MVP-5로 미룬다(범위 방어). 구현은 adb 직접 호출을 기본으로 하고
+  mobile-mcp가 설치된 환경에서는 그것을 우선 사용한다(Capability Doctor
+  연계).
+
+### AFA-053 E2E: 빈 폴더 신규 개발 시나리오 — ⬜
+
+- **근거**: MVP-1.md 6장 DoD 1·2·4 / **의존성**: M2~M5 전체 / **위험도**: 상
+- **구현 범위**: 빈 폴더 → `factory plan`(모의 응답 주입) → `factory auto`
+  → 소형 샘플 앱 로드맵 구현·검증까지의 자동화 통합 테스트
+- **완료 조건**:
+  - [ ] plan 산출물 17종이 생성되고 스키마 검증을 통과한다
+  - [ ] `assembleDebug` 성공, 로드맵 필수 항목 `VERIFIED` 도달
+  - [ ] 전 과정에서 사용자 확인 없는 위험 작업(3.9)이 실행되지 않았음이
+    로그로 확인된다
+- **지침**: E2E의 LLM 구간은 비결정적이므로 "인터뷰 응답 주입 + 결과물 검증"
+  구조로 만들고, 실패 시 재현을 위해 Run ID 전체 로그를 보존한다. 샘플 앱은
+  화면 2개 수준의 최소 앱으로 고정한다(테스트 시간 관리).
+
+### AFA-054 E2E: 중단 후 재개 시나리오 — ⬜
+
+- **근거**: MVP-1.md 6장 DoD 9 / **의존성**: AFA-053 / **위험도**: 중
+- **완료 조건**:
+  - [ ] 구현 루프 중간에 강제 종료 후 `factory auto` 재실행 시 완료 작업을
+    건너뛰고 이어서 진행한다
+  - [ ] 클레임된 채 중단된 작업이 stale 클레임 회수 후 재할당된다
+- **지침**: 중단 지점을 단계별(초기화 직후·구현 중·검증 중)로 3케이스 이상
+  테스트한다. 잠금 회수(AFA-003)의 실제 동작 검증이 핵심이다.
+
+### AFA-055 E2E: 기존 프로젝트 init 시나리오 — ⬜
+
+- **근거**: MVP-1.md 6장 DoD 3 / **의존성**: AFA-053 / **위험도**: 중
+- **완료 조건**:
+  - [ ] 준비된 기존 Android 프로젝트 픽스처에서 `factory init` 실행 시
+    모듈·Gradle·라이브러리 분석 결과가 상태 저장소에 기록된다
+  - [ ] 기존 구현과 로드맵이 동기화되고 미확정 항목이 Placeholder로 등록된다
+  - [ ] 기존 소스가 수정되지 않는다 (init은 읽기 전용 + `.app-factory` 생성)
+- **지침**: 픽스처는 "잘 만든 프로젝트" 1개와 "문제 있는 프로젝트"(버전
+  하드코딩·라이선스 불명 의존성 포함) 1개, 두 개를 준비해 분석 능력을 함께
+  검증한다.
+
+### AFA-056 E2E: 부분 구현 탐지 시나리오 — ⬜
+
+- **근거**: MVP-1.md 6장 DoD 5·6 / **의존성**: AFA-053 / **위험도**: 상
+- **완료 조건**:
+  - [ ] 의도적으로 삽입한 4종 결함(빈 함수, 호출되지 않는 코드, TODO 잔존,
+    Mock 데이터 반환)이 각각 Completion Verifier에서 탐지된다
+  - [ ] 탐지 항목이 `IMPLEMENTED` → `PARTIAL`로 강등되고 재작업 큐에
+    등록된다
+  - [ ] worker role의 `VERIFIED` 전이 시도가 거부된다 (AFA-021 통합 검증)
+- **지침**: 이 테스트가 MVP-1의 핵심 가치("부분 구현을 완료로 인정하지
+  않는다")를 증명한다. 결함 주입은 픽스처 브랜치로 관리하고, 탐지 실패는
+  릴리스 차단 결함으로 취급한다.
+
+---
+
+## 이 로드맵의 갱신 절차
+
+1. 작업 착수 시 해당 항목을 🟨 `IN_PROGRESS`로 변경하고 커밋한다.
+2. 구현 완료 시 🟦 `IMPLEMENTED`로 변경한다 — 완료 조건 체크박스를 함께
+   갱신하되, 이 시점에는 ✅로 바꾸지 않는다.
+3. 별도 세션(가능하면 다른 Provider)에서 완료 조건을 검증한 뒤에만 ✅
+   `VERIFIED`로 변경한다. 검증 근거(테스트 실행 결과 등)를 CHANGELOG.md에
+   기록한다.
+4. 검증 중 결함 발견 시 🟧 `PARTIAL`로 강등하고 결함 내용을 항목에 추기한다.
+5. 범위 변경(항목 추가·삭제·분할)은 MVP-1.md와의 정합성을 확인하고
+   CHANGELOG.md에 사유를 기록한다.

@@ -37,7 +37,8 @@ Android 앱 제작에 필요한 스킬 40종·MCP 서버·서브에이전트가 
 
 ## 문서
 
-- [MVP-1.md](./MVP-1.md) — MVP-1 공식 명세서 (구현 착수 기준 문서)
+- [MVP-1.md](./MVP-1.md) — MVP-1 공식 명세서 (범위·완료 기준의 SSOT)
+- [ROADMAP.md](./ROADMAP.md) — MVP-1 개발 로드맵 (상태 추적·마일스톤·작업별 지침)
 - [mvp.txt](./mvp.txt) — 원본 통합 설계서
 - [CHANGELOG.md](./CHANGELOG.md) — 변경 이력
 
