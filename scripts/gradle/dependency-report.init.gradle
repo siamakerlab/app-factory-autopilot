@@ -1,0 +1,44 @@
+// Gradle init script — 의존성(직접+전이)과 POM 라이선스를 JSON으로 덤프한다.
+// 사용: ./gradlew -I <이 파일> :app:afaDependencyReport
+// 출력: build/afa/dependencies.json → scripts/generate-notices.mjs의 입력.
+// (AFA-051 — 검증된 플러그인 대체 검토 후에도 유지되는 무의존성 폴백 경로)
+
+allprojects {
+    tasks.register("afaDependencyReport") {
+        doLast {
+            def out = []
+            def config = configurations.findByName("releaseRuntimeClasspath")
+                    ?: configurations.findByName("runtimeClasspath")
+            if (config == null) {
+                logger.lifecycle("afa: 해석 가능한 runtime classpath 없음 — 건너뜀 (${project.path})")
+                return
+            }
+            def resolved = config.incoming.resolutionResult.allComponents
+            def ids = resolved.findAll { it.id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                              .collect { it.id }
+            def query = dependencies.createArtifactResolutionQuery()
+                    .forComponents(ids)
+                    .withArtifacts(org.gradle.maven.MavenModule, org.gradle.maven.MavenPomArtifact)
+            query.execute().resolvedComponents.each { comp ->
+                comp.getArtifacts(org.gradle.maven.MavenPomArtifact).each { artifact ->
+                    def licenses = []
+                    try {
+                        def pom = new XmlSlurper().parse(artifact.file)
+                        pom.licenses.license.each { lic -> licenses << lic.name.text().trim() }
+                    } catch (ignored) { }
+                    def id = comp.id
+                    out << [
+                        coordinates: "${id.group}:${id.module}",
+                        version    : "${id.version}",
+                        licenses   : licenses,   // 빈 배열 = 라이선스 불명 → 생성기가 차단
+                    ]
+                }
+            }
+            def dir = new File(project.buildDir, "afa")
+            dir.mkdirs()
+            def file = new File(dir, "dependencies.json")
+            file.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(out))
+            logger.lifecycle("afa: ${out.size()}건 → ${file}")
+        }
+    }
+}

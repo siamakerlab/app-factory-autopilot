@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (12차) — M5·M6 구현, 전체 로드맵 구현 사이클 완료 (테스트 61건)
+
+- AFA-042 🟦: `scripts/build-adapters.mjs` — 코어 SSOT → 양 플랫폼 산출물
+  184파일, 결정론(재실행 diff 0) 확인, frontmatter 우선 배치 결함 수정
+- AFA-040 🟧: Claude Code 산출물 — 매니페스트·/factory 커맨드·서브에이전트
+  8·스킬 19·Stop Hook(auto 무중단)·.mcp.json·CLAUDE.md 템플릿
+- AFA-041 🟧: Codex 산출물 — 프롬프트 7·agents/skills·mcp.toml·AGENTS.md
+  템플릿·무중단 래퍼 (worker/verifier 세션 분리 원칙 명시)
+- AFA-051 🟧: dependency-report.init.gradle + generate-notices.mjs —
+  허용 통과·GPL/불명 차단(exit 1)·CycloneDX SBOM 생성 테스트 통과
+- AFA-052 🟧: emulator-smoke.sh — 설치·실행·10초 생존·FATAL 스캔·스크린샷,
+  디바이스 부재 시 blocked(skip 아님)
+- AFA-054 🟦: 중단 후 재개 E2E — 드라이버 테스트로 완전 증명 (강제 종료 후
+  완료 작업 건너뛰고 완주, attempts 보존)
+- AFA-056 코어 테스트 3건 추가: PARTIAL 강등→fix 큐→완료 게이트 차단→재검증
+  →VERIFIED 복구, init 후보의 VERIFIED 전이 불가
+- ROADMAP에 "🟧 항목의 잔여 검증" 표 추가 — 실환경(플러그인 설치·Android
+  SDK·에뮬레이터) 필요 항목 명시
+- 이 시점 기준: 전 항목 ⬜ 없음 (🟦 28건 / 🟧 9건), 테스트 61건 전체 통과,
+  로드맵 진행도 약 69%
+
 ### 2026-08-05 (11차) — M4 완료 (구현 제출), 테스트 58건 통과
 
 - AFA-035 🟧: project-template — plan 산출물 17종 mustache 템플릿 + Android
