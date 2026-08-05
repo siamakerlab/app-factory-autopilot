@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### 2026-08-05 (4차)
+
+- 사용자 요구 4건 반영
+  - 턴 종료 진행 보고 명세 추가 (MVP-1.md 3.15): 진행 상황·앞으로의 목표·
+    다음 턴 예정·전체 진행도 % 4요소, 상태 가중치(0/25/50/75/100) 기반
+    진행도 공식. 로드맵 AFA-025 신설
+  - factory review 점수화 명세 추가 (MVP-1.md 3.16): 영역별 0~100 점수표 →
+    목표 점수(기본 90)·개선 계획 제시 → 수정 → 전/후 비교. 배점표
+    (`review-scoring.yaml`) 기반 산정. 로드맵 AFA-036 신설
+  - plan 인터뷰 기본값 정책: 구현 언어·런타임 질문 추가, 미입력 시 Kotlin.
+    기본 언어 영어, 다국어 구조(strings.xml)는 항상 기본 적용
+  - Capability Doctor 6단계 추가: 설치된 스킬의 사용 지침을 선택 스코프의
+    관리문서(전역 CLAUDE.md 또는 프로젝트 APP_FACTORY_RULES.md)에 마커
+    블록으로 추가
+- 역량 카탈로그 v2: 공식/공개 레포 검증 기반으로 재작성 (사용자 결정)
+  - 검증 완료: `android/skills` 11종(adaptive, edge-to-edge, navigation-3,
+    agp-9-upgrade, r8-analyzer, perfetto 2종, android-intent-security,
+    testing-setup, play-billing-library-version-upgrade, play-policy-insights),
+    `google/skills` Mobile Ads 1종, 커뮤니티 4종(material-3/hamen,
+    compose-expert/aldefy, claude-android-ninja/Drjacky,
+    android-testing-skills/skydoves)
+  - Claude Code 내장 15종은 builtin_skills로 분리 (설치 불필요)
+  - 미검증 9종 제외 (-expert 계열 등 사용자 로컬 스킬 추정) — 공개 레포
+    확인 시 승격
+- 선행 결정 해소: D-001(대상 앱은 plan 인터뷰 입력·기본 Kotlin, 플러그인
+  자체는 추천안 TypeScript+Node 20 자동 채택 — 이견 시 M2 착수 전 변경 가능),
+  D-002(검증 기반 카탈로그로 확정)
+
 ### 2026-08-05 (3차)
 
 - MVP-1.md 기반 정식 개발 로드맵 `ROADMAP.md` 작성

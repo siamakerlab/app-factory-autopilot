@@ -114,6 +114,8 @@ MVP-1은 다음 4개 명령을 **필수**로 포함합니다. (2026-08-05 사용
   Placeholder 잔존, 실패 경로 누락, 테스트 없는 구현 발견 시 완료 취소 및 재등록
 - 자동 수정이 안전한 항목은 수정 작업으로 재등록, 위험 항목은
   `NEEDS_HUMAN_DECISION`으로 보류
+- 영역별 점수화(0~100) → 목표 점수·개선 계획 제시 → 수정 → 전/후 점수 비교
+  (상세: 3.16)
 
 ### 3.3 Agent 범위 (8종)
 
@@ -252,6 +254,16 @@ NOT_STARTED → IN_PROGRESS → IMPLEMENTED → VERIFIED
    미확정 서명 정보는 Placeholder + 릴리스 차단)
 10. 버전과 라이선스 정책
 
+**기본값 정책 (2026-08-05 사용자 결정)**
+
+- **구현 언어·런타임**: plan 인터뷰에서 사용자에게 입력받습니다. 미입력 시
+  기본값은 **Kotlin**(Android 개발 기준)이며, 위 3번의 권장 스택을 함께
+  적용합니다. 사용자가 다른 언어·런타임을 지정하면 해당 선택을
+  APP_FACTORY.yaml에 기록하고 지원 가능 여부를 확인합니다.
+- **기본 언어·다국어**: 미입력 시 앱 기본 언어는 **영어**입니다. 다국어 지원
+  구조(strings.xml 리소스 분리, 하드코딩 문자열 금지, 로케일 확장 가능 구조)는
+  사용 언어 수와 무관하게 **처음부터 기본으로 적용**하고 개발합니다.
+
 ### 3.12 공통 Skill (MVP-1 구현 대상)
 
 MVP-1 범위에 해당하는 Skill만 우선 구현합니다.
@@ -315,6 +327,16 @@ Provider 환경에 설치되어 있는지 점검하고, 미설치 항목을 **�
 5. **재검증·기록**: 설치 후 재점검하여 결과를
    `.app-factory/config/capabilities.yaml`에 기록합니다. 이후 공정에서 관련
    Agent가 어떤 역량을 사용할 수 있는지 판단하는 근거가 됩니다.
+6. **관리문서 지침 반영** (2026-08-05 추가): 설치가 완료된 스킬에 대해, 사용자가
+   선택한 스코프에 따라 관리문서에 해당 스킬의 사용 지침을 추가합니다.
+   - 전역 스코프 → 전역 관리문서 (Claude Code: `~/.claude/CLAUDE.md`,
+     Codex: 전역 AGENTS 설정)
+   - 프로젝트 스코프 → 프로젝트 관리문서 (규칙 SSOT 원칙에 따라
+     `APP_FACTORY_RULES.md`의 역량 사용 지침 절에 추가하고, CLAUDE.md/AGENTS.md
+     는 참조 구조 유지)
+   - 지침 문구는 카탈로그의 `guidance_doc` 필드를 원본으로 사용하며, "언제 이
+     스킬을 사용하라"는 실행 지침 형태로 기록합니다. 중복 추가를 방지하기 위해
+     지침 블록은 마커 주석으로 감싸 관리합니다.
 
 **실행 시점**
 
@@ -333,21 +355,21 @@ Provider 환경에 설치되어 있는지 점검하고, 미설치 항목을 **�
   required 역량 부재로 품질이 저하될 수 있는 단계에서는 경고를 남깁니다.
 - 카탈로그는 코어 SSOT로 관리하고 어댑터가 Provider별 설치 명령으로 변환합니다.
 
-**역량 카탈로그 (초기 등록 대상)**
+**역량 카탈로그 (검증 기반 등록 — 2026-08-05 사용자 결정)**
 
-스킬 40종을 8개 카테고리로 등록합니다. 상세 목록과 용도는
+설치 제안 대상은 **공식/공개 레포에서 확인된 스킬만** 등록합니다 (사용자 자작
+스킬은 공개 레포에 없을 수 있으므로 제외). 상세 목록·설치 소스·검증 근거는
 `core/policies/capability-catalog.yaml`을 SSOT로 합니다.
 
-| 카테고리 | 스킬 | 기본 우선순위 |
-|----------|------|---------------|
-| Android UI·디자인 (11) | material-3, material3-expert, compose-expert, jetpack-compose-expert, compose-architecture-expert, adaptive, adaptive-layout-expert, android-ui-design, design-system-curator, edge-to-edge, navigation-3 | required |
-| Android 코드·아키텍처 (2) | claude-android-ninja, kotlin-expert | required |
-| 디버그·품질·테스트 (8) | android-bug-finder, android-testing, testing-setup, qa-scenario-writer, r8-analyzer, perfetto-trace-analysis, perfetto-sql, android-intent-security | required (perfetto 계열은 recommended) |
-| 빌드·마이그레이션 (1) | agp-9-upgrade | recommended |
-| 수익화·광고·결제·정책 (3) | admob-agent-skill, play-billing, play-policy-insights | required (광고/결제 사용 앱) |
-| Artifact·시각화 (4) | dataviz, artifact-design, artifact-capabilities, artifact-diagramming | optional |
-| Claude Code 하네스·도구 (5) | update-config, keybindings-help, loop, schedule, claude-api | optional |
-| 워크플로 커맨드 (6) | run, init, review, security-review, simplify, fewer-permission-prompts | recommended |
+최초 후보 40종을 검증한 결과(2026-08-05):
+
+| 분류 | 항목 | 비고 |
+|------|------|------|
+| Google 공식 `android/skills` (11) | adaptive, edge-to-edge, navigation-3, agp-9-upgrade, r8-analyzer, perfetto-trace-analysis, perfetto-sql, android-intent-security, testing-setup, play-billing-library-version-upgrade, play-policy-insights | 설치 제안 대상 |
+| Google 공식 `google/skills` (1) | google-mobile-ads (요청명 admob-agent-skill의 공식 대응) | 설치 제안 대상 |
+| 공개 커뮤니티 레포 (4) | material-3(hamen), compose-expert(aldefy), claude-android-ninja(Drjacky), android-testing-skills(skydoves) | 설치 제안 대상 |
+| Claude Code 내장 (15) | dataviz, artifact-* 3종, update-config, keybindings-help, loop, schedule, claude-api, run, init, review, security-review, simplify, fewer-permission-prompts | 설치 불필요 — 존재 점검만 |
+| 미검증 → 제외 (9) | material3-expert, jetpack-compose-expert, compose-architecture-expert, adaptive-layout-expert, android-ui-design, design-system-curator, qa-scenario-writer, android-bug-finder, kotlin-expert | 공개 레포 미확인 (사용자 로컬 스킬 추정). 공개 레포 확인 시 승격 |
 
 MCP 서버 8종: mobile-docs, context7, mobile-mcp, playwright,
 code-review-graph (recommended, 키 불필요) / app-publish, play-store-mcp,
@@ -365,6 +387,53 @@ build-failure-debugger, gap-analysis-reviewer, android-skill-sweep 등 —
 **Skill 추가**
 
 `factory-doctor` (진입), `capability-audit` (공정 내 프리플라이트용)
+
+### 3.15 턴 종료 진행 보고 (2026-08-05 사용자 요구로 추가)
+
+자동 공정(`factory auto` 등) 실행 중 **매 턴(작업 사이클) 종료 시** 다음 형식의
+진행 보고를 사용자에게 표시합니다. 사용자가 개입하지 않고 기다리면 다음 턴이
+자동으로 진행되므로, 보고만으로 현재 위치와 다음 행동을 파악할 수 있어야
+합니다.
+
+**보고 항목 (4요소 필수)**
+
+1. **현재까지의 진행 상황**: 이번 턴에 수행·완료한 작업과 상태 변화 요약
+2. **앞으로의 목표**: 남은 주요 작업과 현재 마일스톤의 목표
+3. **다음 턴 예정**: 대기 시 자동으로 수행될 다음 작업 (작업 ID와 내용)
+4. **전체 진행도**: 퍼센티지 표시
+
+**진행도 계산 공식**
+
+로드맵 필수 항목의 상태 가중 평균으로 계산합니다.
+
+```
+진행도(%) = Σ(항목별 가중치) / 항목 수
+가중치: NOT_STARTED 0 / IN_PROGRESS 25 / PARTIAL 50 / IMPLEMENTED 75 / VERIFIED 100
+(BLOCKED·NEEDS_HUMAN_DECISION은 직전 도달 상태의 가중치 유지)
+```
+
+보고는 오케스트레이터가 상태 저장소에서 생성하며(대화 기억 비의존),
+`factory status`도 동일 형식을 출력합니다.
+
+### 3.16 factory review 점수화 (2026-08-05 사용자 요구로 추가)
+
+`factory review`는 발견 사항 나열에 그치지 않고 다음 절차로 진행합니다.
+
+1. **항목별 점수화**: 검사 영역별(요구사항 일치, 사용자 흐름·화면 상태, 데이터
+   보존, 보안·개인정보, 광고·결제, 테스트 커버리지, 빌드·서명 설정, 의존성
+   버전, 라이선스, 성능, 접근성 등 — 설계서 12장 범위를 영역으로 묶음) 현재
+   구현 상태를 **0~100점으로 점수화**하여 표로 표시합니다. 점수 산정 근거
+   (감점 사유 = finding)를 함께 기록합니다.
+2. **목표 점수와 개선 계획 제시**: 영역별 목표 점수(기본 90점, 릴리스 차단
+   영역은 100점)를 설정하고, 현재 점수와의 격차를 메우기 위한 개선 계획
+   (수정 작업 목록, 우선순위, 예상 영향)을 사용자에게 먼저 보여줍니다.
+3. **수정 실행**: 계획 표시 후 자동 수정이 안전한 항목은 재작업으로 등록·수정
+   하고, 위험 항목은 `NEEDS_HUMAN_DECISION`으로 남깁니다. 수정 후 재점수화하여
+   개선 전/후 점수를 비교 표시합니다.
+
+점수·목표·계획은 `.app-factory/reports/review-<Run ID>.md`에 저장하며, 점수
+산정 기준은 `core/policies/review-scoring.yaml`에 정의합니다 (영역별 검사
+항목과 배점 — 임의 산정 금지).
 
 ## 4. 범위 제외 (Out of Scope — 후속 MVP로 이연)
 
@@ -433,7 +502,12 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정합니다.
 12. `factory doctor`(및 plan/init/auto 프리플라이트)가 역량 카탈로그와 현재
     환경을 대조해 미설치 스킬·MCP·서브에이전트를 카테고리별 체크리스트로
     제시하고, 사용자가 선택한 항목을 전역/프로젝트 스코프 선택과 함께 일괄
-    설치하며, 사용자 확인 없이는 어떤 것도 설치하지 않는다.
+    설치하며, 사용자 확인 없이는 어떤 것도 설치하지 않는다. 설치된 스킬의
+    사용 지침이 선택 스코프의 관리문서에 추가된다.
+13. 자동 공정의 매 턴 종료 시 3.15 형식(진행 상황, 앞으로의 목표, 다음 턴
+    예정, 전체 진행도 %)의 보고가 표시된다.
+14. `factory review`가 영역별 점수표(0~100)와 목표 점수·개선 계획을 먼저
+    표시한 뒤 수정을 실행하고, 수정 후 개선 전/후 점수를 비교 표시한다.
 
 ## 7. 용어
 

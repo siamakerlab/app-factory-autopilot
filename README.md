@@ -21,10 +21,15 @@ Claude Code와 Codex 양쪽에서 동작하는 플러그인과 공통 CLI를 목
 
 ## Capability Doctor
 
-Android 앱 제작에 필요한 스킬 40종·MCP 서버·서브에이전트가 설치되어 있는지
+Android 앱 제작에 필요한 스킬·MCP 서버·서브에이전트가 설치되어 있는지
 점검하고, 미설치 항목을 카테고리별 체크리스트로 보여 준 뒤 **사용자가 선택한
-항목만** 전역/프로젝트 스코프를 골라 일괄 설치합니다. 사용자 확인 없는 자동
-설치는 하지 않습니다. 카탈로그 SSOT는
+항목만** 전역/프로젝트 스코프를 골라 일괄 설치합니다. 설치된 스킬의 사용
+지침은 선택한 스코프의 관리문서에 자동 추가됩니다. 사용자 확인 없는 자동
+설치는 하지 않습니다.
+
+카탈로그에는 공식/공개 레포에서 검증된 스킬만 등록합니다 — Google 공식
+`android/skills` 11종, `google/skills`(Mobile Ads) 1종, 공개 커뮤니티 4종,
+Claude Code 내장 15종(존재 점검만). SSOT는
 [`core/policies/capability-catalog.yaml`](./core/policies/capability-catalog.yaml)입니다.
 
 ## 핵심 원칙
