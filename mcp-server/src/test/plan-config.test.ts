@@ -49,6 +49,64 @@ test("factory config — 체크박스 저장 시 관련 설정과 n_a 영역을 
   }
 });
 
+test("factory config — plan 답변을 현재 체크박스 설정으로 표시한다", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    await planSubmitAnswers(ctx, {
+      answers: {
+        emulator_enabled: true,
+        ads_enabled: true,
+        billing_enabled: true,
+        review_enabled: false,
+        update_enabled: true,
+      },
+    });
+
+    const current = factoryConfigGet(ctx);
+    const automation = current.config.automation as Record<string, unknown>;
+    assert.equal(automation.emulator, true);
+    assert.equal(automation.ads, true);
+    assert.equal(automation.billing, true);
+    assert.equal(automation.in_app_review, false);
+    assert.equal(automation.in_app_update, true);
+    assert.equal(current.checkboxes.find((item) => item.key === "emulator")?.value, true);
+    assert.equal(current.checkboxes.find((item) => item.key === "ads")?.value, true);
+    assert.equal(current.checkboxes.find((item) => item.key === "billing")?.value, true);
+    assert.equal(current.checkboxes.find((item) => item.key === "in_app_review")?.value, false);
+    assert.equal(current.emulator_final_prompt_deferred, false);
+  } finally {
+    cleanup();
+  }
+});
+
+test("factory config — 저장된 config는 plan 답변보다 우선한다", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    await planSubmitAnswers(ctx, {
+      answers: {
+        emulator_enabled: true,
+        ads_enabled: true,
+      },
+    });
+    await factoryConfigUpdate(ctx, {
+      automation: {
+        emulator: false,
+        ads: false,
+      },
+    });
+
+    const current = factoryConfigGet(ctx);
+    const automation = current.config.automation as Record<string, unknown>;
+    assert.equal(automation.emulator, false);
+    assert.equal(automation.ads, false);
+    assert.equal(current.checkboxes.find((item) => item.key === "emulator")?.value, false);
+    assert.equal(current.checkboxes.find((item) => item.key === "ads")?.value, false);
+    assert.equal(current.emulator_final_prompt_deferred, true);
+  } finally {
+    cleanup();
+  }
+});
+
 test("factory plan — 영역별 작은 질문 묶음, 답변 저장 후 같은 질문을 다시 묻지 않음", async () => {
   const { ctx, cleanup } = makeCtx();
   try {

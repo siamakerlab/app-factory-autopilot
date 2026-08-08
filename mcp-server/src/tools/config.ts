@@ -1,5 +1,5 @@
 // factory config 코어 도구 (AFA-058)
-// 체크박스 UI 자체는 어댑터 책임이고, 코어는 기본값·저장·파생 설정 동기화를 보장한다.
+// 체크박스 UI 자체는 어댑터 책임이고, 코어는 현재 설정 조회·저장·파생 설정 동기화를 보장한다.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -23,7 +23,26 @@ const CHECKBOXES = [
   ["emulator", "에뮬레이터 실행 검증"],
 ] as const;
 
+const PLAN_CONFIG_TO_AUTOMATION: Record<string, string> = {
+  "ads.enabled": "ads",
+  "billing.enabled": "billing",
+  "in_app_review.enabled": "in_app_review",
+  "in_app_update.enabled": "in_app_update",
+  "market_research.enabled": "market_research",
+  "ux_quality.accessibility_required": "accessibility_review",
+};
+
 type Config = Record<string, unknown>;
+
+interface InterviewDoc {
+  areas?: {
+    id: string;
+    questions?: {
+      id: string;
+      config?: string | null;
+    }[];
+  }[];
+}
 
 function loadDefaults(ctx: Ctx): Config {
   const p = path.join(ctx.coreDir, "policies", "defaults.yaml");
@@ -44,9 +63,36 @@ function mergeDeep(base: Config, override: Config): Config {
   return out;
 }
 
+function setPath(config: Config, dottedPath: string, value: unknown): void {
+  const parts = dottedPath.split(".").filter(Boolean);
+  if (parts.length === 0) return;
+  let target = config;
+  for (const part of parts.slice(0, -1)) {
+    target = section(target, part);
+  }
+  target[parts[parts.length - 1]!] = value;
+}
+
 function section(config: Config, key: string): Config {
   if (!isRecord(config[key])) config[key] = {};
   return config[key] as Config;
+}
+
+function loadPlanConfig(ctx: Ctx): Config {
+  const p = path.join(ctx.coreDir, "prompts", "interview", "interview.yaml");
+  if (!fs.existsSync(p)) return {};
+  const doc = parseYaml(fs.readFileSync(p, "utf-8")) as InterviewDoc;
+  const out: Config = {};
+  for (const area of doc.areas ?? []) {
+    const answers = ctx.store.loadInterviewAreaIfExists(area.id).answers as Record<string, unknown>;
+    for (const question of area.questions ?? []) {
+      if (!question.config || !(question.id in answers)) continue;
+      setPath(out, question.config, answers[question.id]);
+      const automationKey = PLAN_CONFIG_TO_AUTOMATION[question.config];
+      if (automationKey) setPath(out, `automation.${automationKey}`, answers[question.id]);
+    }
+  }
+  return out;
 }
 
 function applyDerivedConfig(config: Config): Config {
@@ -78,6 +124,7 @@ function applyDerivedConfig(config: Config): Config {
   if (automation.ux_intuitiveness_review === false) uxQuality.intuitive_flow = false;
 
   if (automation.emulator === false) automation.defer_emulator_prompt_until_final = true;
+  if (automation.emulator === true) automation.defer_emulator_prompt_until_final = false;
   return config;
 }
 
@@ -88,7 +135,7 @@ function loadEffectiveConfig(ctx: Ctx): Config {
   } catch {
     current = {};
   }
-  return applyDerivedConfig(mergeDeep(loadDefaults(ctx), current));
+  return applyDerivedConfig(mergeDeep(mergeDeep(loadDefaults(ctx), loadPlanConfig(ctx)), current));
 }
 
 export function factoryConfigGet(ctx: Ctx): {

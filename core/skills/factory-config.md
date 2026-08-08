@@ -7,9 +7,11 @@ uses_skills: [capability-audit]
 
 # factory config
 
-`factory plan/init/auto` 전에 실행해 자동화 범위를 설정합니다. 플랫폼이 체크박스
-UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 항목을 목록으로 보여 준
-뒤 선택 값을 저장합니다.
+현재 프로젝트의 자동화 범위를 변경할 때 실행합니다. `factory plan`에서 이미
+선택한 값이나 저장된 APP_FACTORY 설정이 있으면 그 값을 체크박스의 현재 선택
+상태로 표시해야 하며, 기본값 복원 용도로 시간을 쓰면 안 됩니다. 플랫폼이
+체크박스 UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 항목을 목록으로
+보여 준 뒤 사용자가 바꾼 선택 값을 저장합니다.
 
 ## 기본값
 
@@ -42,18 +44,20 @@ UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 �
 
 ## 적용 규칙
 
-1. 선택 값은 APP_FACTORY 설정의 `automation.*`에 저장한다.
-2. 관련 설정도 동기화한다:
+1. 조회 시 체크박스 초기 상태는 `defaults.yaml < factory plan 답변 < 저장된
+   APP_FACTORY 설정` 우선순위의 현재값을 사용한다.
+2. 선택 값은 APP_FACTORY 설정의 `automation.*`에 저장한다.
+3. 관련 설정도 동기화한다:
    - `automation.in_app_review=false` → `in_app_review.enabled=false`
    - `automation.in_app_update=false` → `in_app_update.enabled=false`
    - `automation.ads=false` → `ads.enabled=false`
    - `automation.billing=false` → `billing.enabled=false`
    - `automation.market_research=false` → `market_research.enabled=false`
    - `automation.accessibility_review=false` → `ux_quality.accessibility_required=false`
-3. 비활성화한 기능은 로드맵·review-scoring에서 `n_a`로 처리한다. 단 보안,
+4. 비활성화한 기능은 로드맵·review-scoring에서 `n_a`로 처리한다. 단 보안,
    라이선스, 개인정보처럼 출시 위험과 직접 연결되는 항목은 사용자가 끄더라도
    최소 정적 검사는 유지한다.
-4. `automation.emulator=false`이면 `factory auto`는 에뮬레이터 게이트를
+5. `automation.emulator=false`이면 `factory auto`는 에뮬레이터 게이트를
    중간 강제 중단 사유로 삼지 않는다. 마지막 완료 보고에서만 에뮬레이터 실행을
    권유하고, 에뮬레이터 미검증 상태를 release-readiness 경고로 남긴다.
 

@@ -13,6 +13,9 @@
   explicit install path overrides, preventing host-specific path leakage
 - Added a portable archive packaging fallback for environments where `tar` does
   not support GNU deterministic archive flags
+- Fixed `factory config` so it opens as a current-settings editor using
+  `defaults.yaml < factory plan answers < saved APP_FACTORY config` precedence
+  instead of spending work resetting project settings back to defaults
 
 ### 2026-08-08 — Fix Codex npm installer paths
 
