@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.9`.
+The package is published on npm as `app-factory-autopilot@0.1.10`.
 Install the CLI with:
 
 ```bash
@@ -215,8 +215,8 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.9.tar.gz
-packages/app-factory-autopilot-codex-v0.1.9.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.10.tar.gz
+packages/app-factory-autopilot-codex-v0.1.10.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
@@ -233,7 +233,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.9.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.10.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -287,7 +287,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.9.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.10.tar.gz
 cd codex
 ./install-local.sh
 ```
@@ -514,7 +514,6 @@ NOT_STARTED -> IN_PROGRESS -> IMPLEMENTED -> VERIFIED
 - [CHANGELOG.md](./CHANGELOG.md) - Change history.
 - [LICENSE](./LICENSE) - Apache License 2.0.
 - [NOTICE](./NOTICE) - Copyright notice.
-- [mvp.txt](./mvp.txt) - Original planning notes retained for historical context.
 
 ## License
 

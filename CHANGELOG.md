@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Remove stale planning duplicate and derive adapter versions
+
+- Prepared `app-factory-autopilot@0.1.10` as a patch release for packaging
+  consistency
+- Removed the stale `mvp.txt` planning duplicate and README link so ROADMAP.md
+  remains the single maintained planning document
+- Derived adapter and archive versions from root `package.json` to prevent
+  provider manifests and package archives from drifting during future releases
+
 ### 2026-08-08 — Ship MCP runtime dependencies and tool schemas
 
 - Prepared `app-factory-autopilot@0.1.9` as a patch release for installed MCP

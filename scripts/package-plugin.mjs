@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
 const OUT = path.join(ROOT, "packages");
-const VERSION = "0.1.9";
+const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")).version;
 const TARGETS = ["claude-code", "codex"];
 
 function sha256(file) {

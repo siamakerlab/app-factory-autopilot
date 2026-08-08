@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
+const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")).version;
 
 function snapshotDist() {
   const dist = path.join(ROOT, "dist");
@@ -130,13 +131,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.9.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.9.tar.gz");
+  const claudeArchive = path.join(packages, `app-factory-autopilot-claude-code-v${PACKAGE_VERSION}.tar.gz`);
+  const codexArchive = path.join(packages, `app-factory-autopilot-codex-v${PACKAGE_VERSION}.tar.gz`);
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.9\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.9\.tar\.gz/);
+  assert.match(sums, new RegExp(`app-factory-autopilot-claude-code-v${PACKAGE_VERSION.replaceAll(".", "\\.")}\\.tar\\.gz`));
+  assert.match(sums, new RegExp(`app-factory-autopilot-codex-v${PACKAGE_VERSION.replaceAll(".", "\\.")}\\.tar\\.gz`));
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 
@@ -219,14 +220,14 @@ test("npm CLI installs Codex package under the current user's configured paths",
     });
     const destination = path.join(pluginParent, "app-factory-autopilot");
     const manifest = JSON.parse(fs.readFileSync(path.join(destination, ".codex-plugin", "plugin.json"), "utf-8"));
-    assert.equal(manifest.version, "0.1.9+codex.test-token");
+    assert.equal(manifest.version, `${PACKAGE_VERSION}+codex.test-token`);
     assert.ok(fs.existsSync(path.join(destination, "mcp-server", "node_modules", "@modelcontextprotocol", "sdk")));
     assert.ok(fs.existsSync(path.join(destination, "mcp-server", "dist", "index.js")));
     const registry = JSON.parse(fs.readFileSync(marketplace, "utf-8"));
     const entry = registry.plugins.find((item) => item.name === "app-factory-autopilot");
     assert.equal(entry.source.path, "./plugins/app-factory-autopilot");
     assert.match(output, /Restart Codex, then run: \$factory doctor/);
-    assert.match(output, /Updated Codex plugin manifest version: 0\.1\.9\+codex\.test-token/);
+    assert.match(output, new RegExp(`Updated Codex plugin manifest version: ${PACKAGE_VERSION.replaceAll(".", "\\.")}\\+codex\\.test-token`));
     assert.match(output, /Activation pending: Codex plugin cache refresh skipped/);
     assert.doesNotMatch(output, /parameter not set/);
   } finally {
