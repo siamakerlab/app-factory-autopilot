@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Refresh Codex local plugin installs
+
+- Prepared `app-factory-autopilot@0.1.8` as a patch release for provider-local
+  installation refresh behavior
+- Added a Codex manifest cachebuster during npm and archive installs so Codex
+  does not keep using a stale installed plugin snapshot after package updates
+- Aligned Claude Code archive installs with the official local marketplace flow
+  and added provider cache refresh commands for Codex and Claude Code
+- Documented that npm package updates and provider-local plugin installation are
+  separate steps
+
 ### 2026-08-08 — Enforce production readiness gate evidence
 
 - Prepared `app-factory-autopilot@0.1.7` as a patch release for deterministic

@@ -36,7 +36,7 @@ function commandExists(command) {
   return result.status === 0;
 }
 
-function runOptional(command, args, label) {
+function runOptional(command, args, label, options = {}) {
   if (process.env.APP_FACTORY_SKIP_PROVIDER_ACTIVATION === "1") {
     return { attempted: false, ok: false, detail: `${label} skipped by APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1` };
   }
@@ -48,8 +48,11 @@ function runOptional(command, args, label) {
     return { attempted: true, ok: true, detail: `${label} completed.` };
   }
   const detail = (result.stderr || result.stdout || `${label} failed with exit code ${result.status}`).trim();
-  if (/already (installed|configured|exists|added)|already in use/i.test(detail)) {
+  if (/already (installed|configured|exists|added)|already in use|up to date/i.test(detail)) {
     return { attempted: true, ok: true, detail: `${label} already completed.` };
+  }
+  if (options.acceptFailure && options.acceptFailure.test(detail)) {
+    return { attempted: true, ok: true, detail: `${label} not needed.` };
   }
   return { attempted: true, ok: false, detail };
 }
@@ -102,6 +105,21 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", "utf-8");
 }
 
+function codexCachebuster() {
+  if (process.env.APP_FACTORY_CODEX_CACHEBUSTER) return process.env.APP_FACTORY_CODEX_CACHEBUSTER;
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\..+$/, "Z");
+  return `local-${stamp}`;
+}
+
+function applyCodexCachebuster(destination) {
+  const manifestPath = path.join(destination, ".codex-plugin", "plugin.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+  const baseVersion = String(manifest.version ?? "0.0.0").split("+")[0];
+  manifest.version = `${baseVersion}+codex.${codexCachebuster()}`;
+  writeJson(manifestPath, manifest);
+  return manifest.version;
+}
+
 function updateCodexMarketplace(marketplacePath) {
   const entry = {
     name: "app-factory-autopilot",
@@ -136,6 +154,7 @@ function writeClaudeMarketplace(marketplaceRoot) {
       {
         name: "app-factory-autopilot",
         description: "Android app planning, implementation, verification, and emulator testing autopilot.",
+        version: JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")).version,
         author: { name: "Sia Makerlab" },
         category: "development",
         source: "./plugins/app-factory-autopilot",
@@ -147,19 +166,39 @@ function writeClaudeMarketplace(marketplaceRoot) {
 }
 
 function activateCodex() {
-  return runOptional("codex", ["plugin", "add", "app-factory-autopilot@personal", "--json"], "Codex plugin activation");
+  const remove = runOptional(
+    "codex",
+    ["plugin", "remove", "app-factory-autopilot@personal", "--json"],
+    "Codex plugin cache refresh",
+    { acceptFailure: /not (installed|configured|found)|no installed plugin|unknown plugin/i },
+  );
+  if (!remove.attempted) return remove;
+  const add = runOptional("codex", ["plugin", "add", "app-factory-autopilot@personal", "--json"], "Codex plugin activation");
+  if (add.ok) return { attempted: true, ok: true, detail: `${remove.detail} ${add.detail}` };
+  return { attempted: true, ok: false, detail: `${remove.detail} ${add.detail}` };
 }
 
 function activateClaudeCode(marketplaceRoot) {
   const add = runOptional("claude", ["plugin", "marketplace", "add", marketplaceRoot, "--scope", "user"], "Claude marketplace registration");
   if (!add.attempted) return add;
+  const refresh = runOptional(
+    "claude",
+    ["plugin", "marketplace", "update", "app-factory-autopilot-local"],
+    "Claude marketplace refresh",
+  );
   const install = runOptional(
     "claude",
     ["plugin", "install", "app-factory-autopilot@app-factory-autopilot-local", "--scope", "user"],
     "Claude plugin activation",
   );
-  if (install.ok) return install;
-  return { attempted: true, ok: false, detail: `${add.detail} ${install.detail}` };
+  const update = runOptional(
+    "claude",
+    ["plugin", "update", "app-factory-autopilot", "--scope", "user"],
+    "Claude plugin update",
+    { acceptFailure: /not (installed|found)|no installed plugin|unknown plugin/i },
+  );
+  if (install.ok || update.ok) return { attempted: true, ok: true, detail: `${add.detail} ${refresh.detail} ${install.detail} ${update.detail}` };
+  return { attempted: true, ok: false, detail: `${add.detail} ${refresh.detail} ${install.detail} ${update.detail}` };
 }
 
 function installClaudeCode() {
@@ -189,8 +228,10 @@ function installCodex() {
   const source = path.join(DIST, "codex");
   const destination = path.join(pluginParent, "app-factory-autopilot");
   copyPluginPackage(source, destination);
+  const manifestVersion = applyCodexCachebuster(destination);
   updateCodexMarketplace(marketplacePath);
   process.stdout.write(`Installed App Factory Autopilot for Codex: ${destination}\n`);
+  process.stdout.write(`Updated Codex plugin manifest version: ${manifestVersion}\n`);
   process.stdout.write(`Updated Codex marketplace: ${marketplacePath}\n`);
   const activation = activateCodex();
   process.stdout.write(`${activation.ok ? "Activated" : "Activation pending"}: ${activation.detail}\n`);

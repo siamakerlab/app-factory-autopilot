@@ -15,7 +15,7 @@ const CORE = path.join(ROOT, "core");
 const DIST = path.join(ROOT, "dist");
 const MCP = path.join(ROOT, "mcp-server");
 const PROJECT_TEMPLATE = path.join(ROOT, "project-template");
-const VERSION = "0.1.7";
+const VERSION = "0.1.8";
 
 const WARN_MD = `<!-- Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs. -->\n`;
 const WARN_JS = `// Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs.\n`;
@@ -299,13 +299,16 @@ This directory is a ready-to-copy Claude Code plugin package.
 ./install-local.sh
 \`\`\`
 
-The installer copies this package to:
+The installer creates a local Claude Code marketplace, copies this package to:
 
 \`\`\`text
-~/.claude/plugins/app-factory-autopilot
+~/.claude/plugins/marketplaces/app-factory-autopilot-local/plugins/app-factory-autopilot
 \`\`\`
 
-It does not edit unrelated user files. After installing, restart Claude Code and run:
+It then runs Claude Code marketplace add/update and plugin install/update when
+the \`claude\` CLI is available. Set \`APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1\` to
+copy/register files without invoking provider CLIs. After installing, restart
+Claude Code and run:
 
 \`\`\`text
 /factory doctor
@@ -332,13 +335,60 @@ writeInstallScript(path.join(CC, "install-local.sh"), [
   "#!/bin/sh",
   "set -eu",
   'SRC="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
-  'DEST="${APP_FACTORY_CLAUDE_PLUGIN_DIR:-$HOME/.claude/plugins/app-factory-autopilot}"',
+  'MARKETPLACE_ROOT="${APP_FACTORY_CLAUDE_MARKETPLACE_ROOT:-$HOME/.claude/plugins/marketplaces/app-factory-autopilot-local}"',
+  'DEST="${APP_FACTORY_CLAUDE_PLUGIN_DIR:-$MARKETPLACE_ROOT/plugins/app-factory-autopilot}"',
   'mkdir -p "$(dirname "$DEST")"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
+  'node "$DEST/scripts/install-claude-marketplace.mjs" "$MARKETPLACE_ROOT"',
   'echo "Installed App Factory Autopilot for Claude Code: $DEST"',
+  'if [ "${APP_FACTORY_SKIP_PROVIDER_ACTIVATION:-0}" = "1" ]; then',
+  '  echo "Activation pending: Claude provider activation skipped by APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1"',
+  'elif command -v claude >/dev/null 2>&1; then',
+  '  claude plugin marketplace add "$MARKETPLACE_ROOT" --scope user >/dev/null 2>&1 || true',
+  '  claude plugin marketplace update app-factory-autopilot-local >/dev/null 2>&1 || true',
+  '  claude plugin install app-factory-autopilot@app-factory-autopilot-local --scope user >/dev/null 2>&1 || true',
+  '  claude plugin update app-factory-autopilot --scope user >/dev/null 2>&1 || true',
+  '  echo "Activated or refreshed Claude Code plugin cache."',
+  'else',
+  '  echo "Activation pending: claude CLI not found; run claude plugin marketplace add and claude plugin install manually."',
+  'fi',
   'echo "Restart Claude Code, then run: /factory doctor"',
 ]);
+write(
+  path.join(CC, "scripts", "install-claude-marketplace.mjs"),
+  `#!/usr/bin/env node
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+const marketplaceRoot = process.argv[2];
+if (!marketplaceRoot) {
+  console.error("Usage: install-claude-marketplace.mjs <marketplace-root>");
+  process.exit(2);
+}
+const marketplacePath = path.join(marketplaceRoot, ".claude-plugin", "marketplace.json");
+const marketplace = {
+  $schema: "https://anthropic.com/claude-code/marketplace.schema.json",
+  name: "app-factory-autopilot-local",
+  description: "Local App Factory Autopilot marketplace",
+  owner: { name: "Sia Makerlab" },
+  plugins: [
+    {
+      name: "app-factory-autopilot",
+      description: "Android app planning, implementation, verification, and emulator testing autopilot.",
+      version: "${VERSION}",
+      author: { name: "Sia Makerlab" },
+      category: "development",
+      source: "./plugins/app-factory-autopilot",
+    },
+  ],
+};
+fs.mkdirSync(path.dirname(marketplacePath), { recursive: true });
+fs.writeFileSync(marketplacePath, JSON.stringify(marketplace, null, 2) + "\\n", "utf-8");
+console.log("Updated Claude marketplace: " + marketplacePath);
+`,
+);
+fs.chmodSync(path.join(CC, "scripts", "install-claude-marketplace.mjs"), 0o755);
 
 // Codex adapter (AFA-041).
 
@@ -533,10 +583,39 @@ writeInstallScript(path.join(CX, "install-local.sh"), [
   'mkdir -p "$PLUGIN_PARENT"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
+  'node "$DEST/scripts/apply-codex-cachebuster.mjs"',
   'node "$DEST/scripts/install-codex-marketplace.mjs" "$MARKETPLACE"',
   'echo "Installed App Factory Autopilot for Codex: $DEST"',
+  'if [ "${APP_FACTORY_SKIP_PROVIDER_ACTIVATION:-0}" = "1" ]; then',
+  '  echo "Activation pending: Codex provider activation skipped by APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1"',
+  'elif command -v codex >/dev/null 2>&1; then',
+  '  codex plugin remove app-factory-autopilot@personal --json >/dev/null 2>&1 || true',
+  '  codex plugin add app-factory-autopilot@personal --json >/dev/null 2>&1 || true',
+  '  echo "Activated or refreshed Codex plugin cache."',
+  'else',
+  '  echo "Activation pending: codex CLI not found; run codex plugin add app-factory-autopilot@personal manually."',
+  'fi',
   'echo \'Restart Codex, then run: $factory doctor\'',
 ]);
+write(
+  path.join(CX, "scripts", "apply-codex-cachebuster.mjs"),
+  `#!/usr/bin/env node
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const manifestPath = path.join(root, ".codex-plugin", "plugin.json");
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\\..+$/, "Z");
+const cachebuster = process.env.APP_FACTORY_CODEX_CACHEBUSTER || "local-" + stamp;
+const baseVersion = String(manifest.version || "0.0.0").split("+")[0];
+manifest.version = baseVersion + "+codex." + cachebuster;
+fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\\n", "utf-8");
+console.log("Updated Codex plugin manifest version: " + manifest.version);
+`,
+);
+fs.chmodSync(path.join(CX, "scripts", "apply-codex-cachebuster.mjs"), 0o755);
 write(
   path.join(CX, "scripts", "install-codex-marketplace.mjs"),
   `#!/usr/bin/env node
