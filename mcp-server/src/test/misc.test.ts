@@ -19,6 +19,7 @@ import {
 } from "../tools/approval-placeholder.js";
 import {
   capabilityScan,
+  capabilityRecordEnvironment,
   capabilityInstallPlan,
   capabilityMarkDeclined,
   capabilityMarkInstalled,
@@ -142,6 +143,54 @@ test("역량 — 스캔 대조, 설치 계획, 거절 반복 제안 금지", asy
     const rules = fs.readFileSync(path.join(ctx.projectRoot, "APP_FACTORY_RULES.md"), "utf-8");
     assert.match(rules, /app-factory:capabilities:start/);
     assert.match(rules, /adaptive 스킬을 사용한다/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("역량 — 환경 점검 결과는 부족분과 조치 안내를 사용자 메시지로 반환", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    const result = await capabilityRecordEnvironment(ctx, {
+      checks: [
+        {
+          id: "adb",
+          label: "Android Debug Bridge",
+          status: "available",
+          required_for: ["emulator-smoke", "factory-test"],
+          path: "/Android/Sdk/platform-tools/adb",
+          remediation: "Android SDK platform-tools를 설치하고 PATH 또는 ANDROID_HOME을 설정한다",
+        },
+        {
+          id: "mobile-mcp",
+          label: "mobile-mcp",
+          status: "missing",
+          required_for: ["factory-test screenshots"],
+          detail: "MCP 서버 미설치",
+          remediation: "factory doctor에서 mobile-mcp 설치 안내를 확인한다",
+        },
+        {
+          id: "avd",
+          label: "Android Virtual Device",
+          status: "blocked",
+          required_for: ["emulator execution"],
+          detail: "실행 가능한 AVD 없음",
+          remediation: "Android Studio Device Manager 또는 avdmanager로 테스트 디바이스를 생성한다",
+          blocking_when: "automation.emulator=true 또는 factory test",
+        },
+      ],
+    });
+
+    assert.equal(result.missing.length, 1);
+    assert.equal(result.blocked.length, 1);
+    assert.match(result.user_message, /mobile-mcp/);
+    assert.match(result.user_message, /실행 가능한 AVD 없음/);
+    const state = await capabilityScan(ctx, {
+      installed_skills: [],
+      installed_mcp_servers: [],
+      installed_subagents: [],
+    });
+    assert.ok(state.missing_mcp.some((item) => item.id === "mobile-mcp"));
   } finally {
     cleanup();
   }

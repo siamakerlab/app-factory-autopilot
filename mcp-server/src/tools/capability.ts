@@ -38,8 +38,23 @@ interface CapabilitiesState {
   version: 1;
   scanned_at?: string;
   installed: { skills: string[]; mcp_servers: string[]; subagents: string[] };
+  environment?: {
+    scanned_at: string;
+    checks: EnvironmentCheck[];
+  };
   declined: string[]; // 사용자가 거절한 항목 — 같은 세션 반복 제안 금지
   installed_by_doctor: { id: string; scope: string; at: string }[];
+}
+
+export interface EnvironmentCheck {
+  id: string;
+  label: string;
+  status: "available" | "missing" | "blocked" | "unknown";
+  required_for: string[];
+  path?: string;
+  detail?: string;
+  remediation: string;
+  blocking_when?: string;
 }
 
 const GUIDANCE_START = "<!-- app-factory:capabilities:start -->";
@@ -151,6 +166,43 @@ export async function capabilityScan(
       .filter((m) => !mcpHas.has(m.id) && !state.declined.includes(m.id))
       .map((m) => ({ id: m.id, purpose: m.purpose, requires_api_key: m.requires_api_key })),
     builtin_absent: catalog.builtin_skills.filter((b) => !has.has(b.id)).map((b) => b.id),
+  };
+}
+
+/** 어댑터가 현재 설치 환경을 점검한 결과를 기록하고 사용자 안내용 부족분을 반환한다. */
+export async function capabilityRecordEnvironment(
+  ctx: Ctx,
+  input: { checks: EnvironmentCheck[] },
+): Promise<{
+  recorded: true;
+  missing: EnvironmentCheck[];
+  blocked: EnvironmentCheck[];
+  user_message: string;
+}> {
+  const state = loadCapState(ctx);
+  const scannedAt = new Date().toISOString();
+  state.environment = { scanned_at: scannedAt, checks: input.checks };
+  saveCapState(ctx, state);
+
+  const missing = input.checks.filter((check) => check.status === "missing" || check.status === "unknown");
+  const blocked = input.checks.filter((check) => check.status === "blocked");
+  const lines = [
+    "환경 점검 결과",
+    `- 점검 시각: ${scannedAt}`,
+    `- 사용 가능: ${input.checks.filter((check) => check.status === "available").length}`,
+    `- 부족/확인 필요: ${missing.length}`,
+    `- 차단: ${blocked.length}`,
+  ];
+  for (const check of [...blocked, ...missing]) {
+    lines.push(
+      `- ${check.label}: ${check.detail ?? check.status}. 필요 기능: ${check.required_for.join(", ")}. 조치: ${check.remediation}`,
+    );
+  }
+  return {
+    recorded: true,
+    missing,
+    blocked,
+    user_message: lines.join("\n"),
   };
 }
 

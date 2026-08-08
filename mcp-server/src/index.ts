@@ -127,6 +127,7 @@ export function buildServer(ctx: Ctx): McpServer {
     ["placeholder_list_blocking", "릴리스 차단 Placeholder 조회", z.object({}), ap.placeholderListBlocking as Handler],
     // 역량
     ["capability_scan", "설치 역량 대조 (어댑터 탐지 결과 입력)", any, cap.capabilityScan as Handler],
+    ["capability_record_environment", "설치 환경 점검 결과 기록 및 부족분 사용자 안내 생성", any, cap.capabilityRecordEnvironment as Handler],
     ["capability_list_missing", "미설치 역량 목록", z.object({}), cap.capabilityListMissing as Handler],
     ["capability_install_plan", "설치 계획 생성 (스코프·Provider별 명령)", any, cap.capabilityInstallPlan as Handler],
     ["capability_mark_installed", "설치 결과 기록", any, cap.capabilityMarkInstalled as Handler],

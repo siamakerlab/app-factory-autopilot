@@ -30,8 +30,11 @@
 
 - `scripts/emulator-smoke.sh`가 PATH뿐 아니라 `ANDROID_HOME`, `ANDROID_SDK_ROOT`,
   `~/Android/Sdk` 아래의 `platform-tools/adb`를 탐색하도록 보강
-- 검증: `sh -n scripts/emulator-smoke.sh` 통과, PATH에서 adb를 제거한 상태에서
-  SDK adb를 찾아 연결 디바이스 없음 `blocked` 결과를 기록함
+- `capability_record_environment` MCP 도구 추가: 각 사용자 실행 환경에서
+  Android SDK/adb/emulator/Gradle/AVD/mobile-mcp 등 점검 결과를 기록하고,
+  부족한 항목의 필요 기능·조치 방법·차단 조건을 사용자 메시지로 반환
+- 검증: MCP 테스트 76건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트,
+  `sh -n scripts/emulator-smoke.sh` 통과
 
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
 

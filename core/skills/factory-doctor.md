@@ -9,14 +9,21 @@ uses_skills: [capability-audit]
 
 Android 앱 제작 공정에 필요한 스킬·MCP·서브에이전트 설치 상태를 점검하고,
 미설치 항목을 사용자 확인 후 일괄 설치합니다 (통합 명세 3.14).
+특정 개발자 머신의 상태를 전제로 하지 않고, 실행된 사용자 환경에서 매번
+점검한 결과를 기준으로 부족한 도구·설정·권한·디바이스를 안내합니다.
 
 ## 절차
 
 1. **탐지** (어댑터별): 설치된 스킬·MCP·서브에이전트 목록을 수집해
    `capability_scan`에 전달한다.
+   Android SDK, adb, emulator, Gradle/Wrapper, AVD/연결 디바이스, mobile-mcp
+   연결 상태 등 실행 환경 점검 결과는 `capability_record_environment`에
+   전달한다.
 2. **제안**: 미설치 항목을 카테고리별 체크리스트로 표시한다 — 이름, 용도,
    우선순위(required/recommended/optional), API 키 필요 여부. optional은
    접어서 표시. 거절 이력 항목은 다시 제안하지 않는다.
+   환경 부족분은 상태(available/missing/blocked/unknown), 필요한 기능,
+   사용자가 취할 조치, 차단 조건을 함께 표시한다.
 3. **선택·스코프**: 사용자가 설치할 항목을 체크하고 스코프(전역/프로젝트)를
    선택한다 (일괄 또는 항목별).
 4. **설치**: `capability_install_plan`의 명령을 순차 실행하고 항목별
@@ -35,4 +42,7 @@ Android 앱 제작 공정에 필요한 스킬·MCP·서브에이전트 설치 �
 ## 원칙
 
 - 미설치 상태로도 공정은 계속 진행 가능해야 한다 (경고만 기록).
+- 환경 부족분은 사용자에게 명확히 알리되, 해당 기능을 실제로 실행해야 하는
+  시점에만 차단한다. 예: `factory test`는 실행 가능한 에뮬레이터가 없으면
+  blocked, `factory auto`에서 `automation.emulator=false`이면 마지막 권유만 표시.
 - API 키 필요 MCP는 키 필요 사실을 명시하고 사용자가 선택한 경우에만 안내.
