@@ -99,7 +99,55 @@ sh -n scripts/emulator-smoke.sh
 
 ## Installation
 
-### 1. Build The Adapter Packages
+### Option A. Install From npm
+
+After the package is published, install the CLI with:
+
+```bash
+npm install -g app-factory-autopilot
+```
+
+Then install the provider package:
+
+```bash
+app-factory-autopilot install codex
+app-factory-autopilot install claude-code
+```
+
+For one-off usage:
+
+```bash
+npx app-factory-autopilot install codex
+npx app-factory-autopilot install claude-code
+```
+
+The CLI builds the bundled MCP server, generates the adapter package, copies it
+to the provider plugin directory, and registers the default Codex personal
+marketplace entry when installing Codex.
+
+Useful CLI commands:
+
+```bash
+app-factory-autopilot build
+app-factory-autopilot package
+app-factory-autopilot path
+```
+
+### Option B. Install From This Repository
+
+```bash
+npm install -g git+https://github.com/siamakerlab/app-factory-autopilot.git
+app-factory-autopilot install codex
+```
+
+For the private Gitea remote:
+
+```bash
+npm install -g git+ssh://git@gitea.wody.kr:2929/wody/app-factory-autopilot.git
+app-factory-autopilot install codex
+```
+
+### Option C. Build The Adapter Packages Manually
 
 ```bash
 npm --prefix mcp-server install

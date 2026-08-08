@@ -89,3 +89,33 @@ test("plugin packaging emits provider archives and checksums", () => {
   assert.match(sums, /app-factory-autopilot-codex-v0\.1\.0\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
+
+test("root npm package exposes install CLI", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
+  assert.equal(pkg.name, "app-factory-autopilot");
+  assert.equal(pkg.private, undefined);
+  assert.equal(pkg.bin["app-factory-autopilot"], "scripts/app-factory-autopilot.mjs");
+  assert.equal(pkg.bin.afa, "scripts/app-factory-autopilot.mjs");
+  const help = execFileSync("node", ["scripts/app-factory-autopilot.mjs", "--help"], {
+    cwd: ROOT,
+    encoding: "utf-8",
+  });
+  assert.match(help, /install <codex\|claude-code\|both>/);
+  assert.match(help, /npx app-factory-autopilot install codex/);
+});
+
+test("npm package excludes generated dependencies and test build output", () => {
+  const output = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+    cwd: ROOT,
+    encoding: "utf-8",
+  });
+  const [pack] = JSON.parse(output);
+  const files = pack.files.map((file) => file.path);
+  assert.ok(files.includes("package.json"));
+  assert.ok(files.includes("scripts/app-factory-autopilot.mjs"));
+  assert.ok(files.includes("mcp-server/package-lock.json"));
+  assert.ok(files.includes("mcp-server/src/index.ts"));
+  assert.ok(!files.some((file) => file.includes("node_modules/")));
+  assert.ok(!files.some((file) => file.startsWith("mcp-server/dist/test/")));
+  assert.ok(!files.some((file) => file.startsWith("packages/")));
+});

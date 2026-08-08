@@ -931,6 +931,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
     호출된다
   - [x] `INSTALL.md`, `install-local.sh`, 릴리스 tarball/checksum 패키징 경로가
     제공된다
+  - [x] npm 설치형 CLI(`app-factory-autopilot install claude-code`)가 제공된다
   - [x] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
     중복 없음)
   - [x] MCP 서버가 플러그인 설치와 함께 등록된다
@@ -954,6 +955,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   - [ ] Codex 환경에서 `$factory config|plan|init|auto|resume|test|review`가 동작한다
   - [x] `.codex-plugin/plugin.json`, `.mcp.json`, `INSTALL.md`, `install-local.sh`,
     릴리스 tarball/checksum 패키징 경로가 제공된다
+  - [x] npm 설치형 CLI(`app-factory-autopilot install codex`)가 제공된다
   - [x] 실행 래퍼 루프가 공정 완료까지 사이클을 자동 반복한다 (AFA-026 연동)
   - [x] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
   - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가

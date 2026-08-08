@@ -1,0 +1,61 @@
+{
+  "name": "app-factory-autopilot",
+  "version": "0.1.0",
+  "description": "Installable Claude Code and Codex plugin for Android app planning, implementation, verification, and emulator testing.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Sia Makerlab"
+  },
+  "homepage": "https://github.com/siamakerlab/app-factory-autopilot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siamakerlab/app-factory-autopilot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/siamakerlab/app-factory-autopilot/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "app-factory-autopilot": "scripts/app-factory-autopilot.mjs",
+    "afa": "scripts/app-factory-autopilot.mjs"
+  },
+  "files": [
+    "core/",
+    "mcp-server/src/",
+    "mcp-server/package.json",
+    "mcp-server/package-lock.json",
+    "mcp-server/tsconfig.json",
+    "project-template/",
+    "scripts/app-factory-autopilot.mjs",
+    "scripts/build-adapters.mjs",
+    "scripts/emulator-smoke.sh",
+    "scripts/generate-notices.mjs",
+    "scripts/gradle/",
+    "scripts/package-plugin.mjs",
+    "scripts/render-app-factory-project.mjs",
+    "scripts/render-template.mjs",
+    "scripts/resolve-gradle-version.mjs",
+    "scripts/validate-schemas.py",
+    "README.md",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-adapters.mjs",
+    "package": "node scripts/package-plugin.mjs",
+    "test": "node --test tests/*.mjs && python3 tests/schema-positive-tests.py && python3 tests/schema-negative-tests.py && npm --prefix mcp-server test"
+  },
+  "keywords": [
+    "codex",
+    "claude-code",
+    "plugin",
+    "mcp",
+    "android",
+    "automation"
+  ]
+}
