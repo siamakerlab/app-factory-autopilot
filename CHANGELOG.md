@@ -13,6 +13,9 @@
   returned work reliably
 - Clarified that all agent/subagent work is serialized to avoid conflicts;
   even research and review agents are delegated one at a time
+- Added the AFA-061 subagent watchdog requirement: the main session checks
+  delayed subagents every five minutes and chooses wait, retry, forced
+  termination plus retry, or blocker conversion as appropriate
 - Clarified that the existing cross-turn auto runner remains a CLI fallback,
   while session-style environments should use the main orchestrator model
 
