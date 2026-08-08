@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Add in-session autopilot roadmap
+
+- Added the main-session subagent orchestration model to ROADMAP.md for
+  provider environments that cannot create a new user turn automatically
+- Added AFA-061 as the P0 roadmap item for long-running `factory auto`
+  orchestration, durable context checkpoints, and subagent fallback behavior
+- Clarified that the existing cross-turn auto runner remains a CLI fallback,
+  while session-style environments should use the main orchestrator model
+
 ### 2026-08-09 — Harden factory auto continuation
 
 - Prepared `app-factory-autopilot@0.1.11` as a patch release for automatic

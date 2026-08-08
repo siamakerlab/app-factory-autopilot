@@ -155,7 +155,35 @@ AVD/연결 디바이스, mobile-mcp 같은 실행 환경도 매번 현재 사용
 `VERIFIED=100`. `BLOCKED`와 `NEEDS_HUMAN_DECISION`은 직전 도달 상태의 가중치를
 유지한다.
 
-### 3.10 Definition of Done
+### 3.10 메인 세션 오케스트레이션과 Context 압축 안전성
+
+Provider가 새 사용자 턴을 직접 만들 수 없는 환경에서는 `factory auto`를
+"다음 턴 생성" 기능으로 보지 않는다. 기본 자동화 모델은 메인 세션이 장기 실행
+오케스트레이터로 남아 모든 실무를 서브에이전트 또는 역할 분리 작업자에게
+위임하는 구조다.
+
+- 메인 세션은 직접 구현하지 않고 상태 읽기, 다음 작업 선정, 서브에이전트 위임,
+  결과 검증 요청, 상태 전이, commit/push, 사용자 진행 보고를 담당한다.
+- 조사, 구현, 테스트, 리뷰, UX·접근성 점검, 보안·라이선스 검토, 에뮬레이터
+  시나리오 준비와 분석은 가능한 한 전문 서브에이전트가 수행한다.
+- 코드 쓰기 작업은 충돌 방지를 위해 한 번에 하나만 실행한다. 조사·리뷰처럼
+  읽기 중심 작업만 병렬화할 수 있다.
+- 서브에이전트가 없는 Provider에서는 동일 세션 안의 역할 전환 프롬프트로
+  강등하되, worker/verifier 분리 원칙과 증거 기반 완료 판정은 유지한다.
+- 외부 auto runner와 Claude Stop Hook은 보조 수단이다. Vibe Coder 같은
+  세션형 환경의 기본 경로는 메인 세션 장기 실행 오케스트레이션이다.
+
+자동 context 압축은 허용한다. 단, 진행 상태는 대화 컨텍스트가 아니라
+`.app-factory/`에 저장되어야 한다. 각 단위작업 종료 또는 압축 가능 지점마다
+다음 checkpoint를 남긴다.
+
+- 최신 run/cycle, phase, task claim, 결과 요약
+- evidence, finding, roadmap/task 상태 전이
+- 긴 리뷰·체크리스트·조사 결과는 `.app-factory/reports/` 또는 evidence 원본
+- commit/push 결과와 다음 작업 후보
+- `/factory resume`이 대화 이력 없이 파일 상태만으로 이어갈 수 있는 재개 지점
+
+### 3.11 Definition of Done
 
 MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
@@ -176,8 +204,10 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 12. Capability Doctor가 역량 누락을 제안하고 사용자 확인 후 설치·기록한다.
 13. 매 턴 종료 보고 4요소가 표시된다.
 14. `factory review`가 영역별 점수, 목표, 개선 계획, 전/후 비교를 제공한다.
-15. `factory auto` 단일 명령으로 강제 중단 조건이 없으면 여러 provider turn을
-    자동 재개해 완료 게이트까지 도달한다.
+15. `factory auto` 단일 명령으로 강제 중단 조건이 없으면 메인 세션
+    오케스트레이터가 서브에이전트 위임과 checkpoint를 반복해 완료 게이트까지
+    도달한다. CLI 환경에서는 외부 auto runner가 여러 provider invocation을
+    자동 재개할 수 있다.
 16. `factory test`가 모든 시나리오 × 디바이스 프로필의 스크린샷 기반 전수검사
     결과를 증거로 저장하고 실패를 finding + P0 fix 작업으로 등록한다.
 
@@ -231,6 +261,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 | AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | 🟦 |
 | AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
 | AFA-026 | M3 코어 | 무중단 진행 드라이버 (Cross-Turn Autopilot) | P0 | 🟦 |
+| AFA-061 | M3 코어 | 메인 세션 서브에이전트 장기 실행 Auto | P0 | ⬜ |
 | AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | 🟦 |
 | AFA-031 | M4 Agent/Skill | 진입 Skill 10종 (config/plan/init/auto/resume/test/review/status/doctor/factory) | P0 | 🟦 |
 | AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | 🟦 |
@@ -321,7 +352,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-002 APP_FACTORY.yaml 스키마 정의 — 🟦 (2026-08-05 구현 제출)
 
-- **근거**: 통합 명세 3.10, 설계서 20장 / **의존성**: 없음 / **위험도**: 중
+- **근거**: 통합 명세 3.11, 설계서 20장 / **의존성**: 없음 / **위험도**: 중
 - **구현 범위**: `app-factory-config.schema.json` — 설계서 20장의 전 항목
   (프로젝트 종류·SDK 정책·아키텍처·광고·결제·서명·라이선스 정책·Provider
   우선순위·반복 한도·빌드/테스트/Lint 명령·승인 필요 작업·Placeholder 정책)
@@ -358,7 +389,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-004 Placeholder 모델·정책 — 🟦 (2026-08-05 구현 제출)
 
-- **근거**: 통합 명세 2, 3.6, 3.10 / **의존성**: AFA-001 / **위험도**: 중
+- **근거**: 통합 명세 2, 3.6, 3.11 / **의존성**: AFA-001 / **위험도**: 중
 - **구현 범위**: `placeholder.schema.json` + `core/policies/placeholder-policy.yaml`
 - **완료 조건**:
   - [x] Placeholder가 이름, 종류, 중요도, 해결 시점, 자동 진행 가능 여부,
@@ -621,8 +652,8 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 ### AFA-026 무중단 진행 드라이버 (Cross-Turn Autopilot) — 🟦 (2026-08-08 구현 제출 보강)
 
 - **근거**: 통합 명세 3.17 / **의존성**: AFA-020, AFA-024 / **위험도**: 상
-- **구현 범위**: 프로덕션 수준 완료 또는 실제 차단 조건까지 반복하는 공통
-  러너(CLI), 턴당 한 로드맵 항목/단위작업 처리, 30초 지연 후 다음
+- **구현 범위**: 프로덕션 수준 완료 또는 실제 차단 조건까지 반복하는 외부
+  러너(CLI), invocation당 한 로드맵 항목/단위작업 처리, 30초 지연 후 다음
   `factory resume` 자동 재호출, 질문 지연·일괄 처리 로직
   (NEEDS_HUMAN_DECISION 적체 후 진행 계속), 크리티컬 패스 차단 판정,
   어댑터별 세션 지속 장치와의 연결점 정의
@@ -635,7 +666,9 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
     `NEEDS_HUMAN_DECISION` 등록 후 다른 작업이 계속 진행된다
   - [x] 턴 종료 보고(AFA-025) 후 30초 내 다음 사이클이 자동으로 시작된다
   - [x] 세션 강제 종료 후 재실행 시 동일 지점부터 무중단 재개된다
-- **지침**: 무중단의 기반은 "상태 저장소만으로 재진입 가능"(AFA-020)이다 —
+- **지침**: 이 항목은 CLI/셸 환경에서 provider invocation을 반복 호출하는
+  보조 경로다. Vibe Coder 같은 세션형 환경의 기본 자동화 모델은 AFA-061이다.
+  무중단의 기반은 "상태 저장소만으로 재진입 가능"(AFA-020)이다 —
   드라이버는 이를 반복 호출하는 껍데기로 얇게 유지한다. 크리티컬 패스 차단
   판정은 작업 의존성 그래프에서 해당 항목에 의존하는 미완료 필수 작업 존재
   여부로 기계적으로 한다(LLM 판단 금지). Claude Code의 Stop Hook 등 플랫폼
@@ -647,6 +680,50 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   넣지 않는다. **CLI 범위 명확화 (2026-08-05 정밀점검)**: MVP-1의 "공통
   러너"는 저장소 내 개발·테스트용 실행 스크립트를 의미한다. npm 배포·OS별
   설치기·배포판 CLI는 1.0 범위(통합 명세 4)이므로 여기서 만들지 않는다.
+
+### AFA-061 메인 세션 서브에이전트 장기 실행 Auto — ⬜
+
+- **근거**: 통합 명세 3.10, 사용자 목표(새 사용자 턴 생성 없이도 `factory auto`
+  단일 실행으로 프로덕션 준비도까지 자동 진행) / **의존성**: AFA-020,
+  AFA-025, AFA-030, AFA-031, AFA-040~042 / **위험도**: 상
+- **구현 범위**: `factory auto`의 기본 실행 모델을 메인 세션 장기 실행
+  오케스트레이터로 정의한다. 메인은 직접 코딩하지 않고 상태 저장소와 MCP를
+  통해 다음 작업 선정, 서브에이전트 위임, 결과 수집, verifier 재위임, 증거
+  등록, 상태 전이, commit/push, 사용자 진행 보고를 반복한다. 외부 runner는
+  CLI 환경의 보조 경로로 유지한다.
+- **하위 작업**:
+  - AFA-061a Main Orchestrator Contract — 메인 세션의 금지 사항, 위임 책임,
+    사용자 보고 형식, 종료 조건을 `factory-auto`/`factory-resume`에 명시
+  - AFA-061b Delegation Matrix — market research, implementation, test,
+    review, UX/accessibility, security/privacy, license, dependency, emulator
+    작업을 어떤 agent/skill에 위임할지 정의
+  - AFA-061c Write Serialization — 코드 수정 작업은 단일 worker만 수행하고,
+    읽기 중심 조사·리뷰만 병렬화하는 잠금·작업 큐 규칙 확정
+  - AFA-061d Context Checkpoint — 각 단위작업 종료와 압축 가능 지점마다
+    run/cycle, task result, evidence, finding, roadmap 상태, commit/push,
+    next action을 `.app-factory`에 저장
+  - AFA-061e Subagent Fallback — 서브에이전트 미지원 Provider에서 역할 전환
+    프롬프트로 강등하되 worker/verifier 분리 원칙을 유지
+  - AFA-061f Long-run Guardrails — 토큰/시간/반복 한도, 동일 오류 정체,
+    사용자 승인 필요 작업, context 압축 후 resume 동작을 통합 검증
+- **완료 조건**:
+  - [ ] `/factory auto`와 `$factory auto`가 수동 provider 세션 안에서도
+    메인 오케스트레이터로 동작하며 가능한 작업을 계속 위임한다
+  - [ ] 메인 세션은 구현 파일을 직접 수정하지 않고 worker/subagent 결과를
+    통해서만 코드 변경을 진행한다
+  - [ ] 각 단위작업 완료 후 evidence/report/finding/task/run 상태가
+    `.app-factory`에 저장되어 자동 context 압축 후에도 `/factory resume`으로
+    같은 지점부터 이어진다
+  - [ ] 코드 쓰기 작업의 병렬 실행이 방지되고, 조사·리뷰 작업은 안전한 경우
+    병렬 위임된다
+  - [ ] 사용자에게 보이는 메시지는 실질 진행, 검증 결과, commit/push,
+    blocker, 다음 작업만 포함하고 내부 라우팅 설명은 생략한다
+  - [ ] 샘플 프로젝트에서 새 사용자 턴 생성 없이 메인 세션이 최소 3개 이상의
+    연속 단위작업을 위임·검증·checkpoint·보고한다
+- **지침**: 이 항목은 `factory auto`의 기본 UX를 결정한다. "새 턴 자동 생성"을
+  Provider 기능으로 가정하지 않는다. Claude의 Stop Hook/Ralph-style block은
+  같은 턴 지속 fallback일 뿐이며, Codex/Claude 공통 핵심은 메인 세션
+  오케스트레이션과 durable checkpoint다.
 
 ### AFA-050 빌드·테스트·Lint 게이트 실행기 — 🟦 (2026-08-05 구현 제출)
 
@@ -696,8 +773,9 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-031 진입 Skill 10종 — 🟦 (2026-08-08 구현 제출 보강)
 
-- **근거**: 통합 명세 3.1, 3.12 / **의존성**: AFA-020, AFA-026(auto의
-  무중단 드라이버), AFA-033(doctor 진입) / **위험도**: 중
+- **근거**: 통합 명세 3.1, 3.12 / **의존성**: AFA-020, AFA-026(CLI
+  무중단 드라이버), AFA-061(인세션 장기 실행 auto), AFA-033(doctor 진입) /
+  **위험도**: 중
 - **구현 범위**: `factory`(라우터), `factory-config`, `factory-plan`,
   `factory-init`, `factory-auto`, `factory-resume`, `factory-test`,
   `factory-review`, `factory-status`, `factory-doctor`
@@ -768,7 +846,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-034 factory plan 인터뷰 흐름·산출물 생성 — 🟦 (2026-08-08 구현 제출)
 
-- **근거**: 통합 명세 3.11, 3.10, 설계서 5장 / **의존성**: AFA-004,
+- **근거**: 통합 명세 3.11, 설계서 5장 / **의존성**: AFA-004,
   AFA-035(템플릿) / **위험도**: 상
 - **구현 범위**: 10개 영역 인터뷰 정의(`core/prompts/interview/`) — 질문
   묶음, 분기 규칙(광고 미사용 시 광고 질문 생략 등), 기본 추천값, Placeholder
@@ -779,7 +857,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   - [x] 이미 답한 내용을 다시 묻지 않는다 (답변은 즉시 상태 저장소에 기록)
   - [x] "모름/미정" 응답이 올바른 Placeholder + 메타데이터로 변환된다
   - [x] 인터뷰 중단 후 재실행 시 남은 질문부터 이어진다
-  - [x] 인터뷰 완료 시 3.10 산출물 17종이 생성되고 스키마 검증을 통과한다
+  - [x] 인터뷰 완료 시 plan 산출물 17종이 생성되고 스키마 검증을 통과한다
   - [x] 모의 응답 주입 모드를 지원한다 (E2E AFA-053이 이 모드를 사용)
 - **로컬 검증 보강**: `plan_get_next_questions`, `plan_submit_answers`,
   `plan_apply_mock_answers` MCP 도구와 `tests/plan-config.test.ts`가 작은 질문 묶음,
@@ -798,7 +876,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-035 project-template — 🟧 (2026-08-08 로컬 구현 보강)
 
-- **근거**: 통합 명세 3.10 / **의존성**: AFA-002, AFA-004 / **위험도**: 중
+- **근거**: 통합 명세 3.11 / **의존성**: AFA-002, AFA-004 / **위험도**: 중
 - **구현 범위**: plan 산출물 17종 템플릿 + Android 프로젝트 스캐폴드 템플릿
   (settings.gradle.kts, libs.versions.toml, build.gradle.kts, 기본 패키지
   구조, .gitignore)
@@ -912,7 +990,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 - **근거**: 사용자 요구(토큰 한도, 시스템 종료, 세션 강제 종료 등 어떤 이유로든
   작업 세션이 중단된 경우 `/factory resume`으로 중단 지점을 찾아 계속 진행) /
-  **의존성**: AFA-003, AFA-020, AFA-026, AFA-031 / **위험도**: 상
+  **의존성**: AFA-003, AFA-020, AFA-026, AFA-061, AFA-031 / **위험도**: 상
 - **구현 범위**: `/factory resume`, `$factory resume`, `factory resume` 진입
   Skill. `.app-factory` 상태 저장소 기준으로 최신 run/task/roadmap/gate 상태를
   읽고 stale claim을 회수한 뒤 `driveAuto(command=resume)`로 동일 지점부터
@@ -944,8 +1022,10 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   - [x] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
     중복 없음)
   - [x] MCP 서버가 플러그인 설치와 함께 등록된다
-  - [x] auto 실행 중 턴이 끝나도 auto runner 또는 Stop Hook fallback으로
-    다음 사이클이 사용자 입력 없이 이어진다 (AFA-026 연동)
+  - [x] CLI/셸 환경에서 auto runner 또는 Stop Hook fallback으로 다음 사이클이
+    사용자 입력 없이 이어진다 (AFA-026 연동)
+  - [ ] 수동 `/factory auto` 실행 시 메인 세션이 서브에이전트 위임 방식으로
+    장기 실행 오케스트레이터 역할을 수행한다 (AFA-061 연동)
 - **로컬 검증 보강**: `tests/build-adapters.test.mjs`가 Claude Code 산출물
   매니페스트, `/factory` 커맨드, `.mcp.json`, Stop Hook, MCP `dist/` 번들,
   project-template/렌더 스크립트 동봉을 결정론적으로 검증한다. 실제
@@ -966,6 +1046,8 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
     릴리스 tarball/checksum 패키징 경로가 제공된다
   - [x] npm 설치형 CLI(`app-factory-autopilot install codex`)가 제공된다
   - [x] 실행 래퍼 루프가 공정 완료까지 사이클을 자동 반복한다 (AFA-026 연동)
+  - [ ] 수동 `$factory auto` 실행 시 메인 세션 또는 역할 전환 fallback이
+    장기 실행 오케스트레이션을 수행한다 (AFA-061 연동)
   - [x] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
   - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가
     호환된다
@@ -1045,7 +1127,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-053 E2E: 빈 폴더 신규 개발 시나리오 — 🟧 (2026-08-08 로컬 구현 보강)
 
-- **근거**: 통합 명세 3.10 DoD 1·2·4 / **의존성**: M2~M5 전체 / **위험도**: 상
+- **근거**: 통합 명세 3.11 DoD 1·2·4·15 / **의존성**: M2~M5 전체 / **위험도**: 상
 - **구현 범위**: 빈 폴더 → `factory plan`(모의 응답 주입) → `factory auto`
   → 소형 샘플 앱 로드맵 구현·검증까지의 자동화 통합 테스트
 - **완료 조건**:
@@ -1055,7 +1137,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
     로그로 확인된다
   - [ ] `factory auto` 단일 명령으로 완료 게이트까지 도달한다 — 중간에
     사용자가 직접 `resume`을 다시 입력해야 했다면 실패로 판정
-    (통합 명세 3.17 / DoD 15)
+    (통합 명세 3.10 / DoD 15)
   - [x] 각 사이클 종료 시 3.15 진행 보고 4요소가 run 기록에 남아 있다
     (DoD 13 검증)
 - **로컬 검증 보강**: 템플릿 렌더링과 산출물 스키마 검증, 진행 보고 생성은
@@ -1067,7 +1149,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-054 E2E: 중단 후 재개 시나리오 — 🟦 (2026-08-05 구현 제출)
 
-- **근거**: 통합 명세 3.10 DoD 9 / **의존성**: AFA-053 / **위험도**: 중
+- **근거**: 통합 명세 3.11 DoD 9 / **의존성**: AFA-053 / **위험도**: 중
 - **완료 조건**:
   - [x] 구현 루프 중간에 강제 종료 후 `factory auto` 재실행 시 완료 작업을
     건너뛰고 이어서 진행한다
@@ -1080,7 +1162,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-055 E2E: 기존 프로젝트 init 시나리오 — 🟧 (2026-08-08 로컬 구현 보강)
 
-- **근거**: 통합 명세 3.10 DoD 3 / **의존성**: AFA-053 / **위험도**: 중
+- **근거**: 통합 명세 3.11 DoD 3 / **의존성**: AFA-053 / **위험도**: 중
 - **완료 조건**:
   - [ ] 준비된 기존 Android 프로젝트 픽스처에서 `factory init` 실행 시
     모듈·Gradle·라이브러리 분석 결과가 상태 저장소에 기록된다
@@ -1095,7 +1177,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 
 ### AFA-056 E2E: 부분 구현 탐지 시나리오 — 🟧 (2026-08-08 로컬 구현 보강)
 
-- **근거**: 통합 명세 3.10 DoD 5·6 / **의존성**: AFA-053 / **위험도**: 상
+- **근거**: 통합 명세 3.11 DoD 5·6 / **의존성**: AFA-053 / **위험도**: 상
 - **완료 조건**:
   - [ ] 의도적으로 삽입한 4종 결함(빈 함수, 호출되지 않는 코드, TODO 잔존,
     Mock 데이터 반환)이 각각 Completion Verifier에서 탐지된다
@@ -1152,6 +1234,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 | AFA-036 | 안전 수정 자동 실행과 위험 수정 보류의 provider 실동작 | 플러그인 실환경 |
 | AFA-040 | 플러그인 설치, /factory 호출, auto 자동 재개 동작 | Claude Code 실환경 |
 | AFA-041 | $factory 동작, 래퍼 루프, 상태 저장소 교차 호환 | Codex CLI 실환경 |
+| AFA-061 | 수동 provider 세션에서 메인 오케스트레이터가 서브에이전트 위임, checkpoint, 압축 후 resume을 반복 | Claude Code/Codex/Vibe Coder 실환경 |
 | AFA-051 | init.gradle의 실제 직접·전이 의존성 그래프 추출, 고지 미갱신 게이트 | Gradle 프로젝트 |
 | AFA-052 | 실제 디바이스 설치·실행·스크린샷 | 에뮬레이터/실기기 |
 | AFA-060 | 모든 시나리오 × 디바이스 프로필 스크린샷 전수검사 | mobile-mcp 또는 adb 에뮬레이터 |
