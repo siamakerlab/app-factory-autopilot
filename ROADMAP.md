@@ -1097,6 +1097,8 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   - [x] Run 스키마와 MCP 타입이 `command=test`를 허용한다
   - [x] `factory_test_prepare`가 에뮬레이터 승인 설정과 시나리오 체크리스트
     evidence를 생성한다
+  - [x] 명시 시나리오가 없으면 APP_FACTORY 기능 목록 또는 기본 실행 흐름에서
+    전수검사용 시나리오를 자동 생성한다
   - [x] `factory_test_record_result`가 실패 체크를 finding과 P0 fix 큐로 등록한다
   - [x] Stop Hook이 `test` 실행 중에도 종료를 차단한다
   - [ ] 실제 mobile-mcp 또는 adb 에뮬레이터에서 모든 시나리오 × 디바이스

@@ -29,6 +29,8 @@ test("factory test prepare — 에뮬레이터 사용 승인으로 간주하고 
 
     assert.equal(prepared.emulator_enabled, true);
     assert.deepEqual(prepared.device_profiles, ["phone", "tablet"]);
+    assert.equal(prepared.scenario_count, 1);
+    assert.equal(prepared.auto_generated, false);
     const config = ctx.store.loadConfigSnapshot<{ automation: { emulator: boolean; defer_emulator_prompt_until_final: boolean } }>();
     assert.equal(config.automation.emulator, true);
     assert.equal(config.automation.defer_emulator_prompt_until_final, false);
@@ -38,6 +40,30 @@ test("factory test prepare — 에뮬레이터 사용 승인으로 간주하고 
     assert.equal(evidence.data?.["emulator_authorized"], true);
     assert.equal(fs.existsSync(prepared.checklist_path), true);
     assert.match(fs.readFileSync(prepared.checklist_path, "utf-8"), /메모 작성/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("factory test prepare — 시나리오 미입력 시 설정 기반 체크리스트를 자동 생성", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    ctx.store.saveConfigSnapshot({
+      version: 1,
+      core_features: ["메모 작성", "검색"],
+      supporting_features: ["태그 관리"],
+      automation: { emulator: false },
+    });
+
+    const prepared = await factoryTestPrepare(ctx, {});
+
+    assert.equal(prepared.emulator_enabled, true);
+    assert.equal(prepared.auto_generated, true);
+    assert.equal(prepared.scenario_count, 3);
+    const evidence = ctx.store.loadEvidence(prepared.evidence_id);
+    assert.equal(evidence.data?.["auto_generated"], true);
+    assert.match(fs.readFileSync(prepared.checklist_path, "utf-8"), /메모 작성 기능 사용/);
+    assert.match(fs.readFileSync(prepared.checklist_path, "utf-8"), /태그 관리 기능 사용/);
   } finally {
     cleanup();
   }

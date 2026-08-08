@@ -18,12 +18,13 @@
   `Run.command=test`, `emulator_test_plan` evidence, Stop Hook 지속 조건을 반영
 - `factory_test_prepare` MCP 도구 추가: 에뮬레이터 설정을 활성화하고 사용자
   시나리오·버튼·기능·예상 화면·예상 출력·디바이스 매트릭스 체크리스트를
-  evidence로 저장
+  evidence로 저장. 명시 시나리오가 없으면 APP_FACTORY 기능 목록 또는 기본
+  실행 흐름에서 전수검사용 시나리오를 자동 생성
 - `factory_test_record_result` MCP 도구 추가: 시나리오 실행 결과를
   `emulator_scenario_result`로 저장하고 실패 항목을 finding + P0 fix 큐로 등록
 - mobile-mcp 우선 사용, adb 폴백, 실패 즉시 수정·재실행·commit·push 원칙을
   Skill/MVP/ROADMAP에 명시
-- 검증: MCP 테스트 74건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트 통과
+- 검증: MCP 테스트 75건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트 통과
 
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
 
