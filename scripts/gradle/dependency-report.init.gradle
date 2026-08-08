@@ -23,7 +23,8 @@ allprojects {
                 comp.getArtifacts(org.gradle.maven.MavenPomArtifact).each { artifact ->
                     def licenses = []
                     try {
-                        def pom = new XmlSlurper().parse(artifact.file)
+                        // Gradle 9(Groovy 4): XmlSlurper는 groovy.xml 패키지
+                        def pom = new groovy.xml.XmlSlurper().parse(artifact.file)
                         pom.licenses.license.each { lic -> licenses << lic.name.text().trim() }
                     } catch (ignored) { }
                     def id = comp.id
@@ -34,7 +35,7 @@ allprojects {
                     ]
                 }
             }
-            def dir = new File(project.buildDir, "afa")
+            def dir = new File(project.layout.buildDirectory.get().asFile, "afa")
             dir.mkdirs()
             def file = new File(dir, "dependencies.json")
             file.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(out))

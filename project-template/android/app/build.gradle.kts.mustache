@@ -1,8 +1,8 @@
 import java.util.Properties
 
 plugins {
+    // AGP 9.0+는 Kotlin 지원 내장 — org.jetbrains.kotlin.android 적용 금지
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
@@ -57,11 +57,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.findByName("release")
-                ?: error(
-                    "릴리스 키스토어가 없습니다: {{signing.keystore_dir}}/{{project.package_name}}-keystore.properties — " +
-                    "운영자 절차로 키스토어를 준비하십시오 (자동 생성 금지)."
-                )
+            // 키스토어가 준비된 경우에만 서명 설정. 부재 시 릴리스 태스크만
+            // 실행 시점에 차단한다 (디버그 빌드는 진행 가능해야 함)
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 
@@ -70,7 +68,18 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
+}
+
+// 릴리스 차단 게이트: 키스토어 미준비 상태의 릴리스 산출은 실행 시점에 실패
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+    doFirst {
+        if (loadSigning(debug = false) == null) {
+            error(
+                "릴리스 키스토어가 없습니다: {{signing.keystore_dir}}/{{project.package_name}}-keystore.properties — " +
+                "운영자 절차로 키스토어를 준비하십시오 (자동 생성 금지)."
+            )
+        }
+    }
 }
 
 dependencies {
