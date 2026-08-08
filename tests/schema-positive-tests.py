@@ -32,6 +32,28 @@ def validate(schema_name, example_name):
     return 0
 
 
+def validate_default_monetization_off():
+    config = example("app-factory-config.example.json")
+    errors = []
+    if config["automation"]["ads"] is not False:
+        errors.append("automation.ads 기본값은 false여야 함")
+    if config["automation"]["billing"] is not False:
+        errors.append("automation.billing 기본값은 false여야 함")
+    if config["ads"]["enabled"] is not False:
+        errors.append("ads.enabled 기본값은 false여야 함")
+    if config["billing"]["enabled"] is not False:
+        errors.append("billing.enabled 기본값은 false여야 함")
+    if config["billing"]["products"] != []:
+        errors.append("billing.products 기본값은 빈 배열이어야 함")
+    if errors:
+        print("[문제] 광고/인앱결제 기본 제외 정책 위반")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("[통과 OK] 광고/인앱결제는 명시 없으면 제외")
+    return 0
+
+
 def main() -> int:
     failures = 0
     failures += validate("app-factory-config.schema.json", "app-factory-config.example.json")
@@ -39,6 +61,7 @@ def main() -> int:
     failures += validate("roadmap-item.schema.json", "roadmap-item.example.json")
     failures += validate("task.schema.json", "task.example.json")
     failures += validate("run.schema.json", "run.example.json")
+    failures += validate_default_monetization_off()
     return 1 if failures else 0
 
 

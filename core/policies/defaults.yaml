@@ -20,8 +20,8 @@ automation:
   accessibility_review: true
   in_app_review: true
   in_app_update: true
-  ads: true
-  billing: true
+  ads: false
+  billing: false
   store_readiness: true
   observability: true
   performance_review: true
@@ -70,17 +70,16 @@ localization:
   languages: [en]
 
 ads:
-  enabled: true                 # 운영자 정책: 모든 앱 기본 광고 포함
+  enabled: false                # plan에서 명시하지 않으면 제외
   network: admob
-  formats: [adaptive_banner, app_open]
+  formats: []
   app_open_interval_minutes: 15
   consent: { ump: true, gdpr: true, child_directed: false, family_policy: false }
   test_ids_in_debug: true
 
 billing:
-  enabled: true                 # 광고 제거 상품 기본 포함
-  products:
-    - { id: "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}", kind: non_consumable, purpose: remove_ads }
+  enabled: false                # plan에서 명시하지 않으면 제외
+  products: []
   restore_on_start: true
   server_verification: false
 

@@ -673,7 +673,7 @@
   **위험도**: 중
 - **구현 범위**: `/factory config`, `$factory config`, `factory config` 진입
   명령을 추가하고 `APP_FACTORY.automation.*` 설정을 체크박스로 편집한다.
-  기본값은 에뮬레이터를 제외한 모든 기능 활성화다.
+  기본값은 에뮬레이터, 광고, 인앱결제를 제외한 프로덕션 품질 검토 기능 활성화다.
 - **체크 항목**: 경쟁사·커뮤니티 리서치, UI 현대화, UX 직관성 검토, 접근성
   검토, 인앱리뷰, 인앱업데이트, 광고, 인앱결제, 스토어 준비, 관측성, 성능
   검토, 보안·개인정보 검토, 라이선스 검토, 에뮬레이터 검증.
@@ -681,6 +681,8 @@
   - [x] `automation.*` 스키마와 기본값이 존재한다
   - [x] `factory-config` Skill과 라우터 명령이 존재한다
   - [x] README/MVP/어댑터 생성 안내에 `config` 명령이 반영된다
+  - [x] `automation.ads=false`, `automation.billing=false`가 기본값이며
+    plan/config에서 명시하지 않으면 광고·인앱결제 구현을 제외한다
   - [x] `automation.emulator=false`일 때 에뮬레이터 게이트가 중간 진행을
     차단하지 않고 마지막 권유 메시지를 남긴다
   - [ ] 실제 Claude Code/Codex 환경에서 체크박스 UI가 표시되고 설정 저장이

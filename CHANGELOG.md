@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
+
+- AdMob 광고와 인앱결제는 `plan` 또는 `config`에서 사용자가 명시하지 않으면
+  제외하도록 기본값 변경
+- `automation.ads=false`, `automation.billing=false`, `ads.enabled=false`,
+  `billing.enabled=false`, `billing.products=[]`를 예시 설정과 defaults에 반영
+- 인터뷰 문항의 수익 모델 추천값을 `완전무료`로 변경하고 광고/인앱결제 질문
+  기본값을 false로 변경
+- `/factory config`와 MVP/ROADMAP 문서에 광고·인앱결제 기본 제외 정책 명시
+- 검증: 스키마 양성 테스트에 광고·인앱결제 기본 제외 회귀 테스트 추가
+
 ### 2026-08-08 — 턴 종료 진행 보고 표시 경로 보강
 
 - `factory_finish_cycle`이 run 기록뿐 아니라 사용자 표시용 `rendered` 진행

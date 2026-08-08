@@ -38,7 +38,7 @@ areas:
       - { id: core_value, ask: "사용자가 가장 자주 할 작업과 앱의 핵심가치는 무엇입니까?", type: text, config: null }
       - { id: competitors, ask: "경쟁 앱 또는 참고 앱이 있습니까?", type: list, config: null, optional: true }
       - { id: category, ask: "앱 카테고리(스토어 기준)는 무엇입니까?", type: text, config: null }
-      - { id: monetization, ask: "수익 모델을 선택해 주십시오.", type: choice, options: [무료+광고, 무료+광고+광고제거IAP, 유료, 부분유료, 완전무료], recommend: 무료+광고+광고제거IAP, config: null }
+      - { id: monetization, ask: "수익 모델을 선택해 주십시오. 명시하지 않으면 광고와 인앱결제는 제외합니다.", type: choice, options: [완전무료, 무료+광고, 무료+광고+광고제거IAP, 유료, 부분유료], recommend: 완전무료, config: null }
       - id: package_name
         ask: "패키지명을 확정해 주십시오 (출시 후 변경 불가)."
         type: text
@@ -75,7 +75,7 @@ areas:
   - id: ads
     title: 광고
     questions:
-      - { id: ads_enabled, ask: "광고를 사용합니까?", type: boolean, default: true, config: ads.enabled }
+      - { id: ads_enabled, ask: "AdMob 광고를 사용합니까? 명시하지 않으면 제외합니다.", type: boolean, default: false, config: ads.enabled }
       - { id: ad_formats, ask: "광고 형식을 선택해 주십시오.", type: multi, options: [적응형 배너, 네이티브, 전면, 리워드, 앱 오픈], default: [적응형 배너, 앱 오픈], when: ads_enabled, config: ads.formats }
       - { id: ad_placement, ask: "광고 노출 위치·빈도·쿨다운 정책이 있습니까? (기본: 배너 하단 고정, 앱 오픈 15분 1회)", type: text, default: 기본 정책, when: ads_enabled, config: null }
       - { id: remove_ads, ask: "광고 제거 상품을 포함합니까? 제거 시 어떤 광고를 제거합니까?", type: text, default: "전체 제거", when: ads_enabled, config: null }
@@ -85,7 +85,7 @@ areas:
   - id: billing
     title: 인앱결제
     questions:
-      - { id: billing_enabled, ask: "인앱결제를 사용합니까? (광고 제거 상품 포함 시 필요)", type: boolean, default: true, config: billing.enabled }
+      - { id: billing_enabled, ask: "인앱결제를 사용합니까? 명시하지 않으면 제외합니다. (광고 제거 상품 포함 시 필요)", type: boolean, default: false, config: billing.enabled }
       - { id: products, ask: "상품 구성(일회성 소모/비소모, 구독)과 상품 ID를 알려주십시오.", type: list, when: billing_enabled, config: billing.products, placeholder: { kind: billing_product_ids, name: "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}" } }
       - { id: restore, ask: "앱 시작 시 구매 상태 자동 복원을 적용합니까?", type: boolean, default: true, when: billing_enabled, config: billing.restore_on_start }
       - { id: server_verify, ask: "서버 영수증 검증이 필요합니까? (기본: 클라이언트 검증)", type: boolean, default: false, when: billing_enabled, config: billing.server_verification }

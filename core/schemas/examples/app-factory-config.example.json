@@ -7,8 +7,8 @@
     "accessibility_review": true,
     "in_app_review": true,
     "in_app_update": true,
-    "ads": true,
-    "billing": true,
+    "ads": false,
+    "billing": false,
     "store_readiness": true,
     "observability": true,
     "performance_review": true,
@@ -63,23 +63,16 @@
     "languages": ["en"]
   },
   "ads": {
-    "enabled": true,
+    "enabled": false,
     "network": "admob",
-    "formats": ["adaptive_banner", "app_open"],
+    "formats": [],
     "app_open_interval_minutes": 15,
     "consent": { "ump": true, "gdpr": true, "child_directed": false, "family_policy": false },
-    "app_id": "${PLACEHOLDER_ADMOB_APP_ID}",
-    "unit_ids": {
-      "banner": "${PLACEHOLDER_BANNER_AD_UNIT_ID}",
-      "app_open": "${PLACEHOLDER_APP_OPEN_AD_UNIT_ID}"
-    },
     "test_ids_in_debug": true
   },
   "billing": {
-    "enabled": true,
-    "products": [
-      { "id": "${PLACEHOLDER_REMOVE_ADS_PRODUCT_ID}", "kind": "non_consumable", "purpose": "remove_ads" }
-    ],
+    "enabled": false,
+    "products": [],
     "restore_on_start": true,
     "server_verification": false
   },

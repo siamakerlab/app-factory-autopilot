@@ -13,8 +13,10 @@ UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 �
 
 ## 기본값
 
-- 기본적으로 모든 프로덕션 품질 기능을 활성화한다.
-- 예외: `automation.emulator=false`가 기본값이다.
+- 기본적으로 모든 프로덕션 품질 검토 기능을 활성화한다.
+- 예외: `automation.emulator=false`, `automation.ads=false`,
+  `automation.billing=false`가 기본값이다. 광고와 인앱결제는 plan/config에서
+  사용자가 명시적으로 켠 경우에만 탑재한다.
 - `automation.defer_emulator_prompt_until_final=true`가 기본값이다. 에뮬레이터를
   사용하지 않는 경우 중간 공정에서는 묻지 않고, 코드로 구현 가능한 모든 기능을
   최대한 구현·검증한 뒤 마지막 보고에서 에뮬레이터 검증 사용을 권유한다.
@@ -29,8 +31,8 @@ UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 �
 | `accessibility_review` | true | 접근성 검토·수정 |
 | `in_app_review` | true | Google Play 인앱리뷰 기능 탑재 |
 | `in_app_update` | true | Google Play 인앱업데이트 기능 탑재 |
-| `ads` | true | 광고·동의 흐름 탑재 |
-| `billing` | true | 인앱결제·구매 복원 탑재 |
+| `ads` | false | 광고·동의 흐름 탑재 |
+| `billing` | false | 인앱결제·구매 복원 탑재 |
 | `store_readiness` | true | 스토어 등록 준비 점검 |
 | `observability` | true | 크래시/분석 이벤트 등 관측성 탑재 |
 | `performance_review` | true | 성능·메모리·시작 시간 검토 |
