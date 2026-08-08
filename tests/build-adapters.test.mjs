@@ -99,6 +99,10 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   }
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /production readiness/);
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /factory auto \[codex\|claude-code\] \[project-path\]/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Goal Completion Boundary/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Never treat "no remaining roadmap item" as terminal by itself/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /roadmap depletion alone is not terminal/);
+  assert.match(first.get("claude-code/skills/final-gate/SKILL.md"), /factory auto` must not stop at this gate if full quality-review evidence is\s+missing/);
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Treat `factory auto` as an execution mode, not a tutorial/);
   assert.match(first.get("codex/prompts/factory.md"), /Route silently and report only concrete outcomes/);
 
@@ -115,13 +119,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.5.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.5.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.6.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.6.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.5\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.5\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.6\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.6\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 

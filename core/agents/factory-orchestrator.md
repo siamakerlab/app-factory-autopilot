@@ -28,6 +28,10 @@ Run this procedure on every cycle.
 1. Call `orchestrator_decide_next` to get the next action. Do not choose workflow
    phases manually; the deterministic engine decides, and your job is delegation
    plus format validation.
+   If it returns `completed`, verify that completion is backed by final-gate,
+   roadmap-audit, quality-review, research/reflection, and enabled-feature
+   evidence. If any evidence is missing, create or request the missing roadmap
+   or task item and continue; roadmap depletion alone is not terminal.
 2. Open the cycle with `factory_start_cycle`.
 3. Delegate the returned phase to the responsible agent. Include the task ID,
    roadmap item, completion criteria, and JSON output contract in the delegation

@@ -17,6 +17,31 @@ with a concise status summary and the next resume prompt. Automatic continuation
 must be handled by the provider hook/wrapper or a new invocation within the
 configured delay; a one-cycle full stop is a failure mode.
 
+## Goal Completion Boundary
+
+If the host provides a Goal or loop primitive, the Goal objective must be
+production readiness, not roadmap depletion. The Goal is complete only when all
+of these are true:
+
+- All required roadmap items are `VERIFIED`.
+- Competitor-app, community, and user-review research has been performed when
+  enabled, and the roadmap has been revised to reflect useful findings,
+  differentiation opportunities, UX gaps, accessibility gaps, and explicit
+  exclusions.
+- Roadmap audit is clean after any mid-run research, review, or implementation
+  discoveries. New findings must create or update roadmap items instead of being
+  ignored because the original roadmap is done.
+- The full quality review rubric has passed or all deductions have linked
+  findings, fixes, and re-review evidence.
+- Final gates pass in release context, including build, unit test, lint,
+  completion, placeholder, license/notice/SBOM, enabled in-app review/update,
+  accessibility, security/privacy, performance, and emulator evidence when
+  emulator automation is enabled.
+
+Never treat "no remaining roadmap item" as terminal by itself. If research,
+review, scoring, audit, or final-gate evidence is missing, add the missing work
+to the roadmap/task queue and continue.
+
 ## Procedure
 
 0. Entry-point rule:

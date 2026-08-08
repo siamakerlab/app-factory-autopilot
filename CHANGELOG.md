@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Guard goal completion against roadmap-only termination
+
+- Prepared `app-factory-autopilot@0.1.6` as a patch release for Goal-backed
+  session autopilot semantics
+- Clarified that `factory auto` Goal completion means production readiness, not
+  original roadmap depletion
+- Required enabled competitor/community/user-review research, roadmap
+  reflection, roadmap audit, quality review, and final-gate evidence before
+  terminal completion
+- Updated the orchestrator and final-gate instructions to enqueue missing
+  research, review, roadmap-revision, or fix work instead of stopping when the
+  roadmap appears empty
+
 ### 2026-08-08 — Enforce prompt language policy
 
 - Prepared `app-factory-autopilot@0.1.5` as a patch release for provider prompt

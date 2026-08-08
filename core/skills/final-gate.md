@@ -13,5 +13,8 @@ kind: process
    orchestrator uses this evidence for completed-state decisions.
 3. If any gate fails, report findings and enqueue fix tasks for auto-fixable
    items. Do not mark the workflow complete.
-4. MVP-1 final audit is this gate run. Full cold cross-provider verification is
-   MVP-4 scope and can be invoked manually with `factory review`.
+4. `factory auto` must not stop at this gate if full quality-review evidence is
+   missing. When the configured production-quality areas require competitor or
+   community research, UX/accessibility review, in-app review/update checks, or
+   other rubric items, enqueue the missing review/fix work and rerun the gate
+   after evidence is recorded.
