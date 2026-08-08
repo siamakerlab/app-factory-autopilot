@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Ship MCP runtime dependencies and tool schemas
+
+- Prepared `app-factory-autopilot@0.1.9` as a patch release for installed MCP
+  runtime correctness
+- Installed bundled MCP server runtime dependencies into provider-local plugin
+  directories during npm and archive installs
+- Replaced empty generic MCP tool input schemas with explicit top-level
+  argument schemas for core factory, roadmap, evidence, gate, dependency,
+  approval, capability, and review tools
+
 ### 2026-08-08 — Refresh Codex local plugin installs
 
 - Prepared `app-factory-autopilot@0.1.8` as a patch release for provider-local

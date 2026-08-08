@@ -100,6 +100,17 @@ function copyPluginPackage(source, destination) {
   fs.cpSync(source, destination, { recursive: true, force: true });
 }
 
+function installBundledMcpRuntime(destination) {
+  const mcpDir = path.join(destination, "mcp-server");
+  if (!fs.existsSync(path.join(mcpDir, "package.json"))) {
+    throw new Error(`Bundled MCP server package is missing: ${mcpDir}`);
+  }
+  run("npm", ["ci", "--omit=dev"], { cwd: mcpDir });
+  if (!fs.existsSync(path.join(mcpDir, "node_modules", "@modelcontextprotocol", "sdk"))) {
+    throw new Error("Bundled MCP server runtime dependencies were not installed.");
+  }
+}
+
 function writeJson(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", "utf-8");
@@ -211,6 +222,7 @@ function installClaudeCode() {
     process.env.APP_FACTORY_CLAUDE_PLUGIN_DIR ??
     path.join(marketplaceRoot, "plugins", "app-factory-autopilot");
   copyPluginPackage(source, destination);
+  installBundledMcpRuntime(destination);
   const marketplacePath = writeClaudeMarketplace(marketplaceRoot);
   process.stdout.write(`Installed App Factory Autopilot for Claude Code: ${destination}\n`);
   process.stdout.write(`Updated Claude marketplace: ${marketplacePath}\n`);
@@ -228,6 +240,7 @@ function installCodex() {
   const source = path.join(DIST, "codex");
   const destination = path.join(pluginParent, "app-factory-autopilot");
   copyPluginPackage(source, destination);
+  installBundledMcpRuntime(destination);
   const manifestVersion = applyCodexCachebuster(destination);
   updateCodexMarketplace(marketplacePath);
   process.stdout.write(`Installed App Factory Autopilot for Codex: ${destination}\n`);

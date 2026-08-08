@@ -15,7 +15,7 @@ const CORE = path.join(ROOT, "core");
 const DIST = path.join(ROOT, "dist");
 const MCP = path.join(ROOT, "mcp-server");
 const PROJECT_TEMPLATE = path.join(ROOT, "project-template");
-const VERSION = "0.1.8";
+const VERSION = "0.1.9";
 
 const WARN_MD = `<!-- Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs. -->\n`;
 const WARN_JS = `// Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs.\n`;
@@ -340,6 +340,7 @@ writeInstallScript(path.join(CC, "install-local.sh"), [
   'mkdir -p "$(dirname "$DEST")"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
+  '(cd "$DEST/mcp-server" && npm ci --omit=dev)',
   'node "$DEST/scripts/install-claude-marketplace.mjs" "$MARKETPLACE_ROOT"',
   'echo "Installed App Factory Autopilot for Claude Code: $DEST"',
   'if [ "${APP_FACTORY_SKIP_PROVIDER_ACTIVATION:-0}" = "1" ]; then',
@@ -583,6 +584,7 @@ writeInstallScript(path.join(CX, "install-local.sh"), [
   'mkdir -p "$PLUGIN_PARENT"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
+  '(cd "$DEST/mcp-server" && npm ci --omit=dev)',
   'node "$DEST/scripts/apply-codex-cachebuster.mjs"',
   'node "$DEST/scripts/install-codex-marketplace.mjs" "$MARKETPLACE"',
   'echo "Installed App Factory Autopilot for Codex: $DEST"',
