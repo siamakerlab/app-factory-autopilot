@@ -14,6 +14,10 @@
   고정하지 않도록 회귀 테스트 추가. Gradle wrapper 버전은
   `scripts/resolve-gradle-version.mjs`가 공식 Gradle current 메타데이터에서
   최신 안정화 버전과 distribution SHA-256을 확인해 `{{versions.*}}`로 주입
+- 공식 문서 확인 순서 명문화: 코드 작성·API 사용·버전 검토 시 mobile docs
+  MCP를 1순위로 사용하고, context7이 설치되어 있으면 보조 수단으로 사용,
+  둘 다 실패하면 공식 웹페이지를 직접 확인하도록 Agent/Skill/프로젝트 규칙
+  템플릿에 반영
 - AFA-040/AFA-041/AFA-042 보강: 어댑터 빌드 결정론 테스트 추가
   (`tests/build-adapters.test.mjs`), Codex 래퍼 실행 권한 0755 설정
 - AFA-051 🟧 보강: `generate-notices.mjs`를 import 가능한 API로 분리하고

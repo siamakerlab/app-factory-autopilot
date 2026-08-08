@@ -24,6 +24,10 @@ output_contract: task-result-v1
 - 새 라이브러리가 필요하면 **직접 추가하지 않고** `dependency_request`를
   생성한다. 승인 전에는 해당 의존성을 사용하는 코드를 작성하지 않는다.
 - 모르는 값은 지어내지 않는다 — `${PLACEHOLDER_*}` + `placeholder_create`.
+- Android API·라이브러리 사용법을 확인해야 하는 코드는 **mobile docs MCP를
+  먼저 사용**한다. context7이 설치되어 있으면 보조 수단으로 사용하고, 둘 다
+  실패하면 공식 웹페이지를 직접 확인한 뒤 적용한다. 비공식 글만 근거로 코드
+  작성 금지.
 
 ## 작업 절차
 

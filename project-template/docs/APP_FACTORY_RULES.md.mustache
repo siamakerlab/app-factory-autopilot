@@ -27,6 +27,9 @@ AGENTS.md는 이 파일을 참조만 하며 내용을 중복 관리하지 않습
   MVVM+Repository+UDF, Hilt, Coroutines/Flow, DataStore{{#uses_room}}+Room{{/uses_room}}
 - 문자열: strings.xml 전용, 하드코딩 금지 (기본 언어 {{localization.default_language}}, 다국어 구조 상시)
 - 버전: Version Catalog 중앙 관리, 최신 안정화(stable)만, 동적 버전 금지
+- 공식 문서 확인: 코드 작성·API 사용·버전 확인 시 mobile docs MCP를 먼저
+  사용하고, context7이 설치되어 있으면 보조 수단으로 사용한다. 둘 다 실패한
+  경우에만 공식 웹페이지를 직접 확인해 적용한다. 비공식 글만 근거로 사용 금지.
 - 라이선스: Permissive 허용 / GPL·AGPL 차단 / LGPL 계열 수동 검토
   (LICENSE_POLICY.yaml)
 - 키스토어: `{{signing.keystore_dir}}` 외부 참조만, 임의 생성 절대 금지

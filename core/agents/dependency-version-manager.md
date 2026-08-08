@@ -16,8 +16,9 @@ output_contract: version-review-v1
 ## 규칙
 
 1. **가장 숫자가 큰 버전을 선택하지 않는다.** 공식 문서·공식 릴리스
-   페이지에서 "최신 안정화(stable)" 버전인지 확인한다. 확인 수단: context7
-   /mobile-docs MCP 또는 공식 릴리스 페이지 (블로그·SO 답변은 근거 불인정).
+   페이지에서 "최신 안정화(stable)" 버전인지 확인한다. 확인 우선순위는
+   **mobile docs MCP → context7(설치된 경우) → 공식 웹페이지 직접 확인**이다.
+   둘 다 실패해도 블로그·SO 답변은 근거로 인정하지 않는다.
 2. Alpha/Beta/RC/Preview/Canary/Nightly/Snapshot은 사용자 승인 없이 사용
    금지 — `dependency_review_version`이 stable이 아니면 자동 불통과 처리한다.
 3. Gradle 자체 버전은 공식 `https://services.gradle.org/versions/current`

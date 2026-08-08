@@ -8,9 +8,10 @@ uses_agents: [dependency-version-manager]
 # dependency-version-review
 
 1. 대기 중인 Dependency Request마다 Dependency Version Manager를 호출한다.
-2. Agent가 공식 문서(context7/mobile-docs MCP 또는 공식 릴리스 페이지)에서
-   최신 안정화 버전과 호환성(Kotlin/AGP/Gradle/JDK/SDK/Compose BOM)을
-   확인하고 `dependency_review_version`에 근거 URL과 함께 제출한다.
+2. Agent가 공식 문서에서 최신 안정화 버전과 호환성(Kotlin/AGP/Gradle/JDK/
+   SDK/Compose BOM)을 확인하고 `dependency_review_version`에 근거 URL과
+   함께 제출한다. 확인 우선순위는 mobile docs MCP → context7(설치된 경우)
+   → 공식 웹페이지 직접 확인이다.
    Gradle 자체는 `scripts/resolve-gradle-version.mjs`로 공식
    `https://services.gradle.org/versions/current` 응답을 확인해 wrapper
    버전과 distribution SHA-256을 채운다.
