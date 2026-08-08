@@ -18,7 +18,10 @@
       "type": "string",
       "enum": [
         "requirement",
+        "market_research",
         "ui_flow",
+        "ux_modernity",
+        "ux_intuitiveness",
         "screen_state",
         "data_persistence",
         "security",

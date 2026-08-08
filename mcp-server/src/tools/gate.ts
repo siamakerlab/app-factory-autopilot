@@ -47,6 +47,15 @@ export function loadGates(coreDir: string): GatesDoc {
 
 type Checker = (ctx: Ctx, opts: { release: boolean }) => { passed: boolean; blocked?: boolean; detail: string };
 
+function emulatorEnabled(ctx: Ctx): boolean {
+  try {
+    const config = ctx.store.loadConfigSnapshot<{ automation?: { emulator?: boolean } }>();
+    return config.automation?.emulator !== false;
+  } catch {
+    return true;
+  }
+}
+
 function openBlockers(ctx: Ctx, areas: string[]): number {
   return ctx.store
     .listFindings()
@@ -117,6 +126,12 @@ const CHECKERS: Record<string, Checker> = {
       : { passed: false, detail: `라이선스 blocker ${n}건` };
   },
   emulator_smoke_passed: (ctx) => {
+    if (!emulatorEnabled(ctx)) {
+      return {
+        passed: true,
+        detail: "에뮬레이터 검증 비활성 — 코드로 가능한 검증을 완료한 뒤 마지막에 에뮬레이터 사용을 권유",
+      };
+    }
     const dir = path.join(ctx.store.root, "evidence");
     const results = fs.existsSync(dir)
       ? fs.readdirSync(dir).flatMap((d) => {

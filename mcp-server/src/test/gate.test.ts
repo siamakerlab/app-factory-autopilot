@@ -87,6 +87,18 @@ test("실행 게이트 — 증거 없으면 BLOCKED (skip 아님)", async () => 
   }
 });
 
+test("실행 게이트 — automation.emulator=false이면 마지막 권유만 남기고 통과", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    ctx.store.saveConfigSnapshot({ version: 1, automation: { emulator: false } });
+    const r = await gateRun(ctx, { gate_id: "emulator" });
+    assert.equal(r.passed, true);
+    assert.match(r.detail, /마지막에 에뮬레이터 사용을 권유/);
+  } finally {
+    cleanup();
+  }
+});
+
 test("최종 게이트 — gateRunAll이 완료 predicate용 summary evidence를 남긴다", async () => {
   const { ctx, cleanup } = makeCtx();
   try {

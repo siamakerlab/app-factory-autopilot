@@ -1,5 +1,22 @@
 {
   "version": 1,
+  "automation": {
+    "market_research": true,
+    "modern_ui": true,
+    "ux_intuitiveness_review": true,
+    "accessibility_review": true,
+    "in_app_review": true,
+    "in_app_update": true,
+    "ads": true,
+    "billing": true,
+    "store_readiness": true,
+    "observability": true,
+    "performance_review": true,
+    "security_privacy_review": true,
+    "license_review": true,
+    "emulator": false,
+    "defer_emulator_prompt_until_final": true
+  },
   "project": {
     "type": "android-app",
     "name": "메모장",
@@ -74,6 +91,20 @@
     "suppress_after_error": true
   },
   "in_app_update": { "enabled": true, "optional_gap": 2, "forced_gap": 3 },
+  "market_research": {
+    "enabled": true,
+    "competitor_min": 5,
+    "community_sources_min": 3,
+    "review_sources_min": 20,
+    "require_before_roadmap": true
+  },
+  "ux_quality": {
+    "modern_ui": true,
+    "intuitive_flow": true,
+    "accessibility_required": true,
+    "target_score": 95,
+    "release_blocking": true
+  },
   "data_security": {
     "sensitive_data": false,
     "personal_data": false,

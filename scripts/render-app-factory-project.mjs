@@ -128,6 +128,7 @@ export function buildRenderContext(config, opts = {}) {
     supporting_features: config.supporting_features ?? [],
     optional_features: config.optional_features ?? [],
     competitors: config.competitors ?? [],
+    research_rows: config.research_rows ?? [],
   };
 }
 

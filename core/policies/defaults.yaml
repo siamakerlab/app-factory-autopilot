@@ -11,6 +11,25 @@
 
 version: 1
 
+automation:
+  # /factory config 체크박스 기본값. 에뮬레이터만 기본 비활성화하고,
+  # 나머지는 프로덕션 품질을 위해 기본 활성화한다.
+  market_research: true
+  modern_ui: true
+  ux_intuitiveness_review: true
+  accessibility_review: true
+  in_app_review: true
+  in_app_update: true
+  ads: true
+  billing: true
+  store_readiness: true
+  observability: true
+  performance_review: true
+  security_privacy_review: true
+  license_review: true
+  emulator: false
+  defer_emulator_prompt_until_final: true
+
 language:
   implementation: kotlin        # plan 인터뷰 미입력 시 기본
   runtime: android-sdk
@@ -76,6 +95,20 @@ in_app_update:
   enabled: true
   optional_gap: 2               # 버전 차이 1~2 선택
   forced_gap: 3                 # 버전 차이 3~5 강제
+
+market_research:
+  enabled: true
+  competitor_min: 5             # 경쟁 앱 최소 조사 수
+  community_sources_min: 3      # 커뮤니티/포럼/리뷰 소스 최소 수
+  review_sources_min: 20        # 사용자 리뷰·의견 최소 샘플 수
+  require_before_roadmap: true  # 조사 결과를 1차 로드맵 전에 반영
+
+ux_quality:
+  modern_ui: true
+  intuitive_flow: true
+  accessibility_required: true
+  target_score: 95
+  release_blocking: true
 
 data_security:
   tls_only: true

@@ -35,6 +35,31 @@
   },
   "properties": {
     "version": { "const": 1 },
+    "automation": {
+      "type": "object",
+      "description": "/factory config에서 체크박스로 조정하는 자동화 실행 옵션. 기본은 emulator 제외 모두 활성.",
+      "additionalProperties": false,
+      "properties": {
+        "market_research": { "type": "boolean", "description": "경쟁 앱·커뮤니티·리뷰 조사" },
+        "modern_ui": { "type": "boolean", "description": "Material 3/Adaptive UI 현대화" },
+        "ux_intuitiveness_review": { "type": "boolean", "description": "주요 기능 UX 직관성 검토·수정" },
+        "accessibility_review": { "type": "boolean", "description": "접근성 검토·수정" },
+        "in_app_review": { "type": "boolean", "description": "Google Play 인앱리뷰 기능 탑재" },
+        "in_app_update": { "type": "boolean", "description": "Google Play 인앱업데이트 기능 탑재" },
+        "ads": { "type": "boolean", "description": "광고와 동의 흐름 탑재" },
+        "billing": { "type": "boolean", "description": "인앱결제·구매 복원 탑재" },
+        "store_readiness": { "type": "boolean", "description": "스토어 등록 준비 점검" },
+        "observability": { "type": "boolean", "description": "크래시/분석 이벤트 등 관측성 탑재" },
+        "performance_review": { "type": "boolean", "description": "성능·메모리·시작 시간 검토" },
+        "security_privacy_review": { "type": "boolean", "description": "보안·개인정보 검토" },
+        "license_review": { "type": "boolean", "description": "라이선스·고지·SBOM 검토" },
+        "emulator": { "type": "boolean", "description": "에뮬레이터 실행 검증. 기본 false" },
+        "defer_emulator_prompt_until_final": {
+          "type": "boolean",
+          "description": "emulator=false일 때 중간에는 묻지 않고 마지막에만 사용 권유"
+        }
+      }
+    },
     "project": {
       "type": "object",
       "required": ["type", "name", "package_name", "namespace"],
@@ -217,6 +242,30 @@
         "enabled": { "type": "boolean" },
         "optional_gap": { "type": "integer", "minimum": 1, "description": "버전 차이 n 이하 선택 업데이트" },
         "forced_gap": { "type": "integer", "minimum": 1, "description": "버전 차이 n 이상 강제 업데이트" }
+      }
+    },
+    "market_research": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "competitor_min": { "type": "integer", "minimum": 0 },
+        "community_sources_min": { "type": "integer", "minimum": 0 },
+        "review_sources_min": { "type": "integer", "minimum": 0 },
+        "require_before_roadmap": { "type": "boolean" }
+      }
+    },
+    "ux_quality": {
+      "type": "object",
+      "required": ["modern_ui", "intuitive_flow", "accessibility_required"],
+      "additionalProperties": false,
+      "properties": {
+        "modern_ui": { "type": "boolean" },
+        "intuitive_flow": { "type": "boolean" },
+        "accessibility_required": { "type": "boolean" },
+        "target_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "release_blocking": { "type": "boolean" }
       }
     },
     "data_security": {

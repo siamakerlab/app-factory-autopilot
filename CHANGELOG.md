@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — 제품 완성도 루프 및 factory config 추가
+
+- 사용자 목표를 반영해 경쟁사 앱·커뮤니티 의견·사용자 리뷰 조사 기반의
+  제품 완성도 루프(AFA-057)를 로드맵에 추가
+- `/factory config` / `$factory config` / `factory config` 진입 Skill 추가:
+  자동화 실행 옵션을 체크박스로 설정하며 기본값은 에뮬레이터 제외 모두 활성
+- `APP_FACTORY.automation.*` 스키마·기본값·예시 추가:
+  리서치, UI 현대화, UX 직관성, 접근성, 인앱리뷰, 인앱업데이트, 광고,
+  결제, 스토어 준비, 관측성, 성능, 보안·개인정보, 라이선스, 에뮬레이터
+  검증을 선택 가능
+- 에뮬레이터 기본 비활성 정책 반영: `automation.emulator=false`이면 중간에
+  묻지 않고 에뮬레이터 게이트를 통과 처리하며 마지막 보고에서 사용을 권유
+- review-scoring에 market_research, ux_modernity, ux_intuitiveness,
+  in_app_review, in_app_update 및 강화된 accessibility 검사를 추가
+- Roadmap Architect/Auditor/Completion Verifier 지시에 리서치 반영, 최신
+  Android 편의기능, UI/UX 현대화, 접근성 검증을 반영
+- 검증: Node 스크립트 테스트 16건, 스키마 양성 5건·부정 7건, MCP 테스트
+  64건 통과
+
 ### 2026-08-08 — 주요 결함 수정 및 Apache-2.0 라이선스 적용
 
 - 라이선스: Apache License 2.0 전문(`LICENSE`)과 `NOTICE`를 추가하고,

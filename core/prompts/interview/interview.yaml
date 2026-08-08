@@ -19,8 +19,16 @@ defaults:  # 2026-08-05 사용자 확정 — 질문과 무관하게 항상 적�
   language.implementation: kotlin
   localization.default_language: en
   localization.i18n_structure: true   # 다국어 구조 상시 (strings.xml, 하드코딩 금지)
+  automation.emulator: false          # 에뮬레이터는 기본 미사용
+  automation.defer_emulator_prompt_until_final: true
 
 areas:
+  - id: automation
+    title: 자동화 실행 범위
+    questions:
+      - { id: config_hint, ask: "`/factory config`에서 자동화 옵션을 체크박스로 바꿀 수 있습니다. 기본값은 에뮬레이터 제외 모두 활성입니다.", type: text, default: 기본값 유지, config: null, optional: true }
+      - { id: emulator_enabled, ask: "에뮬레이터 실행 검증을 자동 공정 중에 사용합니까? (기본: 사용 안 함. 마지막에만 사용 권유)", type: boolean, default: false, config: automation.emulator }
+
   - id: basics
     title: 앱 기본 정보
     questions:

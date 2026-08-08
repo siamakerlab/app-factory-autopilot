@@ -51,6 +51,15 @@ export function normalizeError(message: string, limits: LimitsDoc): string {
 
 type Predicate = (ctx: Ctx) => boolean;
 
+function emulatorEnabled(ctx: Ctx): boolean {
+  try {
+    const config = ctx.store.loadConfigSnapshot<{ automation?: { emulator?: boolean } }>();
+    return config.automation?.emulator !== false;
+  } catch {
+    return true;
+  }
+}
+
 const PREDICATES: Record<string, Predicate> = {
   always: () => true,
   config_snapshot_exists: (ctx) => fs.existsSync(ctx.store.configSnapshotPath()),
@@ -85,8 +94,11 @@ const PREDICATES: Record<string, Predicate> = {
   no_partial_items_and_no_open_blockers: (ctx) =>
     !ctx.store.loadRoadmap().items.some((i) => i.status === "PARTIAL") &&
     !ctx.store.listFindings().some((f) => f.severity === "blocker" && ["open", "reopened"].includes(f.status)),
-  emulator_evidence_missing: (ctx) => !hasEvidenceKind(ctx, "emulator_scenario_result"),
+  emulator_evidence_missing: (ctx) => {
+    return emulatorEnabled(ctx) && !hasEvidenceKind(ctx, "emulator_scenario_result");
+  },
   emulator_gate_passed_or_blocked: (ctx) => {
+    if (!emulatorEnabled(ctx)) return true;
     const r = gateGetResult(ctx, { gate_id: "emulator" });
     return r.results.length > 0 || hasEvidenceKind(ctx, "emulator_scenario_result");
   },

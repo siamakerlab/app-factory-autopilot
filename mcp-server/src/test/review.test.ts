@@ -40,6 +40,41 @@ test("미검사 항목은 fail로 취급 (검사 안 함 ≠ 통과)", () => {
   }
 });
 
+test("제품 품질 영역 — 리서치·UX·인앱업데이트는 점수표에 포함된다", () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    const r = reviewScore(ctx, {
+      results: {
+        market_research: {
+          competitor_matrix: "pass",
+          community_pain_points: "pass",
+          roadmap_inputs: "pass",
+          evidence_sources: "pass",
+        },
+        ux_intuitiveness: {
+          first_run_success: "pass",
+          primary_task_steps: "pass",
+          labels_affordance: "fail",
+          recovery_paths: "pass",
+        },
+        in_app_update: {
+          flexible_flow: "pass",
+          immediate_flow: "pass",
+          resume_handling: "pass",
+          play_core_policy: "pass",
+        },
+      },
+    });
+
+    assert.equal(r.areas.find((a) => a.area === "market_research")?.score, 100);
+    assert.equal(r.areas.find((a) => a.area === "market_research")?.release_blocking, true);
+    assert.equal(r.areas.find((a) => a.area === "ux_intuitiveness")?.score, 78);
+    assert.equal(r.areas.find((a) => a.area === "in_app_update")?.release_blocking, true);
+  } finally {
+    cleanup();
+  }
+});
+
 test("리포트 저장 — 전/후 비교표", () => {
   const { ctx, cleanup } = makeCtx();
   try {

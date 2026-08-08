@@ -27,6 +27,9 @@ uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate
      기다리지 않고 계속한다**
    - 사용자 판단 필요 항목은 크리티컬 패스 비차단 시
      `NEEDS_HUMAN_DECISION`으로 적재하고 계속 (질문 지연·일괄 처리)
+   - `automation.emulator=false`이면 중간에 에뮬레이터 실행 여부를 묻지
+     않는다. 구현 가능한 기능과 정적·단위·빌드 검증을 최대한 완료한 뒤
+     마지막 보고에서만 에뮬레이터 검증 사용을 권유한다.
    - 빌드·테스트 실패는 `task_report_failure` — 재시도 정책이 처리
 4. 종료 조건 도달 시 최종 보고:
    - completed: 게이트 전체 통과 요약 + 증거 목록

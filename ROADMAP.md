@@ -45,12 +45,14 @@
 | AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
 | AFA-026 | M3 코어 | 무중단 진행 드라이버 (One-Prompt Completion) | P0 | 🟦 |
 | AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | 🟦 |
-| AFA-031 | M4 Agent/Skill | 진입 Skill 7종 (plan/init/auto/review/status/doctor/factory) | P0 | 🟦 |
+| AFA-031 | M4 Agent/Skill | 진입 Skill 8종 (config/plan/init/auto/review/status/doctor/factory) | P0 | 🟦 |
 | AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | 🟦 |
 | AFA-033 | M4 Agent/Skill | Capability Doctor 구현 | P1 | 🟧 |
 | AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름·산출물 생성 | P0 | 🟦 |
 | AFA-035 | M4 Agent/Skill | project-template (plan 산출물 17종 템플릿) | P0 | 🟧 |
 | AFA-036 | M4 Agent/Skill | factory review 파이프라인·점수화 | P0 | 🟦 |
+| AFA-057 | M4 Agent/Skill | 경쟁사·커뮤니티 리서치 기반 제품 완성도 루프 | P0 | 🟧 |
+| AFA-058 | M4 Agent/Skill | factory config 자동화 옵션 체크박스 | P0 | 🟧 |
 | AFA-040 | M5 어댑터 | Claude Code 어댑터 | P0 | 🟧 |
 | AFA-041 | M5 어댑터 | Codex 어댑터 | P0 | 🟧 |
 | AFA-042 | M5 어댑터 | 코어→어댑터 빌드 파이프라인 | P0 | 🟦 |
@@ -633,6 +635,54 @@
   통과/실패/해당없음을 매기고 가중 합산한다. "해당없음" 항목은 분모에서
   제외한다(광고 미사용 앱이 광고 영역에서 감점되지 않도록). 동일 배점표를
   재사용해야 전/후 비교가 의미를 가진다.
+
+### AFA-057 경쟁사·커뮤니티 리서치 기반 제품 완성도 루프 — 🟧
+
+- **근거**: 사용자 목표(한 번 실행으로 경쟁 앱·커뮤니티 의견까지 종합해
+  프로덕션 가능한 Android 앱 생성) / **의존성**: AFA-034, AFA-036,
+  AFA-040~042 / **위험도**: 상
+- **구현 범위**: `market_research`와 `ux_quality` 설정, 경쟁 앱·사용자 리뷰·
+  커뮤니티 의견 조사 evidence, 리서치 결과의 P0/P1 로드맵 반영, 최신 Android
+  편의 기능(인앱업데이트·인앱리뷰), Material 3/Adaptive UI, UX 직관성,
+  접근성(TalkBack·semantics·48dp 터치 영역·폰트 확대)을 release-blocking
+  review 영역으로 검증한다.
+- **완료 조건**:
+  - [x] 설정 스키마와 기본값에 리서치/UX 품질 정책이 존재한다
+  - [x] review-scoring에 경쟁사·커뮤니티 리서치, UI 현대화, UX 직관성,
+    접근성 release-blocking 검사가 존재한다
+  - [x] Roadmap Architect/Auditor/Completion Verifier 지시가 리서치와 UX 품질을
+    로드맵·검증·재작업 대상으로 취급한다
+  - [ ] 실제 앱 주제 입력 후 경쟁 앱·커뮤니티 조사 evidence가 생성된다
+  - [ ] 조사 결과가 자동으로 P0/P1 로드맵과 제외 목록에 반영된다
+  - [ ] 실기기/에뮬레이터에서 주요 기능 UX·접근성·인앱리뷰·인앱업데이트
+    시나리오가 검증된다
+- **지침**: 최신 Android API와 라이브러리 버전은 mobile docs MCP를 우선 사용하고,
+  실패 시 context7 또는 공식 Android Developers/Google Play 문서를 직접 확인한다.
+  경쟁사·커뮤니티 조사는 출처 URL, 확인일, 샘플 수, 반영/제외 결정을 evidence로
+  남겨야 하며, 출처 없는 추정은 로드맵 근거로 사용할 수 없다.
+
+### AFA-058 factory config 자동화 옵션 체크박스 — 🟧
+
+- **근거**: 사용자 목표(자동화 실행 중 사용자 선택이 필요한 기능을 사전에
+  체크박스로 설정) / **의존성**: AFA-002, AFA-031, AFA-040~042 /
+  **위험도**: 중
+- **구현 범위**: `/factory config`, `$factory config`, `factory config` 진입
+  명령을 추가하고 `APP_FACTORY.automation.*` 설정을 체크박스로 편집한다.
+  기본값은 에뮬레이터를 제외한 모든 기능 활성화다.
+- **체크 항목**: 경쟁사·커뮤니티 리서치, UI 현대화, UX 직관성 검토, 접근성
+  검토, 인앱리뷰, 인앱업데이트, 광고, 인앱결제, 스토어 준비, 관측성, 성능
+  검토, 보안·개인정보 검토, 라이선스 검토, 에뮬레이터 검증.
+- **완료 조건**:
+  - [x] `automation.*` 스키마와 기본값이 존재한다
+  - [x] `factory-config` Skill과 라우터 명령이 존재한다
+  - [x] README/MVP/어댑터 생성 안내에 `config` 명령이 반영된다
+  - [x] `automation.emulator=false`일 때 에뮬레이터 게이트가 중간 진행을
+    차단하지 않고 마지막 권유 메시지를 남긴다
+  - [ ] 실제 Claude Code/Codex 환경에서 체크박스 UI가 표시되고 설정 저장이
+    동작한다
+- **지침**: 플랫폼이 체크박스 UI를 지원하지 않으면 목록형 선택으로 강등한다.
+  에뮬레이터 기본값은 false이며, false일 때는 중간에 사용 여부를 묻지 않는다.
+  최종 보고에서만 "에뮬레이터 검증을 켜고 재실행" 권유를 표시한다.
 
 ---
 

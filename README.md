@@ -8,13 +8,14 @@ Claude Code와 Codex 양쪽에서 동작하는 플러그인과 공통 CLI를 목
 
 | 명령 | 역할 |
 |------|------|
+| `factory config` | 자동화 실행 옵션을 체크박스로 설정 |
 | `factory plan "앱 설명"` | 대화형 인터뷰로 프로젝트 계획과 1차 로드맵 생성 |
 | `factory init` | 기존 프로젝트에 도입 — 코드베이스 분석, 상태 저장소 생성, 로드맵 동기화 |
 | `factory auto` | 현재 진행 상태를 분석하고 알아서 진행 (빈 폴더면 프로젝트 생성부터) |
 | `factory review` | 구현 기록을 신뢰하지 않는 전체 재감사 |
 
-- Claude Code: `/factory plan|init|auto|review`
-- Codex: `$factory plan|init|auto|review`
+- Claude Code: `/factory config|plan|init|auto|review`
+- Codex: `$factory config|plan|init|auto|review`
 - `factory go`는 `factory auto`의 호환 별칭이며, 보조 명령으로
   `factory status`(상태 요약)와 `factory doctor`(개발 환경 필수 스킬·MCP 점검
   및 설치 제안)를 제공합니다.

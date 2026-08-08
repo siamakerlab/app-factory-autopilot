@@ -1,6 +1,6 @@
 ---
 name: factory
-description: App Factory Autopilot 명령 라우터 — plan/init/auto/review/status/doctor 위임
+description: App Factory Autopilot 명령 라우터 — config/plan/init/auto/review/status/doctor 위임
 kind: entry
 ---
 
@@ -10,6 +10,7 @@ kind: entry
 
 | 하위 명령 | 위임 Skill | 비고 |
 |-----------|-----------|------|
+| `config` | factory-config | 자동화 옵션 체크박스 설정 |
 | `plan "설명"` | factory-plan | |
 | `init` | factory-init | 기존 프로젝트 전용 |
 | `auto` | factory-auto | |
