@@ -1,6 +1,6 @@
 {
   "name": "app-factory-autopilot",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Installable Claude Code and Codex plugin for Android app planning, implementation, verification, and emulator testing.",
   "type": "module",
   "license": "Apache-2.0",
@@ -20,7 +20,8 @@
   },
   "bin": {
     "app-factory-autopilot": "scripts/app-factory-autopilot.mjs",
-    "afa": "scripts/app-factory-autopilot.mjs"
+    "afa": "scripts/app-factory-autopilot.mjs",
+    "factory": "scripts/factory-runtime.mjs"
   },
   "files": [
     "core/",
@@ -30,6 +31,7 @@
     "mcp-server/tsconfig.json",
     "project-template/",
     "scripts/app-factory-autopilot.mjs",
+    "scripts/factory-runtime.mjs",
     "scripts/build-adapters.mjs",
     "scripts/emulator-smoke.sh",
     "scripts/generate-notices.mjs",

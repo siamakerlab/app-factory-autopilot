@@ -114,7 +114,7 @@ write(
       name: "app-factory-autopilot",
       description:
         "빈 폴더에서 Android 앱 기획→구현→검증→완료 판정까지 자동화하는 오케스트레이션 플러그인",
-      version: "0.1.2",
+      version: "0.1.3",
       author: { name: "Sia Makerlab" },
     },
     null,
@@ -302,7 +302,7 @@ write(
   JSON.stringify(
     {
       name: "app-factory-autopilot",
-      version: "0.1.2",
+      version: "0.1.3",
       description: "Android app planning, implementation, verification, and emulator testing autopilot.",
       author: { name: "Sia Makerlab" },
       skills: "./skills/",

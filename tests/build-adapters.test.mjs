@@ -85,13 +85,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.2.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.2.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.3.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.3.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.2\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.2\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.3\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.3\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 
@@ -101,6 +101,7 @@ test("root npm package exposes install CLI", () => {
   assert.equal(pkg.private, undefined);
   assert.equal(pkg.bin["app-factory-autopilot"], "scripts/app-factory-autopilot.mjs");
   assert.equal(pkg.bin.afa, "scripts/app-factory-autopilot.mjs");
+  assert.equal(pkg.bin.factory, "scripts/factory-runtime.mjs");
   const help = execFileSync("node", ["scripts/app-factory-autopilot.mjs", "--help"], {
     cwd: ROOT,
     encoding: "utf-8",
@@ -111,6 +112,39 @@ test("root npm package exposes install CLI", () => {
   assert.doesNotMatch(cli, /spawnSync\("sh"/);
   assert.match(cli, /fs\.cpSync/);
   assert.match(cli, /os\.homedir/);
+});
+
+test("common factory runtime CLI exposes local status, config, doctor, and test helpers", () => {
+  const project = fs.mkdtempSync(path.join(ROOT, ".tmp-runtime-"));
+  try {
+    const help = execFileSync("node", ["scripts/factory-runtime.mjs", "--help"], {
+      cwd: ROOT,
+      encoding: "utf-8",
+    });
+    assert.match(help, /factory doctor/);
+    assert.match(help, /factory config --set key=true/);
+
+    const config = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "config", "--set", "ads=true", "--json"], {
+      cwd: project,
+      encoding: "utf-8",
+    });
+    assert.equal(JSON.parse(config).config.automation.ads, true);
+
+    const current = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "config", "--json"], {
+      cwd: project,
+      encoding: "utf-8",
+    });
+    assert.equal(JSON.parse(current).checkboxes.find((item) => item.key === "ads").value, true);
+
+    const prepared = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "test", "prepare", "--json"], {
+      cwd: project,
+      encoding: "utf-8",
+    });
+    assert.equal(JSON.parse(prepared).emulator_enabled, true);
+    assert.ok(fs.existsSync(path.join(project, ".app-factory")));
+  } finally {
+    fs.rmSync(project, { recursive: true, force: true });
+  }
 });
 
 test("npm CLI installs Codex package under the current user's configured paths", () => {
@@ -150,6 +184,7 @@ test("npm package excludes generated dependencies and test build output", () => 
   const files = pack.files.map((file) => file.path);
   assert.ok(files.includes("package.json"));
   assert.ok(files.includes("scripts/app-factory-autopilot.mjs"));
+  assert.ok(files.includes("scripts/factory-runtime.mjs"));
   assert.ok(files.includes("mcp-server/package-lock.json"));
   assert.ok(files.includes("mcp-server/src/index.ts"));
   assert.ok(!files.some((file) => file.includes("node_modules/")));

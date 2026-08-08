@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.2`.
+The package is published on npm as `app-factory-autopilot@0.1.3`.
 Install the CLI with:
 
 ```bash
@@ -151,6 +151,21 @@ app-factory-autopilot package
 app-factory-autopilot path
 ```
 
+The package also installs a lightweight local `factory` helper for tasks that do
+not require an AI provider:
+
+```bash
+factory doctor
+factory status
+factory config
+factory config --set market_research=true --set emulator=false
+factory test prepare
+```
+
+Full implementation workflows still run inside the provider command surface:
+`/factory plan|init|auto|resume|test|review` in Claude Code or
+`$factory plan|init|auto|resume|test|review` in Codex.
+
 ### Option B. Install From This Repository
 
 ```bash
@@ -187,8 +202,8 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.2.tar.gz
-packages/app-factory-autopilot-codex-v0.1.2.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.3.tar.gz
+packages/app-factory-autopilot-codex-v0.1.3.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
@@ -205,7 +220,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.2.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.3.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -250,7 +265,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.2.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.3.tar.gz
 cd codex
 ./install-local.sh
 ```
@@ -302,7 +317,7 @@ $factory doctor
 | `status` | `/factory status` | `$factory status` | Show current run, roadmap, findings, and next work. |
 | `doctor` | `/factory doctor` | `$factory doctor` | Inspect skills, MCP servers, agents, and runtime environment. |
 
-`factory go` is a compatibility alias for `factory auto`.
+`factory go` is a provider command compatibility alias for `factory auto`.
 
 ## Typical Workflows
 

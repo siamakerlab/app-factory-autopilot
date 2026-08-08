@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Add common factory runtime helper
+
+- Prepared `app-factory-autopilot@0.1.3` as a patch release for command-surface
+  hardening
+- Added a packaged `factory` bin for provider-independent local helpers:
+  `doctor`, `status`, `config`, `config --set`, and `test prepare`
+- Clarified that full `plan/init/auto/resume/test/review` agent workflows run
+  through Claude Code `/factory` or Codex `$factory`, while the local CLI covers
+  deterministic state and environment helpers
+
 ### 2026-08-08 — Harden npm installer portability
 
 - Prepared `app-factory-autopilot@0.1.2` as a patch release for cross-machine

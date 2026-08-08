@@ -27,6 +27,7 @@ Thumbs.db
 *.log
 *.tmp
 .tmp-install-*/
+.tmp-runtime-*/
 
 # 비밀 정보 (절대 커밋 금지)
 *.keystore

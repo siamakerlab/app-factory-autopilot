@@ -41,18 +41,20 @@ MVP-1은 다음 두 경로를 완성한다.
 
 MVP-1 필수 명령은 다음 7개다.
 
-| 명령 | Claude Code | Codex | 공통 CLI | 역할 |
+| 명령 | Claude Code | Codex | 로컬 helper CLI | 역할 |
 |------|-------------|-------|----------|------|
 | config | `/factory config` | `$factory config` | `factory config` | 자동화 옵션 체크박스 설정. 기본은 에뮬레이터·광고·인앱결제 제외 |
-| plan | `/factory plan "앱 설명"` | `$factory plan "앱 설명"` | `factory plan "앱 설명"` | 대화형 인터뷰 → 계획·1차 로드맵 생성. 코드 구현 없음 |
-| init | `/factory init` | `$factory init` | `factory init` | 기존 프로젝트 분석, `.app-factory` 생성, 로드맵·구현 상태 동기화 |
-| auto | `/factory auto` | `$factory auto` | `factory auto` | 현재 상태를 분석해 구현→빌드→테스트→검증→게이트를 완료까지 자동 진행 |
-| resume | `/factory resume` | `$factory resume` | `factory resume` | 토큰 한도, 시스템 종료, 세션 강제 종료 등으로 중단된 실행을 상태 저장소 기준으로 재개 |
-| test | `/factory test` | `$factory test` | `factory test` | 에뮬레이터 승인 전제로 모든 시나리오·버튼·기능·예상 화면·출력을 스크린샷 기반 전수검사 |
-| review | `/factory review` | `$factory review` | `factory review` | 구현 기록을 신뢰하지 않는 전체 재감사 |
+| plan | `/factory plan "앱 설명"` | `$factory plan "앱 설명"` | Provider 필요 | 대화형 인터뷰 → 계획·1차 로드맵 생성. 코드 구현 없음 |
+| init | `/factory init` | `$factory init` | Provider 필요 | 기존 프로젝트 분석, `.app-factory` 생성, 로드맵·구현 상태 동기화 |
+| auto | `/factory auto` | `$factory auto` | Provider 필요 | 현재 상태를 분석해 구현→빌드→테스트→검증→게이트를 완료까지 자동 진행 |
+| resume | `/factory resume` | `$factory resume` | `factory status` + Provider 필요 | 토큰 한도, 시스템 종료, 세션 강제 종료 등으로 중단된 실행을 상태 저장소 기준으로 재개 |
+| test | `/factory test` | `$factory test` | `factory test prepare` | 에뮬레이터 승인 전제로 모든 시나리오·버튼·기능·예상 화면·출력을 스크린샷 기반 전수검사 |
+| review | `/factory review` | `$factory review` | Provider 필요 | 구현 기록을 신뢰하지 않는 전체 재감사 |
 
-보조 명령은 `factory status`, `factory doctor`이며, `factory go`는
-`factory auto`의 호환 별칭이다.
+로컬 helper CLI는 `factory doctor`, `factory status`, `factory config`,
+`factory test prepare`를 제공한다. 전체 agent workflow는 Claude Code 또는
+Codex Provider 명령에서 실행한다. `factory go`는 Provider 명령의 `factory auto`
+호환 별칭이다.
 
 ### 3.2 기능 범위
 
