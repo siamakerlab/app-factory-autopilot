@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
 const OUT = path.join(ROOT, "packages");
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 const TARGETS = ["claude-code", "codex"];
 
 function sha256(file) {

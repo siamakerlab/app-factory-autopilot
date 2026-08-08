@@ -2,11 +2,24 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Fix Codex npm installer paths
+
+- Prepared `app-factory-autopilot@0.1.1` as a patch release for npm installer fixes
+- Fixed generated Codex `install-local.sh` so `$factory` is printed literally
+  instead of being interpreted as a shell variable under `set -u`
+- Changed the default Codex plugin install directory to
+  `~/plugins/app-factory-autopilot`, matching Codex personal marketplace source
+  resolution for `./plugins/app-factory-autopilot`
+- Kept the default marketplace file at `~/.agents/plugins/marketplace.json` and
+  documented `APP_FACTORY_CODEX_PLUGIN_PARENT` /
+  `APP_FACTORY_CODEX_MARKETPLACE` overrides
+
 ### 2026-08-08 — Install-friendly plugin packages
 
 - Added root npm package metadata and the `app-factory-autopilot` / `afa` CLI
   for `npm install -g` and `npx` based installation
-- Published `app-factory-autopilot@0.1.0` to the public npm registry
+- Published `app-factory-autopilot@0.1.0` to the public npm registry; `0.1.1`
+  contains the Codex installer path fix
 - Added CLI commands: `install <codex|claude-code|both>`, `build`, `package`,
   and `path`
 - Added Codex plugin manifest generation (`.codex-plugin/plugin.json`) and Codex

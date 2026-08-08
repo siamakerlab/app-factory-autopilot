@@ -64,6 +64,11 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.doesNotMatch(first.get("codex/config/mcp.toml"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/bin/factory-auto-loop.sh"), /\$factory auto/);
   assert.match(first.get("codex/install-local.sh"), /marketplace\.json/);
+  assert.match(first.get("codex/install-local.sh"), /\$HOME\/plugins/);
+  assert.match(first.get("codex/install-local.sh"), /\$HOME\/\.agents\/plugins\/marketplace\.json/);
+  assert.match(first.get("codex/install-local.sh"), /echo 'Restart Codex, then run: \$factory doctor'/);
+  assert.doesNotMatch(first.get("codex/install-local.sh"), /echo "Restart Codex, then run: \$factory doctor"/);
+  assert.doesNotMatch(first.get("codex/INSTALL.md"), /~\/.agents\/plugins\/app-factory-autopilot/);
   assert.match(first.get("codex/INSTALL.md"), /\$factory doctor/);
   assert.match(first.get("claude-code/INSTALL.md"), /\/factory doctor/);
   assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|test\|review/);
@@ -80,13 +85,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.0.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.0.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.1.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.1.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.0\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.0\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.1\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.1\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 

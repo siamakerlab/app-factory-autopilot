@@ -114,7 +114,7 @@ write(
       name: "app-factory-autopilot",
       description:
         "빈 폴더에서 Android 앱 기획→구현→검증→완료 판정까지 자동화하는 오케스트레이션 플러그인",
-      version: "0.1.0",
+      version: "0.1.1",
       author: { name: "Sia Makerlab" },
     },
     null,
@@ -302,7 +302,7 @@ write(
   JSON.stringify(
     {
       name: "app-factory-autopilot",
-      version: "0.1.0",
+      version: "0.1.1",
       description: "Android app planning, implementation, verification, and emulator testing autopilot.",
       author: { name: "Sia Makerlab" },
       skills: "./skills/",
@@ -441,7 +441,7 @@ This directory is a local Codex plugin package.
 The installer copies this package to:
 
 \`\`\`text
-~/.agents/plugins/app-factory-autopilot
+~/plugins/app-factory-autopilot
 \`\`\`
 
 It also creates or updates the default personal marketplace file:
@@ -477,15 +477,15 @@ writeInstallScript(path.join(CX, "install-local.sh"), [
   "#!/bin/sh",
   "set -eu",
   'SRC="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
-  'ROOT="${APP_FACTORY_CODEX_PLUGIN_ROOT:-$HOME/.agents/plugins}"',
-  'DEST="$ROOT/plugins/app-factory-autopilot"',
-  'MARKETPLACE="$ROOT/marketplace.json"',
-  'mkdir -p "$ROOT/plugins"',
+  'PLUGIN_PARENT="${APP_FACTORY_CODEX_PLUGIN_PARENT:-$HOME/plugins}"',
+  'MARKETPLACE="${APP_FACTORY_CODEX_MARKETPLACE:-$HOME/.agents/plugins/marketplace.json}"',
+  'DEST="$PLUGIN_PARENT/app-factory-autopilot"',
+  'mkdir -p "$PLUGIN_PARENT"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
   'node "$DEST/scripts/install-codex-marketplace.mjs" "$MARKETPLACE"',
   'echo "Installed App Factory Autopilot for Codex: $DEST"',
-  'echo "Restart Codex, then run: $factory doctor"',
+  'echo \'Restart Codex, then run: $factory doctor\'',
 ]);
 write(
   path.join(CX, "scripts", "install-codex-marketplace.mjs"),

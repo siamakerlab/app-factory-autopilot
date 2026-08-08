@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.0`.
+The package is published on npm as `app-factory-autopilot@0.1.1`.
 Install the CLI with:
 
 ```bash
@@ -130,7 +130,17 @@ npm view app-factory-autopilot version
 
 The CLI builds the bundled MCP server, generates the adapter package, copies it
 to the provider plugin directory, and registers the default Codex personal
-marketplace entry when installing Codex.
+marketplace entry when installing Codex. Codex installs to
+`~/plugins/app-factory-autopilot` by default and updates
+`~/.agents/plugins/marketplace.json`.
+
+Codex install paths can be overridden:
+
+```bash
+APP_FACTORY_CODEX_PLUGIN_PARENT="$HOME/plugins" \
+APP_FACTORY_CODEX_MARKETPLACE="$HOME/.agents/plugins/marketplace.json" \
+app-factory-autopilot install codex
+```
 
 Useful CLI commands:
 
@@ -176,8 +186,8 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.0.tar.gz
-packages/app-factory-autopilot-codex-v0.1.0.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.1.tar.gz
+packages/app-factory-autopilot-codex-v0.1.1.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
@@ -192,7 +202,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.0.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.1.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -237,7 +247,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.0.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.1.tar.gz
 cd codex
 ./install-local.sh
 ```
