@@ -4,6 +4,7 @@
   "description": "App Factory Autopilot 공통 MCP 서버 (app-factory-core) — 상태 저장, 작업 잠금, 결과 기록, 승인 처리, 증거 검증",
   "type": "module",
   "private": true,
+  "license": "Apache-2.0",
   "engines": { "node": ">=20" },
   "main": "dist/index.js",
   "bin": { "app-factory-core": "dist/index.js" },

@@ -339,6 +339,15 @@ export class StateStore {
     this.writeJsonAtomic(path.join(this.evidenceDir(meta.id), "meta.json"), meta);
   }
 
+  listEvidence(): EvidenceMeta[] {
+    const dir = path.join(this.root, "evidence");
+    return fs
+      .readdirSync(dir)
+      .filter((f) => /^E-\d+$/.test(f))
+      .map((f) => this.loadEvidence(f))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
   approvalPath(id: string): string {
     return path.join(this.root, "approvals", `${id}.json`);
   }

@@ -268,5 +268,27 @@ export async function gateRunAll(
     const r = await gateRun(ctx, { gate_id: gate.id, ...(input.release !== undefined ? { release: input.release } : {}) });
     results.push(r);
   }
-  return { all_passed: results.every((r) => r.passed), results };
+  const allPassed = results.every((r) => r.passed);
+  await evidenceRegister(ctx, {
+    kind: "gate_result",
+    title: "최종 완료 게이트 요약",
+    created_by: { role: "gate", name: "final_gate" },
+    summary: allPassed
+      ? "최종 완료 게이트 전체 통과"
+      : `최종 완료 게이트 미통과 — 실패/차단 ${results.filter((r) => !r.passed).length}건`,
+    data: {
+      final_gate: true,
+      all_passed: allPassed,
+      release: input.release ?? false,
+      results: results.map((r) => ({
+        gate_id: r.gate_id,
+        passed: r.passed,
+        blocked: r.blocked,
+        detail: r.detail,
+        evidence_id: r.evidence_id,
+        finding_id: r.finding_id,
+      })),
+    },
+  });
+  return { all_passed: allPassed, results };
 }

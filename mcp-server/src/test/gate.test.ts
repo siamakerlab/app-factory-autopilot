@@ -3,10 +3,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeCtx, sampleItem } from "./helpers.js";
-import { gateRun, gateGetResult } from "../tools/gate.js";
+import { gateRun, gateGetResult, gateRunAll } from "../tools/gate.js";
 import { roadmapParse } from "../tools/roadmap.js";
 import { placeholderCreate } from "../tools/approval-placeholder.js";
-import { findingList } from "../tools/finding-evidence.js";
+import { evidenceRegister, findingList } from "../tools/finding-evidence.js";
 
 async function withCommands(ctx: Awaited<ReturnType<typeof makeCtx>>["ctx"], commands: Record<string, string>) {
   ctx.store.saveConfigSnapshot({ version: 1, commands });
@@ -82,6 +82,34 @@ test("실행 게이트 — 증거 없으면 BLOCKED (skip 아님)", async () => 
     const r = await gateRun(ctx, { gate_id: "emulator" });
     assert.equal(r.passed, false);
     assert.equal(r.blocked, true);
+  } finally {
+    cleanup();
+  }
+});
+
+test("최종 게이트 — gateRunAll이 완료 predicate용 summary evidence를 남긴다", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    await withCommands(ctx, { build: "true", test: "true", lint: "true" });
+    await roadmapParse(ctx, { items: [sampleItem({ id: "RM-001", status: "VERIFIED" })] });
+    await evidenceRegister(ctx, {
+      kind: "license_report",
+      created_by: { role: "gate", name: "license" },
+      data: { ok: true },
+    });
+    await evidenceRegister(ctx, {
+      kind: "emulator_scenario_result",
+      created_by: { role: "gate", name: "emulator" },
+      data: { crash: false },
+    });
+
+    const result = await gateRunAll(ctx);
+    assert.equal(result.all_passed, true);
+    const final = ctx.store
+      .listEvidence()
+      .find((e) => e.kind === "gate_result" && e.data?.["final_gate"] === true);
+    assert.ok(final);
+    assert.equal(final.data?.["all_passed"], true);
   } finally {
     cleanup();
   }

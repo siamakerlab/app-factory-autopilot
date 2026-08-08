@@ -8,7 +8,7 @@ Claude Code와 Codex 양쪽에서 동작하는 플러그인과 공통 CLI를 목
 
 | 명령 | 역할 |
 |------|------|
-| `factory plan "앱 설명"` | 대화형 인터뷰로 프로젝트 계획과 1차 로드맵 생성 (구현 안 함) |
+| `factory plan "앱 설명"` | 대화형 인터뷰로 프로젝트 계획과 1차 로드맵 생성 |
 | `factory init` | 기존 프로젝트에 도입 — 코드베이스 분석, 상태 저장소 생성, 로드맵 동기화 |
 | `factory auto` | 현재 진행 상태를 분석하고 알아서 진행 (빈 폴더면 프로젝트 생성부터) |
 | `factory review` | 구현 기록을 신뢰하지 않는 전체 재감사 |
@@ -46,6 +46,14 @@ Claude Code 내장 15종(존재 점검만). SSOT는
 - [ROADMAP.md](./ROADMAP.md) — MVP-1 개발 로드맵 (상태 추적·마일스톤·작업별 지침)
 - [mvp.txt](./mvp.txt) — 원본 통합 설계서
 - [CHANGELOG.md](./CHANGELOG.md) — 변경 이력
+- [LICENSE](./LICENSE) — Apache License 2.0
+
+## 라이선스
+
+Copyright 2026 Sia Makerlab.
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](./LICENSE) and
+[NOTICE](./NOTICE).
 
 ## 저장소 구조
 
@@ -62,5 +70,6 @@ dist/               배포 패키지 (git 추적 제외)
 
 ## 상태
 
-MVP-1 명세 확정, 구현 준비 단계입니다. 자세한 범위는 [MVP-1.md](./MVP-1.md)를
-참고하십시오.
+MVP-1 로컬 구현은 실프로젝트 실행 검증이 필요한 항목을 제외하고 진행되었습니다.
+현재 잔여 검증 범위는 [ROADMAP.md](./ROADMAP.md)의 🟧 항목을 기준으로
+추적합니다.

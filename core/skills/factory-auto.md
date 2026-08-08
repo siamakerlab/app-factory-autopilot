@@ -20,6 +20,9 @@ uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate
    - plan 산출물이 있으면 반입 후 진행
 3. **드라이버 루프** (`driveAuto` — 어댑터의 세션 지속 장치와 연동):
    - `orchestrator_decide_next` → 단계 위임 → 결과 검증 → 진행 보고 기록
+   - `project_setup` 단계는 `scripts/render-app-factory-project.mjs --scope android`를
+     사용해 공식 문서로 확인된 최신 안정화 버전 컨텍스트가 채워진 경우에만
+     Android scaffold를 생성한다.
    - 매 사이클 종료 시 3.15 진행 보고 4요소를 표시하되 **사용자 응답을
      기다리지 않고 계속한다**
    - 사용자 판단 필요 항목은 크리티컬 패스 비차단 시

@@ -19,6 +19,7 @@ import {
   factoryCreateTask,
   factorySubmitResult,
 } from "../tools/factory.js";
+import { gateRunAll } from "../tools/gate.js";
 import { roadmapParse, roadmapUpdateStatus } from "../tools/roadmap.js";
 import { evidenceRegister } from "../tools/finding-evidence.js";
 import type { Ctx } from "../context.js";
@@ -108,7 +109,8 @@ function makeSimulator(projectRoot: string) {
         fs.writeFileSync(path.join(projectRoot, "settings.gradle.kts"), "// scaffold");
         return { progressed: true };
       case "docs_indexing":
-        fs.writeFileSync(path.join(projectRoot, "DOCS_INDEX.md"), "# DOCS");
+        fs.mkdirSync(path.join(projectRoot, "docs"), { recursive: true });
+        fs.writeFileSync(path.join(projectRoot, "docs", "DOCS_INDEX.md"), "# DOCS");
         return { progressed: true };
       case "roadmap_audit":
         await evidenceRegister(ctx, {
@@ -170,10 +172,11 @@ function makeSimulator(projectRoot: string) {
         return { progressed: true };
       case "final_gate":
         await evidenceRegister(ctx, {
-          kind: "gate_result",
-          created_by: { role: "gate", name: "final" },
-          data: { final_gate: true, all_passed: true },
+          kind: "license_report",
+          created_by: { role: "gate", name: "license" },
+          data: { ok: true },
         });
+        await gateRunAll(ctx);
         return { progressed: true };
       default:
         return { progressed: false, note: `미지원 단계: ${action.phase.id}` };

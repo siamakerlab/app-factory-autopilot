@@ -7,11 +7,14 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CORE = path.join(ROOT, "core");
 const DIST = path.join(ROOT, "dist");
+const MCP = path.join(ROOT, "mcp-server");
+const PROJECT_TEMPLATE = path.join(ROOT, "project-template");
 
 const WARN_MD = `<!-- 자동 생성 파일 — 직접 수정 금지. 원본: core/ (scripts/build-adapters.mjs가 덮어씀) -->\n`;
 const WARN_JS = `// 자동 생성 파일 — 직접 수정 금지. 원본: core/ (scripts/build-adapters.mjs가 덮어씀)\n`;
@@ -61,6 +64,27 @@ function copyDir(src, dst) {
     const d = path.join(dst, e.name);
     if (e.isDirectory()) copyDir(s, d);
     else fs.copyFileSync(s, d);
+  }
+}
+
+function copyMcpServer(dst) {
+  execFileSync("npm", ["run", "build"], { cwd: MCP, stdio: "pipe" });
+  copyDir(path.join(MCP, "dist"), path.join(dst, "dist"));
+  fs.copyFileSync(path.join(MCP, "package.json"), path.join(dst, "package.json"));
+  fs.copyFileSync(path.join(MCP, "package-lock.json"), path.join(dst, "package-lock.json"));
+  write(
+    path.join(dst, "README.md"),
+    WARN_MD +
+      "app-factory-core MCP 서버 번들입니다. 설치 후 이 폴더에서 `npm ci --omit=dev`를 실행해 런타임 의존성을 설치하십시오.\n",
+  );
+}
+
+function copyRenderSupport(dst) {
+  copyDir(PROJECT_TEMPLATE, path.join(dst, "project-template"));
+  const scriptsDir = path.join(dst, "scripts");
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  for (const name of ["render-template.mjs", "render-app-factory-project.mjs", "resolve-gradle-version.mjs"]) {
+    fs.copyFileSync(path.join(ROOT, "scripts", name), path.join(scriptsDir, name));
   }
 }
 
@@ -132,7 +156,7 @@ write(
         "app-factory-core": {
           command: "node",
           args: [
-            "${CLAUDE_PLUGIN_ROOT}/mcp-server/index.js",
+            "${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js",
             "--project-root",
             ".",
             "--core-dir",
@@ -206,12 +230,10 @@ write(
 `,
 );
 
-// 서버·코어 동봉 안내 (패키징 시 복사)
+// 서버·코어 동봉
 copyDir(CORE, path.join(CC, "core"));
-write(
-  path.join(CC, "mcp-server", "README.md"),
-  WARN_MD + "패키징 시 mcp-server/dist/*를 이 폴더로 복사한다 (scripts/package.mjs — 1.0 범위).\n",
-);
+copyMcpServer(path.join(CC, "mcp-server"));
+copyRenderSupport(CC);
 
 // ── Codex 어댑터 (AFA-041) ──────────────────────────────────────────────
 
@@ -261,7 +283,7 @@ write(
   `# 자동 생성 — Codex config.toml에 병합
 [mcp_servers.app-factory-core]
 command = "node"
-args = ["<설치 경로>/mcp-server/index.js", "--project-root", ".", "--core-dir", "<설치 경로>/core"]
+args = ["<설치 경로>/mcp-server/dist/index.js", "--project-root", ".", "--core-dir", "<설치 경로>/core"]
 `,
 );
 
@@ -290,6 +312,8 @@ done
 fs.chmodSync(path.join(CX, "bin", "factory-auto-loop.sh"), 0o755);
 
 copyDir(CORE, path.join(CX, "core"));
+copyMcpServer(path.join(CX, "mcp-server"));
+copyRenderSupport(CX);
 
 console.log("빌드 완료:");
 console.log(`- claude-code: 에이전트 ${agents.length}, 스킬 ${skills.length - 1}, 커맨드 1, 훅 1`);

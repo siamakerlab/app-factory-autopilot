@@ -557,7 +557,7 @@
   (`<!-- app-factory:capabilities:start/end -->`) 내부만 교체한다. 전역
   문서는 사용자 소유이므로 추가 전 diff를 보여주고 확인받는다.
 
-### AFA-034 factory plan 인터뷰 흐름·산출물 생성 — ⬜
+### AFA-034 factory plan 인터뷰 흐름·산출물 생성 — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 3.11, 3.10, 설계서 5장 / **의존성**: AFA-004,
   AFA-035(템플릿) / **위험도**: 상
@@ -570,8 +570,12 @@
   - [ ] 이미 답한 내용을 다시 묻지 않는다 (답변은 즉시 상태 저장소에 기록)
   - [ ] "모름/미정" 응답이 올바른 Placeholder + 메타데이터로 변환된다
   - [ ] 인터뷰 중단 후 재실행 시 남은 질문부터 이어진다
-  - [ ] 인터뷰 완료 시 3.10 산출물 17종이 생성되고 스키마 검증을 통과한다
+  - [x] 인터뷰 완료 시 3.10 산출물 17종이 생성되고 스키마 검증을 통과한다
   - [ ] 모의 응답 주입 모드를 지원한다 (E2E AFA-053이 이 모드를 사용)
+- **로컬 검증 보강**: `scripts/render-app-factory-project.mjs --scope docs`가
+  예시 APP_FACTORY 설정에서 plan 산출물 17종을 생성하고 미해결 템플릿 변수가
+  남지 않는지 `tests/factory-project-render.test.mjs`로 검증한다. 실제 대화형
+  인터뷰 진행과 중단 후 질문 재개는 어댑터/실세션 검증 필요로 🟧 유지.
 - **지침**: 인터뷰 정의는 데이터(YAML: 질문 ID, 조건, 기본값, 답변 타입,
   placeholder 매핑)로 작성하고 진행 로직은 공통 하나로 만든다. 질문을
   프롬프트에 하드코딩하면 영역 추가·수정 시 회귀가 생긴다. 기술 자동 결정
@@ -593,8 +597,8 @@
   - [ ] Android 스캐폴드가 치환 후 `assembleDebug`에 성공한다 (샘플 값 기준)
   - [x] 키스토어 파일을 생성하지 않는다 — 서명 설정은 외부 키스토어 경로
     참조 + 부재 시 릴리스 빌드 차단 안내 (전역 키스토어 정책 준수)
-- **로컬 검증 보강**: `scripts/render-template.mjs`와
-  `tests/template-render.test.mjs`로 Android 템플릿 15개 파일 렌더링,
+- **로컬 검증 보강**: `scripts/render-template.mjs`,
+  `scripts/render-app-factory-project.mjs`와 테스트로 Android 템플릿 16개 파일 렌더링,
   미해결 변수 차단, Room 조건부 의존성, AGP 9 built-in Kotlin 플러그인
   제거, 외부 키스토어 릴리스 차단 문구를 검증했다. Gradle wrapper
   properties는 공식 Gradle current 메타데이터로 확인한
@@ -649,8 +653,9 @@
   - [x] auto 실행 중 턴이 끝나도 자동 계속 장치(Stop Hook 등)로 다음 사이클이
     사용자 입력 없이 이어진다 (AFA-026 연동)
 - **로컬 검증 보강**: `tests/build-adapters.test.mjs`가 Claude Code 산출물
-  매니페스트, `/factory` 커맨드, `.mcp.json`, Stop Hook 파일 생성을
-  결정론적으로 검증한다. 실제 `/factory` 호출은 Claude Code 설치 환경 필요.
+  매니페스트, `/factory` 커맨드, `.mcp.json`, Stop Hook, MCP `dist/` 번들,
+  project-template/렌더 스크립트 동봉을 결정론적으로 검증한다. 실제
+  `/factory` 호출은 Claude Code 설치 환경 필요.
 - **지침**: Claude Code 플러그인 규격은 변화가 잦으므로 구현 시점에 공식
   문서로 매니페스트·커맨드·훅 스펙을 재확인한다(claude-code-guide 에이전트
   활용). 어댑터는 코어 원본을 수정 없이 소비해야 하며, 변환 불가능한 코어
@@ -668,7 +673,8 @@
   - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가
     호환된다
 - **로컬 검증 보강**: `tests/build-adapters.test.mjs`가 Codex 프롬프트,
-  `mcp.toml`, `AGENTS.md` 템플릿, 실행 래퍼 및 실행 권한(0755)을 검증한다.
+  `mcp.toml`, `AGENTS.md` 템플릿, 실행 래퍼 및 실행 권한(0755), MCP `dist/`
+  번들, project-template/렌더 스크립트 동봉을 검증한다.
   실제 `$factory` 호출과 교차 CLI 호환은 Codex 설치 환경 필요.
 - **완료 조건 검증 주의**: Codex의 플러그인·서브에이전트 지원 수준이 Claude
   Code와 다르면 기능 축소가 필요할 수 있다 — 차이 발견 시 finding으로

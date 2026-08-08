@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — 주요 결함 수정 및 Apache-2.0 라이선스 적용
+
+- 라이선스: Apache License 2.0 전문(`LICENSE`)과 `NOTICE`를 추가하고,
+  README 및 MCP package 메타데이터에 `Apache-2.0`을 명시
+- 최종 게이트 결함 수정: `gate_run_all`이 전체 결과 요약 evidence를 남기도록
+  변경해 `all_gates_passed` 완료 predicate와 실제 게이트 실행 결과를 연결
+- 오케스트레이터 결함 수정: `DOCS_INDEX.md` 완료 판정이 루트와 `docs/`
+  위치를 모두 인정하도록 보강
+- 어댑터 배포 결함 수정: Claude Code/Codex 산출물에 MCP 서버 `dist/`,
+  package 메타데이터, `project-template`, 렌더 스크립트를 함께 번들하고 MCP
+  설정이 `mcp-server/dist/index.js`를 가리키도록 수정
+- project-template 실행 엔진 추가:
+  `scripts/render-app-factory-project.mjs`가 `docs|android|all` 범위를 렌더링,
+  Kotlin 앱 클래스/테마명·Room 사용 여부·문서 기본값을 결정론적으로 파생하며,
+  Android scaffold는 공식 문서/메타데이터로 확인한 `versions.*` 컨텍스트 없이는
+  생성하지 않음
+- 검증: MCP 테스트 62건 통과, Node 스크립트 테스트 16건 통과, 스키마 부정
+  케이스 7건 통과
+
 ### 2026-08-08 — 실프로젝트 검증 제외 로컬 구현 보강
 
 - AFA-033 🟧 보강: `capability_mark_installed`가 project scope 설치 성공 시

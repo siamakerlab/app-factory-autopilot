@@ -60,8 +60,12 @@ const PREDICATES: Record<string, Predicate> = {
   android_project_exists: (ctx) =>
     fs.existsSync(path.join(ctx.projectRoot, "settings.gradle.kts")) ||
     fs.existsSync(path.join(ctx.projectRoot, "settings.gradle")),
-  docs_index_missing: (ctx) => !fs.existsSync(path.join(ctx.projectRoot, "DOCS_INDEX.md")),
-  docs_index_exists: (ctx) => fs.existsSync(path.join(ctx.projectRoot, "DOCS_INDEX.md")),
+  docs_index_missing: (ctx) =>
+    !fs.existsSync(path.join(ctx.projectRoot, "DOCS_INDEX.md")) &&
+    !fs.existsSync(path.join(ctx.projectRoot, "docs", "DOCS_INDEX.md")),
+  docs_index_exists: (ctx) =>
+    fs.existsSync(path.join(ctx.projectRoot, "DOCS_INDEX.md")) ||
+    fs.existsSync(path.join(ctx.projectRoot, "docs", "DOCS_INDEX.md")),
   roadmap_not_audited: (ctx) => {
     // 감사 완료 증거(verifier_report kind + data.audit="roadmap")가 없으면 미감사
     return !hasEvidence(ctx, (d) => d["audit"] === "roadmap");

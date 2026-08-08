@@ -24,7 +24,8 @@ uses_skills: [capability-audit, roadmap-create]
 4. 인터뷰 완료 → APP_FACTORY.yaml 구성(defaults.yaml 병합) 후
    `factory_initialize`의 config로 스냅샷 저장.
 5. `roadmap-create` Skill로 1차 로드맵 생성·감사.
-6. project-template를 렌더링해 **산출물 17종** 생성:
+6. `scripts/render-app-factory-project.mjs --scope docs`로 project-template를 렌더링해
+   **산출물 17종** 생성:
    APP_FACTORY.yaml, APP_FACTORY_RULES.md, PROJECT_SPEC.md, ROADMAP.md,
    REQUIREMENTS_TRACEABILITY.md, TEST_MATRIX.md, DOCS_INDEX.md,
    USER_VALUE.md, DEPENDENCIES.md, DEPENDENCY_MIGRATIONS.md,
