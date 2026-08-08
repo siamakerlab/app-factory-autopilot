@@ -21,6 +21,7 @@ import {
   capabilityScan,
   capabilityInstallPlan,
   capabilityMarkDeclined,
+  capabilityMarkInstalled,
 } from "../tools/capability.js";
 import { computeProgressPct, factoryStartCycle, factoryFinishCycle } from "../tools/factory.js";
 import { roadmapParse } from "../tools/roadmap.js";
@@ -131,6 +132,16 @@ test("역량 — 스캔 대조, 설치 계획, 거절 반복 제안 금지", asy
       installed_subagents: [],
     });
     assert.ok(!scan2.missing_required.some((s) => s.id === "edge-to-edge"));
+
+    const guidance = await capabilityMarkInstalled(ctx, {
+      id: "adaptive",
+      scope: "project",
+      success: true,
+    });
+    assert.ok(guidance.guidance);
+    const rules = fs.readFileSync(path.join(ctx.projectRoot, "APP_FACTORY_RULES.md"), "utf-8");
+    assert.match(rules, /app-factory:capabilities:start/);
+    assert.match(rules, /adaptive 스킬을 사용한다/);
   } finally {
     cleanup();
   }

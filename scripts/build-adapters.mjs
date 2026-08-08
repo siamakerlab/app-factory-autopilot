@@ -287,6 +287,7 @@ while :; do
 done
 `,
 );
+fs.chmodSync(path.join(CX, "bin", "factory-auto-loop.sh"), 0o755);
 
 copyDir(CORE, path.join(CX, "core"));
 

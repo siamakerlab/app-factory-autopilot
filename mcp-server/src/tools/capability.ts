@@ -42,6 +42,9 @@ interface CapabilitiesState {
   installed_by_doctor: { id: string; scope: string; at: string }[];
 }
 
+const GUIDANCE_START = "<!-- app-factory:capabilities:start -->";
+const GUIDANCE_END = "<!-- app-factory:capabilities:end -->";
+
 function capStatePath(ctx: Ctx): string {
   return path.join(ctx.store.root, "config", "capabilities.yaml");
 }
@@ -62,6 +65,58 @@ function loadCapState(ctx: Ctx): CapabilitiesState {
 function saveCapState(ctx: Ctx, state: CapabilitiesState): void {
   fs.mkdirSync(path.dirname(capStatePath(ctx)), { recursive: true });
   fs.writeFileSync(capStatePath(ctx), stringifyYaml(state), "utf-8");
+}
+
+function guidanceTarget(ctx: Ctx, scope: "global" | "project", override?: string): string {
+  if (override) return path.resolve(ctx.projectRoot, override);
+  if (scope === "global") {
+    const home = process.env.HOME;
+    if (!home) throw new ToolError("INVALID_INPUT", "HOME이 없어 전역 관리문서 경로를 결정할 수 없습니다");
+    return path.join(home, ".claude", "CLAUDE.md");
+  }
+  const docsRules = path.join(ctx.projectRoot, "docs", "APP_FACTORY_RULES.md");
+  if (fs.existsSync(docsRules)) return docsRules;
+  return path.join(ctx.projectRoot, "APP_FACTORY_RULES.md");
+}
+
+function writeGuidanceBlock(file: string, guidanceLines: string[]): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, "utf-8") : "# APP_FACTORY_RULES\n";
+  const unique = Array.from(new Set(guidanceLines.map((line) => line.trim()).filter(Boolean))).sort();
+  const block = [
+    GUIDANCE_START,
+    "",
+    "## App Factory Capabilities",
+    "",
+    ...unique.map((line) => `- ${line}`),
+    "",
+    GUIDANCE_END,
+  ].join("\n");
+  const re = new RegExp(`${GUIDANCE_START}[\\s\\S]*?${GUIDANCE_END}`);
+  const next = re.test(existing)
+    ? existing.replace(re, block)
+    : `${existing.trimEnd()}\n\n${block}\n`;
+  fs.writeFileSync(file, next, "utf-8");
+}
+
+function applyGuidanceDoc(
+  ctx: Ctx,
+  input: { id: string; scope: "global" | "project"; guidance_target_path?: string },
+): { path: string; line_count: number } | undefined {
+  const catalog = loadCatalog(ctx.coreDir);
+  const state = loadCapState(ctx);
+  const installed = new Set([
+    ...state.installed.skills,
+    ...state.installed_by_doctor.map((item) => item.id),
+    input.id,
+  ]);
+  const lines = catalog.skills
+    .filter((skill) => installed.has(skill.id) && skill.guidance_doc)
+    .map((skill) => skill.guidance_doc!);
+  if (lines.length === 0) return undefined;
+  const target = guidanceTarget(ctx, input.scope, input.guidance_target_path);
+  writeGuidanceBlock(target, lines);
+  return { path: target, line_count: lines.length };
 }
 
 /** 어댑터가 탐지한 설치 목록을 받아 카탈로그와 대조·기록 */
@@ -181,15 +236,23 @@ export function capabilityInstallPlan(
 
 export async function capabilityMarkInstalled(
   ctx: Ctx,
-  input: { id: string; scope: "global" | "project"; success: boolean },
-): Promise<{ id: string; recorded: boolean }> {
+  input: {
+    id: string;
+    scope: "global" | "project";
+    success: boolean;
+    apply_guidance?: boolean;
+    guidance_target_path?: string;
+  },
+): Promise<{ id: string; recorded: boolean; guidance?: { path: string; line_count: number } }> {
   const state = loadCapState(ctx);
   if (input.success) {
     state.installed_by_doctor.push({ id: input.id, scope: input.scope, at: new Date().toISOString() });
     if (!state.installed.skills.includes(input.id)) state.installed.skills.push(input.id);
   }
   saveCapState(ctx, state);
-  return { id: input.id, recorded: true };
+  const shouldApplyGuidance = input.success && (input.apply_guidance ?? input.scope === "project");
+  const guidance = shouldApplyGuidance ? applyGuidanceDoc(ctx, input) : undefined;
+  return { id: input.id, recorded: true, ...(guidance ? { guidance } : {}) };
 }
 
 /** 사용자가 거절한 항목 기록 — 같은 세션에서 반복 제안하지 않는다 */

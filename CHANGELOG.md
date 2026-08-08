@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — 실프로젝트 검증 제외 로컬 구현 보강
+
+- AFA-033 🟧 보강: `capability_mark_installed`가 project scope 설치 성공 시
+  `guidance_doc`을 `APP_FACTORY_RULES.md` 마커 블록에 반영하도록 구현하고
+  단위 테스트 추가. 실제 설치 명령 실행·전역 관리문서 반영은 실환경 검증으로 유지
+- AFA-035 🟧 보강: Android 스캐폴드 렌더링 회귀 테스트 추가
+  (`tests/template-render.test.mjs`) — 미해결 변수, Room 조건부 블록, AGP 9
+  built-in Kotlin 플러그인 제거, 키스토어 외부 참조/릴리스 차단 확인
+- AFA-040/AFA-041/AFA-042 보강: 어댑터 빌드 결정론 테스트 추가
+  (`tests/build-adapters.test.mjs`), Codex 래퍼 실행 권한 0755 설정
+- AFA-051 🟧 보강: `generate-notices.mjs`를 import 가능한 API로 분리하고
+  허용 라이선스 고지/SBOM 생성, GPL·불명·수동검토 위반 판정 테스트 추가
+  (`tests/notices.test.mjs`). `GNU General Public License ...` 표기 정규화 보강
+- 검증: MCP 테스트 61건 통과, Node 스크립트 테스트 8건 통과, 스키마 부정
+  케이스 7건 통과
+
 ### 2026-08-05 (12차) — M5·M6 구현, 전체 로드맵 구현 사이클 완료 (테스트 61건)
 
 - AFA-042 🟦: `scripts/build-adapters.mjs` — 코어 SSOT → 양 플랫폼 산출물

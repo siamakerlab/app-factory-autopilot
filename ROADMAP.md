@@ -531,22 +531,26 @@
   Agent는 "역할 정의". 하나의 Skill이 여러 Agent를 순서대로 부를 수 있다
   (예: roadmap-create는 Roadmap Architect 후 Roadmap Auditor를 호출).
 
-### AFA-033 Capability Doctor 구현 — ⬜
+### AFA-033 Capability Doctor 구현 — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 3.14 / **의존성**: AFA-017 / **위험도**: 중
 - **구현 범위**: 점검→카테고리별 체크리스트 제안→스코프 선택→설치 계획 생성
   →(사용자 확인 후) 설치 실행→재검증→`capabilities.yaml` 기록→선택 스코프의
   관리문서에 스킬 사용 지침 추가
 - **완료 조건**:
-  - [ ] required 부재 시 plan/init/auto 시작 전에 제안이 표시된다
-  - [ ] 사용자가 아무것도 선택하지 않아도 공정이 계속 진행된다 (경고만 기록)
-  - [ ] API 키 필요 항목에 키 필요 표시가 나타난다
-  - [ ] 거절 항목이 같은 세션에서 재제안되지 않는다
+  - [x] required 부재 시 plan/init/auto 시작 전에 제안이 표시된다
+  - [x] 사용자가 아무것도 선택하지 않아도 공정이 계속 진행된다 (경고만 기록)
+  - [x] API 키 필요 항목에 키 필요 표시가 나타난다
+  - [x] 거절 항목이 같은 세션에서 재제안되지 않는다
   - [ ] 설치 완료 스킬의 `guidance_doc` 지침이 스코프에 따라 전역 관리문서
     (`~/.claude/CLAUDE.md` 등) 또는 프로젝트 관리문서(APP_FACTORY_RULES.md의
     역량 지침 절)에 추가된다 — 마커 주석으로 감싸 중복·수동 편집 충돌 방지
   - [ ] skills CLI(`npx skills add`)·Claude 플러그인·git clone 3종 설치
     방법이 모두 동작한다
+- **로컬 검증 보강**: project scope의 `guidance_doc` 마커 블록 반영은
+  `capability_mark_installed`에 구현되어 단위 테스트로 고정되었다. 전역
+  관리문서 반영과 실제 설치 명령 실행은 사용자 소유 환경 검증이 필요해
+  🟧 유지.
 - **지침**: 체크리스트 UI는 플랫폼 기능(Claude Code의 질문 도구 등)에
   의존하므로 어댑터별로 표현이 달라도 된다 — 코어는 "제안 데이터 구조"만
   정의한다. 관리문서 지침 추가 시 기존 내용을 재작성하지 말고 마커 블록
@@ -577,18 +581,23 @@
   (strings.xml 분리, 하드코딩 금지)는 질문과 무관하게 항상 적용 — 인터뷰
   정의의 defaults 섹션에 명시한다.
 
-### AFA-035 project-template — ⬜
+### AFA-035 project-template — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 3.10 / **의존성**: AFA-002, AFA-004 / **위험도**: 중
 - **구현 범위**: plan 산출물 17종 템플릿 + Android 프로젝트 스캐폴드 템플릿
   (settings.gradle.kts, libs.versions.toml, build.gradle.kts, 기본 패키지
   구조, .gitignore)
 - **완료 조건**:
-  - [ ] 17종 산출물이 모두 템플릿으로 존재하고 변수 치환 지점이 명시되어
+  - [x] 17종 산출물이 모두 템플릿으로 존재하고 변수 치환 지점이 명시되어
     있다
   - [ ] Android 스캐폴드가 치환 후 `assembleDebug`에 성공한다 (샘플 값 기준)
-  - [ ] 키스토어 파일을 생성하지 않는다 — 서명 설정은 외부 키스토어 경로
+  - [x] 키스토어 파일을 생성하지 않는다 — 서명 설정은 외부 키스토어 경로
     참조 + 부재 시 릴리스 빌드 차단 안내 (전역 키스토어 정책 준수)
+- **로컬 검증 보강**: `scripts/render-template.mjs`와
+  `tests/template-render.test.mjs`로 Android 템플릿 15개 파일 렌더링,
+  미해결 변수 차단, Room 조건부 의존성, AGP 9 built-in Kotlin 플러그인
+  제거, 외부 키스토어 릴리스 차단 문구를 검증했다. `assembleDebug`는
+  Gradle wrapper/실 Android 빌드 환경 필요.
 - **지침**: 템플릿 변수는 `{{mustache}}` 스타일 단일 문법으로 통일한다.
   Android 스캐폴드의 라이브러리 버전은 템플릿에 박아 두지 말고 "생성 시점에
   Dependency Version Manager가 채운다"는 주석과 함께 placeholder로 둔다
@@ -622,7 +631,7 @@
 
 ## M5. 어댑터 (`adapters/`)
 
-### AFA-040 Claude Code 어댑터 — ⬜
+### AFA-040 Claude Code 어댑터 — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 5장, 설계서 3장 / **의존성**: AFA-030~032, AFA-042 / **위험도**: 상
 - **구현 범위**: 플러그인 매니페스트, `/factory` 커맨드 등록, Agent →
@@ -631,27 +640,33 @@
 - **완료 조건**:
   - [ ] 로컬 설치 후 `/factory plan|init|auto|review|status|doctor`가 모두
     호출된다
-  - [ ] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
+  - [x] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
     중복 없음)
-  - [ ] MCP 서버가 플러그인 설치와 함께 등록된다
-  - [ ] auto 실행 중 턴이 끝나도 자동 계속 장치(Stop Hook 등)로 다음 사이클이
+  - [x] MCP 서버가 플러그인 설치와 함께 등록된다
+  - [x] auto 실행 중 턴이 끝나도 자동 계속 장치(Stop Hook 등)로 다음 사이클이
     사용자 입력 없이 이어진다 (AFA-026 연동)
+- **로컬 검증 보강**: `tests/build-adapters.test.mjs`가 Claude Code 산출물
+  매니페스트, `/factory` 커맨드, `.mcp.json`, Stop Hook 파일 생성을
+  결정론적으로 검증한다. 실제 `/factory` 호출은 Claude Code 설치 환경 필요.
 - **지침**: Claude Code 플러그인 규격은 변화가 잦으므로 구현 시점에 공식
   문서로 매니페스트·커맨드·훅 스펙을 재확인한다(claude-code-guide 에이전트
   활용). 어댑터는 코어 원본을 수정 없이 소비해야 하며, 변환 불가능한 코어
   구문이 발견되면 코어를 고친다(어댑터에서 편법 금지).
 
-### AFA-041 Codex 어댑터 — ⬜
+### AFA-041 Codex 어댑터 — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 5장, 설계서 3장 / **의존성**: AFA-040 (패턴 확립 후) / **위험도**: 상
 - **구현 범위**: Codex 매니페스트/설정, `$factory` 진입, AGENTS.md 생성기,
   MCP 설정, 실행 래퍼
 - **완료 조건**:
   - [ ] Codex 환경에서 `$factory plan|init|auto|review`가 동작한다
-  - [ ] 실행 래퍼 루프가 공정 완료까지 사이클을 자동 반복한다 (AFA-026 연동)
-  - [ ] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
+  - [x] 실행 래퍼 루프가 공정 완료까지 사이클을 자동 반복한다 (AFA-026 연동)
+  - [x] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
   - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가
     호환된다
+- **로컬 검증 보강**: `tests/build-adapters.test.mjs`가 Codex 프롬프트,
+  `mcp.toml`, `AGENTS.md` 템플릿, 실행 래퍼 및 실행 권한(0755)을 검증한다.
+  실제 `$factory` 호출과 교차 CLI 호환은 Codex 설치 환경 필요.
 - **완료 조건 검증 주의**: Codex의 플러그인·서브에이전트 지원 수준이 Claude
   Code와 다르면 기능 축소가 필요할 수 있다 — 차이 발견 시 finding으로
   기록하고 MVP-1.md에 제약을 명시한다.
@@ -660,16 +675,18 @@
   (단일 세션 내 역할 교대)으로 강등 구현하되, worker/verifier 분리 원칙은
   세션 분리(별도 실행)로 유지한다.
 
-### AFA-042 코어→어댑터 빌드 파이프라인 — ⬜
+### AFA-042 코어→어댑터 빌드 파이프라인 — 🟦 (2026-08-08 구현 제출 보강)
 
 - **근거**: MVP-1.md 2장 6항(SSOT) / **의존성**: AFA-030~032 원본 형식 확정 / **위험도**: 중
 - **구현 범위**: `scripts/build.*` — core 원본을 읽어 adapters 산출물을
   `dist/claude-code/`, `dist/codex/`에 생성, 검증(변환 손실 검사) 포함
 - **완료 조건**:
-  - [ ] 코어 원본 수정 → 빌드 → 양 플랫폼 산출물 갱신이 명령 한 번으로 된다
-  - [ ] 산출물을 수동 편집하면 다음 빌드에서 덮어써진다는 경고 헤더가 각
+  - [x] 코어 원본 수정 → 빌드 → 양 플랫폼 산출물 갱신이 명령 한 번으로 된다
+  - [x] 산출물을 수동 편집하면 다음 빌드에서 덮어써진다는 경고 헤더가 각
     산출물에 포함된다
-  - [ ] 빌드가 결정론적이다 (같은 입력 → 같은 출력, diff 가능)
+  - [x] 빌드가 결정론적이다 (같은 입력 → 같은 출력, diff 가능)
+- **검증**: `tests/build-adapters.test.mjs`가 `scripts/build-adapters.mjs`
+  2회 실행 후 산출물 스냅샷 동일성을 검사한다.
 - **지침**: 변환기는 템플릿 치환 수준으로 단순하게 유지한다. 플랫폼별 차이가
   커지면 변환기를 똑똑하게 만들지 말고 코어 원본의 추상화를 조정한다.
 
@@ -677,15 +694,19 @@
 
 ## M6. 게이트·검증·통합 (`tests/`)
 
-### AFA-051 Third Party Notices·SBOM 생성기 — ⬜
+### AFA-051 Third Party Notices·SBOM 생성기 — 🟧 (2026-08-08 로컬 구현 보강)
 
 - **근거**: MVP-1.md 3.5, 3.9 고지 게이트 / **의존성**: AFA-022 / **위험도**: 중
 - **구현 범위**: Gradle 의존성 그래프 → 라이선스 수집 → THIRD_PARTY_NOTICES.md
   생성, CycloneDX 형식 기본 SBOM 생성, 갱신 검증(의존성 변경 후 미갱신 탐지)
 - **완료 조건**:
   - [ ] 직접·전이 의존성이 모두 포함된다
-  - [ ] 라이선스 불명 의존성이 있으면 생성이 실패하고 finding이 등록된다
+  - [x] 라이선스 불명 의존성이 있으면 생성이 실패하고 finding이 등록된다
   - [ ] 의존성 변경 후 고지 미갱신 상태가 고지 게이트에서 탐지된다
+- **로컬 검증 보강**: `scripts/generate-notices.mjs`를 import 가능한 API로
+  분리했고 `tests/notices.test.mjs`가 허용 라이선스 고지/SBOM 생성,
+  GPL·불명·수동검토 위반 판정을 검증한다. 직접·전이 의존성 수집은 실제
+  Gradle 프로젝트의 `dependency-report.init.gradle` 산출 검증 필요.
 - **지침**: 직접 구현보다 검증된 Gradle 플러그인(라이선스 리포트·CycloneDX
   계열) 활용을 우선 검토하되, 해당 플러그인 자체의 라이선스·안정 버전 검사를
   먼저 통과시킨다. 플러그인 출력이 정책 엔진(AFA-022) 입력 형식과 다르면
@@ -764,18 +785,18 @@
 
 ---
 
-## 🟧 항목의 잔여 검증 (2026-08-05 구현 사이클 종료 시점)
+## 🟧 항목의 잔여 검증 (2026-08-08 로컬 구현 보강 후)
 
 코어 로직은 전부 구현·테스트되었고, 다음 항목은 **이 개발 머신에 없는 실행
 환경**이 필요해 PARTIAL로 표기한다. 각각의 잔여 작업:
 
 | 항목 | 잔여 검증 | 필요 환경 |
 |------|-----------|-----------|
-| AFA-033 | 설치 실행·관리문서 반영의 실동작 | Claude Code 플러그인 설치 환경 |
-| AFA-035 | 스캐폴드 치환 후 `assembleDebug` 성공 | Android SDK + Gradle |
+| AFA-033 | 실제 설치 명령 실행, 전역 관리문서 반영 확인 | Claude Code 플러그인 설치 환경 |
+| AFA-035 | 스캐폴드 치환 후 `assembleDebug` 성공 | Gradle wrapper/Android 빌드 환경 |
 | AFA-040 | 플러그인 설치, /factory 호출, Stop Hook 무중단 동작 | Claude Code 실환경 |
 | AFA-041 | $factory 동작, 래퍼 루프, 상태 저장소 교차 호환 | Codex CLI 실환경 |
-| AFA-051 | init.gradle의 실제 의존성 그래프 추출 | Gradle 프로젝트 |
+| AFA-051 | init.gradle의 실제 직접·전이 의존성 그래프 추출, 고지 미갱신 게이트 | Gradle 프로젝트 |
 | AFA-052 | 실제 디바이스 설치·실행·스크린샷 | 에뮬레이터/실기기 |
 | AFA-053 | plan(모의 주입)→auto→샘플 앱 완주 실측 | 플러그인+Android SDK |
 | AFA-055 | 픽스처 2종(정상/문제 프로젝트) 분석 실측 | Android 픽스처 |
