@@ -163,7 +163,7 @@ export interface RunCycle {
 export interface Run {
   version: 1;
   id: string;
-  command: "config" | "plan" | "init" | "auto" | "resume" | "review" | "status" | "doctor";
+  command: "config" | "plan" | "init" | "auto" | "resume" | "test" | "review" | "status" | "doctor";
   provider: "claude-code" | "codex" | "cli";
   resumed_from_run_id?: string;
   status: "running" | "finished";

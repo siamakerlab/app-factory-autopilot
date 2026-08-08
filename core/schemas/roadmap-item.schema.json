@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "afa:schemas/roadmap-item/v1",
   "title": "로드맵 항목",
-  "description": "대상 앱 프로젝트 로드맵의 단일 항목. MVP-1.md 3.4(상태 머신)·3.10(필수 필드) 근거. 상태의 SSOT는 .app-factory/state/roadmap.json이며 ROADMAP.md는 렌더링 산출물이다.",
+  "description": "대상 앱 프로젝트 로드맵의 단일 항목. 통합 명세 3.4(상태 머신)·3.10(필수 필드) 근거. 상태의 SSOT는 .app-factory/state/roadmap.json이며 ROADMAP.md는 렌더링 산출물이다.",
   "type": "object",
   "required": [
     "version",
@@ -38,7 +38,7 @@
     "completion_criteria": {
       "type": "array",
       "minItems": 1,
-      "description": "완료 조건. Completion Verifier가 기계적으로 순회하며 각 조건을 검증한다 (MVP-1.md AFA-001 지침)",
+      "description": "완료 조건. Completion Verifier가 기계적으로 순회하며 각 조건을 검증한다 (ROADMAP.md AFA-001 지침)",
       "items": { "$ref": "#/$defs/criterion" }
     },
     "test_criteria": {
@@ -67,7 +67,7 @@
     "feature_grade": {
       "type": "string",
       "enum": ["CORE", "SUPPORTING", "OPTIONAL"],
-      "description": "기능 등급 (MVP-1.md 3.11 핵심 기능 분류)"
+      "description": "기능 등급 (통합 명세 3.11 핵심 기능 분류)"
     },
     "placeholder_refs": {
       "type": "array",

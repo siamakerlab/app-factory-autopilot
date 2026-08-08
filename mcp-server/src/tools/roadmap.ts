@@ -25,7 +25,7 @@ export async function roadmapParse(
       if (!item.completion_criteria || item.completion_criteria.length === 0) {
         throw new ToolError(
           "SCHEMA_VIOLATION",
-          `${item.id}: 완료 조건이 비어 있습니다 — 단순 체크리스트 금지 (MVP-1.md 3.10)`,
+          `${item.id}: 완료 조건이 비어 있습니다 — 단순 체크리스트 금지 (통합 명세 3.10)`,
         );
       }
     }

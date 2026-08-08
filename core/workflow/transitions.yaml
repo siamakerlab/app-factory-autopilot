@@ -1,4 +1,4 @@
-# 로드맵 상태 머신 전이 테이블 (SSOT) — MVP-1.md 3.4, ROADMAP AFA-021
+# 로드맵 상태 머신 전이 테이블 (SSOT) — 통합 명세 3.4, ROADMAP AFA-021
 #
 # 형식: from → to 별 허용 role 목록과 요구 조건.
 # 여기 없는 전이는 전부 거부된다. worker는 어떤 경로로도 VERIFIED를 만들 수

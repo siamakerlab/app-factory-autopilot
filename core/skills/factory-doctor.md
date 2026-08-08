@@ -8,7 +8,7 @@ uses_skills: [capability-audit]
 # factory doctor
 
 Android 앱 제작 공정에 필요한 스킬·MCP·서브에이전트 설치 상태를 점검하고,
-미설치 항목을 사용자 확인 후 일괄 설치합니다 (MVP-1.md 3.14).
+미설치 항목을 사용자 확인 후 일괄 설치합니다 (통합 명세 3.14).
 
 ## 절차
 

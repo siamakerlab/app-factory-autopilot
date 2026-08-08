@@ -1,4 +1,4 @@
-# Placeholder 정책 (SSOT) — MVP-1.md 2장 4항, ROADMAP AFA-004
+# Placeholder 정책 (SSOT) — 통합 명세 2, 3.6, ROADMAP AFA-004
 #
 # 이름 형식: ${PLACEHOLDER_대문자_스네이크}
 # 검증 정규식: \$\{PLACEHOLDER_[A-Z0-9_]+\}
@@ -15,7 +15,7 @@ gate:
   fail_on_unresolved_release_blocking: true
   # 릴리스 빌드 산출물(APK/AAB) 안에 Placeholder 문자열이 잔존하면 무조건 실패
   fail_on_placeholder_in_release_artifact: true
-  # 테스트 광고 ID가 릴리스 빌드에 남아 있으면 실패 (MVP-1.md 3.11)
+  # 테스트 광고 ID가 릴리스 빌드에 남아 있으면 실패 (통합 명세 3.11)
   fail_on_test_ad_ids_in_release: true
 
 # 종류별 기본 속성 (인터뷰가 Placeholder 생성 시 적용)

@@ -1,4 +1,4 @@
-// 의존성 도구 dependency_* (AFA-015) — 라이브러리 추가 승인 절차 (MVP-1.md 3.5)
+// 의존성 도구 dependency_* (AFA-015) — 라이브러리 추가 승인 절차 (통합 명세 3.5)
 // 버전 검토 + 라이선스 검토를 모두 통과해야 approve 가능. GPL/AGPL 자동 거부.
 // approve 시 후속 작업(Catalog→Locking→Verification→빌드→테스트→고지→SBOM→문서)을 큐에 자동 등록.
 
@@ -184,7 +184,7 @@ export async function dependencyApprove(
     );
   }
 
-  // 후속 작업 자동 등록 (MVP-1.md 3.5의 9단계)
+  // 후속 작업 자동 등록 (통합 명세 3.5의 9단계)
   const followups = [
     `Version Catalog에 ${dep.coordinates}:${vr.approved_version} 추가`,
     "Gradle 의존성 그래프 확인",

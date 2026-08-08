@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "afa:schemas/app-factory-config/v1",
   "title": "APP_FACTORY.yaml 설정",
-  "description": "대상 앱 프로젝트 전체 설정의 기준 파일 스키마. 통합 설계서 20장·MVP-1.md 3.10 근거. 미확정 값은 ${PLACEHOLDER_*} 문자열을 허용한다. 기본값은 core/policies/defaults.yaml이 담당하고 이 스키마는 구조 검증만 한다.",
+  "description": "대상 앱 프로젝트 전체 설정의 기준 파일 스키마. 통합 설계서 20장·통합 명세 3.10 근거. 미확정 값은 ${PLACEHOLDER_*} 문자열을 허용한다. 기본값은 core/policies/defaults.yaml이 담당하고 이 스키마는 구조 검증만 한다.",
   "type": "object",
   "required": ["version", "project", "sdk", "toolchain", "architecture", "language", "localization", "commands", "limits", "providers", "license_policy", "versioning"],
   "additionalProperties": false,

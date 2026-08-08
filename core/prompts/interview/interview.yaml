@@ -1,4 +1,4 @@
-# factory plan 인터뷰 정의 (SSOT) — 설계서 5장, MVP-1.md 3.11, ROADMAP AFA-034
+# factory plan 인터뷰 정의 (SSOT) — 설계서 5장, 통합 명세 3.11, ROADMAP AFA-034
 #
 # 진행 규칙 (진행 로직은 공통 하나 — 질문을 프롬프트에 하드코딩하지 않는다):
 # - 영역(area) 단위 작은 묶음으로 질문한다. 한 번에 수십 개 금지.

@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — MVP 명세를 ROADMAP 단일 원본으로 통합
+
+- 중복 관리 방지를 위해 `MVP-1.md`를 제거하고, MVP-1 범위·완료 기준·로드맵을
+  `ROADMAP.md` 단일 원본으로 통합
+- README와 코드/스키마/정책/Skill 주석의 `MVP-1.md` 참조를 `ROADMAP.md`
+  통합 명세 기준으로 변경
+- `project-template/docs/EMULATOR_SCENARIOS.md.mustache`를 `factory test` 기준으로
+  갱신
+
+### 2026-08-08 — factory test 에뮬레이터 전수검사 명령 추가
+
+- `/factory test` / `$factory test` / `factory test` 진입 Skill 추가
+- `factory test` 실행을 에뮬레이터 사용 승인으로 간주하도록
+  `Run.command=test`, `emulator_test_plan` evidence, Stop Hook 지속 조건을 반영
+- `factory_test_prepare` MCP 도구 추가: 에뮬레이터 설정을 활성화하고 사용자
+  시나리오·버튼·기능·예상 화면·예상 출력·디바이스 매트릭스 체크리스트를
+  evidence로 저장
+- `factory_test_record_result` MCP 도구 추가: 시나리오 실행 결과를
+  `emulator_scenario_result`로 저장하고 실패 항목을 finding + P0 fix 큐로 등록
+- mobile-mcp 우선 사용, adb 폴백, 실패 즉시 수정·재실행·commit·push 원칙을
+  Skill/MVP/ROADMAP에 명시
+- 검증: MCP 테스트 74건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트 통과
+
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
 
 - AdMob 광고와 인앱결제는 `plan` 또는 `config`에서 사용자가 명시하지 않으면
@@ -192,7 +215,7 @@
   `project-explore`에 기존 프로젝트 로드맵 초기 상태 후보 생성 조건 추가
   (VERIFIED 부여 불가 원칙 유지)
 - **상충**: 공통 CLI — 1.0 이연(배포판)과 MVP-1 러너(개발용) 구분을
-  MVP-1.md 4장과 AFA-026 지침에 명확화
+  통합 명세 4과 AFA-026 지침에 명확화
 - **불일치**: AFA-032 제목 "10종" → 실제 13종으로 정정
 - **불충분**: AFA-036을 "점수화 리포트" → "factory review 파이프라인·점수화"
   로 확장 (콜드 컨텍스트 재감사 절차 소유 명시, 의존성에 AFA-021·AFA-032
@@ -219,7 +242,7 @@
 
 ### 2026-08-05 (5차)
 
-- 무중단 자동 진행 명세 추가 (MVP-1.md 3.17, 사용자 요구): `factory go/auto`
+- 무중단 자동 진행 명세 추가 (통합 명세 3.17, 사용자 요구): `factory go/auto`
   실행 시 프롬프트 1회로 완료 게이트까지 중단 없이 진행 (One-Prompt
   Completion)
   - 질문 지연·일괄 처리 원칙: auto 중 사용자 판단 항목은 크리티컬 패스
@@ -232,10 +255,10 @@
 ### 2026-08-05 (4차)
 
 - 사용자 요구 4건 반영
-  - 턴 종료 진행 보고 명세 추가 (MVP-1.md 3.15): 진행 상황·앞으로의 목표·
+  - 턴 종료 진행 보고 명세 추가 (통합 명세 3.15): 진행 상황·앞으로의 목표·
     다음 턴 예정·전체 진행도 % 4요소, 상태 가중치(0/25/50/75/100) 기반
     진행도 공식. 로드맵 AFA-025 신설
-  - factory review 점수화 명세 추가 (MVP-1.md 3.16): 영역별 0~100 점수표 →
+  - factory review 점수화 명세 추가 (통합 명세 3.16): 영역별 0~100 점수표 →
     목표 점수(기본 90)·개선 계획 제시 → 수정 → 전/후 비교. 배점표
     (`review-scoring.yaml`) 기반 산정. 로드맵 AFA-036 신설
   - plan 인터뷰 기본값 정책: 구현 언어·런타임 질문 추가, 미입력 시 Kotlin.
@@ -259,7 +282,7 @@
 
 ### 2026-08-05 (3차)
 
-- MVP-1.md 기반 정식 개발 로드맵 `ROADMAP.md` 작성
+- ROADMAP.md 기반 정식 개발 로드맵 `ROADMAP.md` 작성
   - MVP-1의 상태 머신(NOT_STARTED~VERIFIED 7상태)을 프로젝트 자체 로드맵에
     적용 (도그푸딩) — 완료/부분구현/미구현 상태 표시 및 갱신 절차 정의
   - 마일스톤 M0(선행 결정)~M6(검증·통합), 작업 36개 (결정 2 + 구현 34)
@@ -270,7 +293,7 @@
 
 ### 2026-08-05 (2차)
 
-- 사용자 요구로 Capability Doctor 기능을 MVP-1 범위에 추가 (MVP-1.md 3.14)
+- 사용자 요구로 Capability Doctor 기능을 MVP-1 범위에 추가 (통합 명세 3.14)
   - Android 개발 필수 스킬·MCP·서브에이전트 미설치 시 사용자 확인 후 일괄
     설치 제안 (체크리스트 선택 + 전역/프로젝트 스코프 선택)
   - `factory doctor` 보조 명령 및 plan/init/auto 프리플라이트 점검 추가
@@ -284,7 +307,7 @@
 ### 2026-08-05
 
 - 프로젝트 저장소 초기화 (git init, 디렉터리 골격 생성)
-- 원본 통합 설계서(`mvp.txt`) 기반 공식 MVP-1 명세서(`MVP-1.md`) 작성
+- 원본 통합 설계서(`mvp.txt`) 기반 공식 MVP-1 명세서(`ROADMAP.md`) 작성
   - 통합 설계서 21장 "MVP 0.1 범위"를 MVP-1 공식 범위로 채택
   - MVP-2~5 및 1.0 이연 항목 명시 (설계서 22~26장 매핑)
   - Official Docs Indexer 고도화는 MVP-2로, `skill_discover` 계열 MCP 도구는

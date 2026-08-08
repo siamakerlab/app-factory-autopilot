@@ -12,7 +12,7 @@ uses_skills: [completion-verify, placeholder-audit, license-compliance-review, d
 다시 감사합니다. 가능하면 구현에 참여하지 않은 다른 Agent/Provider가
 수행합니다 (APP_FACTORY.yaml providers.verification).
 
-## 절차 (MVP-1.md 3.16)
+## 절차 (통합 명세 3.16)
 
 1. **콜드 컨텍스트 원칙**: 구현 대화 기록을 읽지 않는다. 코드·로드맵·
    테스트·빌드 결과·증거만 검토한다.

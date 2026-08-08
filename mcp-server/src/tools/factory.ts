@@ -41,7 +41,7 @@ export async function factoryInitialize(
   return { initialized: true, root: ctx.store.root };
 }
 
-/** 진행도 계산 — MVP-1.md 3.15 공식. BLOCKED/NHD는 직전 도달 상태 가중치 유지. */
+/** 진행도 계산 — 통합 명세 3.15 공식. BLOCKED/NHD는 직전 도달 상태 가중치 유지. */
 export function computeProgressPct(ctx: Ctx): number {
   const { items } = ctx.store.loadRoadmap();
   const required = items.filter((i) => i.priority !== "P2");

@@ -9,7 +9,7 @@ uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate
 # factory auto (별칭: factory go)
 
 어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행합니다. 작업이
-끊기지 않고 **모든 공정이 끝날 때까지** 계속됩니다 (MVP-1.md 3.17).
+끊기지 않고 **모든 공정이 끝날 때까지** 계속됩니다 (통합 명세 3.17).
 
 ## 절차
 

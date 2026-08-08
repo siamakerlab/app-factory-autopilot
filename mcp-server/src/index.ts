@@ -20,6 +20,7 @@ import * as ap from "./tools/approval-placeholder.js";
 import * as cap from "./tools/capability.js";
 import * as cfg from "./tools/config.js";
 import * as plan from "./tools/plan.js";
+import * as ftest from "./tools/factory-test.js";
 import { decideNextAction, handleTaskFailure } from "./orchestrator.js";
 import { reviewPlanFixes, reviewScore, reviewSaveReport } from "./tools/review.js";
 import { buildProgressReport, renderProgressReport } from "./report.js";
@@ -88,6 +89,10 @@ export function buildServer(ctx: Ctx): McpServer {
     ["plan_get_next_questions", "factory plan 인터뷰 다음 질문 묶음 조회", any, plan.planGetNextQuestions as Handler],
     ["plan_submit_answers", "factory plan 인터뷰 답변 저장 및 Placeholder 변환", any, plan.planSubmitAnswers as Handler],
     ["plan_apply_mock_answers", "factory plan E2E용 모의 응답 주입", any, plan.planApplyMockAnswers as Handler],
+    // factory test
+    ["factory_test_prepare", "에뮬레이터 전수검사용 사용자 시나리오 체크리스트 생성 및 emulator 승인 기록", any, ftest.factoryTestPrepare as Handler],
+    ["factory_test_record_result", "factory test 시나리오 결과 기록, 실패 finding/fix 큐 자동 등록", any, ftest.factoryTestRecordResult as Handler],
+    ["factory_test_summary", "factory test 계획·결과·미해결 finding 요약", z.object({}), ftest.factoryTestSummary as Handler],
     // 로드맵
     ["roadmap_parse", "로드맵 항목 반입·검증 (JSON SSOT)", any, roadmap.roadmapParse as Handler],
     ["roadmap_get_items", "로드맵 항목 조회 (상태·우선순위 필터)", any, roadmap.roadmapGetItems as Handler],

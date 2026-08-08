@@ -1,6 +1,6 @@
 # App Factory Autopilot — 역량 카탈로그 (SSOT)
 #
-# Capability Doctor(MVP-1.md 3.14)가 개발 환경 점검·설치 제안에 사용하는
+# Capability Doctor(통합 명세 3.14)가 개발 환경 점검·설치 제안에 사용하는
 # 단일 원본입니다. 어댑터가 Provider별(Claude Code / Codex) 설치 명령으로
 # 변환합니다.
 #
@@ -17,7 +17,7 @@
 # requires_api_key: true 인 항목은 기본 required 지정 금지 (사용자 선택 시에만 안내)
 # condition: 해당 조건의 프로젝트에서만 required로 승격
 # guidance_doc: 설치 시 선택 스코프의 관리문서(전역 또는 프로젝트 CLAUDE.md/AGENTS.md)에
-#   추가할 사용 지침 한 줄 (MVP-1.md 3.14 6단계)
+#   추가할 사용 지침 한 줄 (통합 명세 3.14 6단계)
 
 version: 2
 scopes: [global, project]   # 사용자가 설치 시 선택

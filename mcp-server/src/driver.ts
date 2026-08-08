@@ -1,4 +1,4 @@
-// 무중단 진행 드라이버 (AFA-026, One-Prompt Completion — MVP-1.md 3.17)
+// 무중단 진행 드라이버 (AFA-026, One-Prompt Completion — 통합 명세 3.17)
 // 종료 조건(정상 완료·강제 중단·한도 초과) 도달까지 사이클을 반복한다.
 // LLM 실행은 executor 콜백으로 위임 — 어댑터(Claude Code Stop Hook, Codex 래퍼,
 // 개발용 CLI)가 이 드라이버를 감싼다. 드라이버 자체는 얇은 껍데기다.

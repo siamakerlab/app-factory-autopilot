@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "afa:schemas/placeholder/v1",
   "title": "Placeholder",
-  "description": "미확정 값의 명시적 표기. 단순 문자열이 아니라 종류·중요도·해결 시점·자동 진행 가능 여부를 함께 관리한다 (MVP-1.md 2장 4항). .app-factory/state/placeholders/에 1건 = 1파일로 저장.",
+  "description": "미확정 값의 명시적 표기. 단순 문자열이 아니라 종류·중요도·해결 시점·자동 진행 가능 여부를 함께 관리한다 (통합 명세 2, 3.6). .app-factory/state/placeholders/에 1건 = 1파일로 저장.",
   "type": "object",
   "required": ["version", "name", "kind", "importance", "resolve_by", "auto_proceed", "release_blocking", "status", "created_at"],
   "additionalProperties": false,

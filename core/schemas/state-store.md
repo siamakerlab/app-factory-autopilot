@@ -1,6 +1,6 @@
 # `.app-factory` 상태 저장소 규약 (SSOT)
 
-- 근거: MVP-1.md 3.7, ROADMAP AFA-003
+- 근거: 통합 명세 3.7, ROADMAP AFA-003
 - 이 문서는 대상 앱 프로젝트의 `.app-factory/` 디렉터리 구조, 파일 포맷,
   ID 채번, 잠금, 재개 절차의 단일 원본이다. MCP 서버(`app-factory-core`)의
   상태 저장소 접근 계층은 이 규약을 구현한다.

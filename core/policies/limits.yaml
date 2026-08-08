@@ -1,4 +1,4 @@
-# 재시도·예산·강제 중단 한도 (SSOT) — MVP-1.md 3.9, ROADMAP AFA-024
+# 재시도·예산·강제 중단 한도 (SSOT) — 통합 명세 3.6, ROADMAP AFA-024
 # APP_FACTORY.yaml limits가 프로젝트별로 override할 수 있다.
 
 version: 1

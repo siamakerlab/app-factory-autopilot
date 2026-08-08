@@ -48,13 +48,14 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.equal(manifest.name, "app-factory-autopilot");
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /decision: "block"/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "resume"/);
+  assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "test"/);
   assert.match(first.get("claude-code/.mcp.json"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("claude-code/.mcp.json"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/config/mcp.toml"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("codex/config/mcp.toml"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/bin/factory-auto-loop.sh"), /\$factory auto/);
-  assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|review/);
-  assert.match(first.get("codex/templates/AGENTS.md"), /auto\|resume\|review/);
+  assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|test\|review/);
+  assert.match(first.get("codex/templates/AGENTS.md"), /auto\|resume\|test\|review/);
 
   const mode = fs.statSync(path.join(ROOT, "dist/codex/bin/factory-auto-loop.sh")).mode & 0o777;
   assert.equal(mode, 0o755);

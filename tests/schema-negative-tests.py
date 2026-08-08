@@ -2,7 +2,7 @@
 """스키마 부정 케이스 테스트 — 잘못된 인스턴스가 실제로 거부되는지 확인한다.
 
 MVP-1 핵심 원칙의 스키마 수준 강제를 회귀 방지한다:
-- VERIFIED에는 증거 필수 (MVP-1.md 2장 5항)
+- VERIFIED에는 증거 필수 (ROADMAP.md 2장 5항)
 - worker는 VERIFIED를 요청할 수 없다 (2장 1항)
 - finding resolve에는 증거 필수 (ROADMAP AFA-013)
 """

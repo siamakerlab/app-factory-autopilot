@@ -42,7 +42,7 @@
         "completion_mismark",
         "other"
       ],
-      "description": "검사 영역 (MVP-1.md 3.16 점수화 영역과 정렬 — review-scoring.yaml이 동일 enum 사용)"
+      "description": "검사 영역 (통합 명세 3.16 점수화 영역과 정렬 — review-scoring.yaml이 동일 enum 사용)"
     },
     "title": { "type": "string", "minLength": 1 },
     "description": { "type": "string" },
@@ -73,7 +73,7 @@
     },
     "auto_fixable": {
       "type": "boolean",
-      "description": "자동 수정이 안전한지 여부. false면 needs_human_decision 경로 (MVP-1.md 3.2)"
+      "description": "자동 수정이 안전한지 여부. false면 needs_human_decision 경로 (통합 명세 3.2)"
     },
     "fix_task_id": { "type": "string", "pattern": "^T-\\d{4}$" },
     "resolution": {

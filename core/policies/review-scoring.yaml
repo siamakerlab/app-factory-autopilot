@@ -1,4 +1,4 @@
-# factory review 점수 산정 기준 (SSOT) — MVP-1.md 3.16, ROADMAP AFA-036
+# factory review 점수 산정 기준 (SSOT) — 통합 명세 3.16, ROADMAP AFA-036
 #
 # 점수는 LLM 인상 평가가 아니라 이 배점표 기반으로 산정한다.
 # 각 검사 항목에 pass / fail / n_a 를 매기고:
