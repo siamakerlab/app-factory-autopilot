@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Persist autopilot delegation records
+
+- Prepared `app-factory-autopilot@0.1.13` as a patch release for durable
+  AFA-061 in-session orchestration state
+- Added `factory_record_delegation` and `factory_record_watchdog` MCP tools so
+  main-session agent selection and five-minute watchdog decisions are persisted
+  in run/cycle state instead of remaining prompt-only guidance
+- Extended run cycle schema and tests with delegation records and watchdog
+  events while keeping agent execution serialized
+
 ### 2026-08-09 — Add in-session autopilot roadmap
 
 - Prepared `app-factory-autopilot@0.1.12` as a patch release for in-session

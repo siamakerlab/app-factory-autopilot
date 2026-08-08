@@ -339,6 +339,102 @@ export async function factoryFinishCycle(
   });
 }
 
+const SUBAGENT_REPORT_CONTRACT = [
+  "summary",
+  "changed_files",
+  "evidence_ids",
+  "findings",
+  "risks",
+  "blockers",
+  "confidence",
+  "next_recommendation",
+  "verification_needed",
+  "commit_ready",
+];
+
+export async function factoryRecordDelegation(
+  ctx: Ctx,
+  input: {
+    run_id: string;
+    cycle_seq: number;
+    selected_agent: string;
+    selected_skill?: string;
+    rationale: string;
+    task_type?: string;
+    roadmap_phase?: string;
+    required_evidence?: string[];
+    file_ownership?: string[];
+    dangerous_tags?: string[];
+    tool_availability?: Record<string, boolean>;
+    previous_failures?: string[];
+  },
+): Promise<{ run_id: string; cycle_seq: number; selected_agent: string; parallel_agents_allowed: false }> {
+  return ctx.store.withLock("factory_record_delegation", () => {
+    const run = ctx.store.loadRun(input.run_id);
+    const cycle = (run.cycles ?? []).find((c) => c.seq === input.cycle_seq);
+    if (!cycle) throw new ToolError("NOT_FOUND", `사이클 ${input.cycle_seq}을 찾을 수 없습니다`);
+    cycle.delegation = {
+      selected_agent: input.selected_agent,
+      ...(input.selected_skill ? { selected_skill: input.selected_skill } : {}),
+      rationale: input.rationale,
+      ...(input.task_type ? { task_type: input.task_type } : {}),
+      ...(input.roadmap_phase ? { roadmap_phase: input.roadmap_phase } : {}),
+      ...(input.required_evidence ? { required_evidence: input.required_evidence } : {}),
+      ...(input.file_ownership ? { file_ownership: input.file_ownership } : {}),
+      ...(input.dangerous_tags ? { dangerous_tags: input.dangerous_tags } : {}),
+      ...(input.tool_availability ? { tool_availability: input.tool_availability } : {}),
+      ...(input.previous_failures ? { previous_failures: input.previous_failures } : {}),
+      report_contract: SUBAGENT_REPORT_CONTRACT,
+      parallel_agents_allowed: false,
+      recorded_at: nowIso(),
+    };
+    ctx.store.saveRun(run);
+    return {
+      run_id: run.id,
+      cycle_seq: cycle.seq,
+      selected_agent: input.selected_agent,
+      parallel_agents_allowed: false,
+    };
+  });
+}
+
+function watchdogAction(status: "running" | "stopped" | "no_response" | "stale_owner" | "limit_exceeded"):
+  "wait" | "retry" | "force_terminate_then_retry" | "convert_to_blocker" {
+  if (status === "running") return "wait";
+  if (status === "stale_owner") return "force_terminate_then_retry";
+  if (status === "limit_exceeded") return "convert_to_blocker";
+  return "retry";
+}
+
+export async function factoryRecordWatchdog(
+  ctx: Ctx,
+  input: {
+    run_id: string;
+    cycle_seq: number;
+    agent: string;
+    status: "running" | "stopped" | "no_response" | "stale_owner" | "limit_exceeded";
+    detail?: string;
+  },
+): Promise<{ run_id: string; cycle_seq: number; action: ReturnType<typeof watchdogAction> }> {
+  return ctx.store.withLock("factory_record_watchdog", () => {
+    const run = ctx.store.loadRun(input.run_id);
+    const cycle = (run.cycles ?? []).find((c) => c.seq === input.cycle_seq);
+    if (!cycle) throw new ToolError("NOT_FOUND", `사이클 ${input.cycle_seq}을 찾을 수 없습니다`);
+    const action = watchdogAction(input.status);
+    const events = cycle.watchdog_events ?? [];
+    events.push({
+      at: nowIso(),
+      agent: input.agent,
+      status: input.status,
+      action,
+      ...(input.detail ? { detail: input.detail } : {}),
+    });
+    cycle.watchdog_events = events;
+    ctx.store.saveRun(run);
+    return { run_id: run.id, cycle_seq: cycle.seq, action };
+  });
+}
+
 export async function factoryAbortCycle(
   ctx: Ctx,
   input: { run_id: string; exit_reason: NonNullable<Run["exit_reason"]>; reason?: string },

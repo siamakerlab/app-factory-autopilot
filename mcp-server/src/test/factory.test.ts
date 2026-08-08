@@ -7,7 +7,10 @@ import {
   factoryClaimTask,
   factoryCompleteTask,
   factoryCreateTask,
+  factoryRecordDelegation,
+  factoryRecordWatchdog,
   factoryGetNextTask,
+  factoryStartCycle,
   factorySubmitResult,
   recoverStaleClaims,
 } from "../tools/factory.js";
@@ -126,6 +129,62 @@ test("stale 클레임 회수 — run 종료 상태면 큐로 복귀", async () =
     assert.deepEqual(recovered, [task_id]);
     const next = factoryGetNextTask(ctx);
     assert.equal(next.task?.id, task_id);
+  } finally {
+    cleanup();
+  }
+});
+
+test("AFA-061 위임 판단과 watchdog 결과가 run cycle에 기록된다", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    const { task_id } = await factoryCreateTask(ctx, { type: "implement", title: "구현" });
+    const { run_id, cycle_seq } = await factoryStartCycle(ctx, {
+      command: "auto",
+      provider: "cli",
+      phase: "implementation_loop",
+      task_ids: [task_id],
+    });
+
+    const delegation = await factoryRecordDelegation(ctx, {
+      run_id,
+      cycle_seq,
+      selected_agent: "implementation-worker",
+      selected_skill: "roadmap-implement",
+      rationale: "queued implement task requires worker role and build evidence",
+      task_type: "implement",
+      roadmap_phase: "implementation_loop",
+      required_evidence: ["code", "build"],
+      file_ownership: ["app/src/main"],
+      dangerous_tags: [],
+      tool_availability: { "factory_submit_result": true },
+      previous_failures: [],
+    });
+    assert.equal(delegation.parallel_agents_allowed, false);
+
+    const running = await factoryRecordWatchdog(ctx, {
+      run_id,
+      cycle_seq,
+      agent: "implementation-worker",
+      status: "running",
+      detail: "5 minute poll",
+    });
+    assert.equal(running.action, "wait");
+    const stale = await factoryRecordWatchdog(ctx, {
+      run_id,
+      cycle_seq,
+      agent: "implementation-worker",
+      status: "stale_owner",
+    });
+    assert.equal(stale.action, "force_terminate_then_retry");
+
+    const run = ctx.store.loadRun(run_id);
+    const cycle = run.cycles?.[0];
+    assert.equal(cycle?.delegation?.selected_agent, "implementation-worker");
+    assert.equal(cycle?.delegation?.parallel_agents_allowed, false);
+    assert.ok(cycle?.delegation?.report_contract.includes("commit_ready"));
+    assert.equal(cycle?.watchdog_events?.length, 2);
+    assert.equal(cycle?.watchdog_events?.[0]?.action, "wait");
+    assert.equal(cycle?.watchdog_events?.[1]?.status, "stale_owner");
   } finally {
     cleanup();
   }

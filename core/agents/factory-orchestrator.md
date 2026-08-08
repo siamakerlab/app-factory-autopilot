@@ -8,6 +8,8 @@ mcp_tools:
   - factory_create_task
   - orchestrator_decide_next
   - factory_start_cycle
+  - factory_record_delegation
+  - factory_record_watchdog
   - factory_finish_cycle
   - factory_abort_cycle
   - factory_progress_report
@@ -38,9 +40,9 @@ Run this procedure on every cycle.
 3. Select exactly one responsible agent/skill for the returned phase using the
    delegation decision inputs in `core/policies/delegation.yaml`: task type,
    roadmap phase, required evidence, file ownership, dangerous tags, tool
-   availability, and previous failures. Record the selection rationale in the
-   run/cycle state or report artifact; do not narrate it to the user unless it
-   becomes a blocker.
+   availability, and previous failures. Record the selection rationale with
+   `factory_record_delegation`; do not narrate it to the user unless it becomes
+   a blocker.
 4. Delegate the returned phase to that one agent only. Include the task ID,
    roadmap item, completion criteria, allowed files, required evidence, and the
    subagent report contract. Never run two agents or subagents at the same time,
@@ -49,7 +51,8 @@ Run this procedure on every cycle.
    still running, wait. If it stopped or gives no response, retry once through
    the same serialized delegation path. If a stale owner still occupies the task,
    force-terminate or recover the stale claim before retrying. If limits are
-   exceeded, convert the issue to a blocker finding or pending decision.
+   exceeded, convert the issue to a blocker finding or pending decision. Record
+   each poll outcome with `factory_record_watchdog`.
 6. Validate the agent result format. If the result violates the output contract,
    request one correction.
 7. On failure, call `task_report_failure`. Retry and blocking policy are decided

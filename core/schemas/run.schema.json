@@ -46,7 +46,12 @@
           },
           "started_at": { "type": "string", "format": "date-time" },
           "ended_at": { "type": "string", "format": "date-time" },
-          "report": { "$ref": "#/$defs/progressReport" }
+          "report": { "$ref": "#/$defs/progressReport" },
+          "delegation": { "$ref": "#/$defs/delegationRecord" },
+          "watchdog_events": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/watchdogEvent" }
+          }
         }
       }
     },
@@ -98,6 +103,54 @@
           "maximum": 100,
           "description": "④ 전체 진행도 — 상태 가중치(0/25/50/75/100) 평균, 필수 항목만 분모 (3.15 공식)"
         }
+      }
+    },
+    "delegationRecord": {
+      "type": "object",
+      "description": "AFA-061 메인 세션의 agent/skill 위임 판단 기록",
+      "required": ["selected_agent", "rationale", "report_contract", "parallel_agents_allowed", "recorded_at"],
+      "additionalProperties": false,
+      "properties": {
+        "selected_agent": { "type": "string", "minLength": 1 },
+        "selected_skill": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 },
+        "task_type": { "type": "string" },
+        "roadmap_phase": { "type": "string" },
+        "required_evidence": { "type": "array", "items": { "type": "string" } },
+        "file_ownership": { "type": "array", "items": { "type": "string" } },
+        "dangerous_tags": { "type": "array", "items": { "type": "string" } },
+        "tool_availability": {
+          "type": "object",
+          "additionalProperties": { "type": "boolean" }
+        },
+        "previous_failures": { "type": "array", "items": { "type": "string" } },
+        "report_contract": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "parallel_agents_allowed": { "const": false },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "watchdogEvent": {
+      "type": "object",
+      "description": "AFA-061 5분 subagent watchdog 점검 결과",
+      "required": ["at", "agent", "status", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "agent": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["running", "stopped", "no_response", "stale_owner", "limit_exceeded"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["wait", "retry", "force_terminate_then_retry", "convert_to_blocker"]
+        },
+        "detail": { "type": "string" }
       }
     }
   }

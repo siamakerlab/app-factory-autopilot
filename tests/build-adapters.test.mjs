@@ -116,6 +116,8 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Never treat "no remaining roadmap item" as terminal by itself/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /roadmap depletion alone is not terminal/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /core\/policies\/delegation\.yaml/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /factory_record_delegation/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /factory_record_watchdog/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /Never run two agents or subagents at the same time/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /check its status every 5 minutes/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /subagent report contract/);

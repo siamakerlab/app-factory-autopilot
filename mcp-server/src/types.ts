@@ -151,6 +151,30 @@ export interface ProgressReport {
   progress_pct: number;
 }
 
+export interface DelegationRecord {
+  selected_agent: string;
+  selected_skill?: string;
+  rationale: string;
+  task_type?: string;
+  roadmap_phase?: string;
+  required_evidence?: string[];
+  file_ownership?: string[];
+  dangerous_tags?: string[];
+  tool_availability?: Record<string, boolean>;
+  previous_failures?: string[];
+  report_contract: string[];
+  parallel_agents_allowed: false;
+  recorded_at: string;
+}
+
+export interface WatchdogEvent {
+  at: string;
+  agent: string;
+  status: "running" | "stopped" | "no_response" | "stale_owner" | "limit_exceeded";
+  action: "wait" | "retry" | "force_terminate_then_retry" | "convert_to_blocker";
+  detail?: string;
+}
+
 export interface RunCycle {
   seq: number;
   phase: string;
@@ -158,6 +182,8 @@ export interface RunCycle {
   started_at?: string;
   ended_at?: string;
   report: ProgressReport;
+  delegation?: DelegationRecord;
+  watchdog_events?: WatchdogEvent[];
 }
 
 export interface Run {
