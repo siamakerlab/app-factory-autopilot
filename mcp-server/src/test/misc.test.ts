@@ -174,7 +174,7 @@ test("사이클 — 진행 보고 4요소가 run에 기록된다 (3.15)", async 
       provider: "cli",
       phase: "구현 루프",
     });
-    const { report } = await factoryFinishCycle(ctx, {
+    const { report, rendered } = await factoryFinishCycle(ctx, {
       run_id,
       cycle_seq,
       report: {
@@ -184,6 +184,10 @@ test("사이클 — 진행 보고 4요소가 run에 기록된다 (3.15)", async 
       },
     });
     assert.equal(report.progress_pct, 100);
+    assert.match(rendered, /진행 보고/);
+    assert.match(rendered, /진행 상황: RM-001 완료/);
+    assert.match(rendered, /다음 작업: 최종 게이트/);
+    assert.match(rendered, /전체 진행도: 100%/);
     const run = ctx.store.loadRun(run_id);
     assert.equal(run.cycles![0]!.report.summary, "RM-001 완료");
     assert.ok(run.cycles![0]!.ended_at);

@@ -31,6 +31,7 @@ export interface DriveResult {
   exit_reason: NonNullable<Run["exit_reason"]>;
   cycles: number;
   pending: { subject: string; summary: string }[];
+  cycle_reports: string[];
   final_report: ReturnType<typeof buildProgressReport>;
 }
 
@@ -52,20 +53,21 @@ export async function driveAuto(
   let stall = 0;
   let runId: string | undefined;
   const pending: { subject: string; summary: string }[] = [];
+  const cycleReports: string[] = [];
 
   for (;;) {
     if (cycles >= limits.budget.max_cycles_per_run) {
-      return await finish(ctx, runId, "limit_exceeded", cycles, pending);
+      return await finish(ctx, runId, "limit_exceeded", cycles, pending, cycleReports);
     }
     const action = decideNextAction(ctx);
 
     if (action.kind === "completed") {
-      return await finish(ctx, runId, "completed", cycles, pending);
+      return await finish(ctx, runId, "completed", cycles, pending, cycleReports);
     }
     if (action.kind === "blocked") {
       // 질문 지연·일괄 처리: 미결 항목을 적재하고 종료 보고에 포함 (3.17)
       pending.push(...action.pending);
-      return await finish(ctx, runId, "forced_stop", cycles, pending);
+      return await finish(ctx, runId, "forced_stop", cycles, pending, cycleReports);
     }
 
     // dispatch — 사이클 시작
@@ -85,15 +87,22 @@ export async function driveAuto(
 
     // 턴 종료 보고 기록 후 자동으로 다음 사이클 계속 (보고는 정지점이 아님)
     const report = buildProgressReport(ctx);
-    await factoryFinishCycle(ctx, {
+    const cycleSummary = [
+      `이번 사이클: ${action.phase.title}`,
+      action.task_id ? `작업 ${action.task_id}` : "",
+      result.note ?? "",
+      `누적: ${report.summary}`,
+    ].filter(Boolean).join(" — ");
+    const finished = await factoryFinishCycle(ctx, {
       run_id,
       cycle_seq,
       report: {
-        summary: result.note ? `${report.summary} — ${result.note}` : report.summary,
+        summary: cycleSummary,
         goals: report.goals,
         next: report.next,
       },
     });
+    cycleReports.push(finished.rendered);
 
     if (result.progressed) {
       stall = 0;
@@ -104,7 +113,7 @@ export async function driveAuto(
           subject: action.phase.id,
           summary: `단계 '${action.phase.title}'에서 ${STALL_LIMIT}사이클 연속 무진전 — 개입 필요`,
         });
-        return await finish(ctx, runId, "forced_stop", cycles, pending);
+        return await finish(ctx, runId, "forced_stop", cycles, pending, cycleReports);
       }
     }
   }
@@ -116,6 +125,7 @@ async function finish(
   exit: NonNullable<Run["exit_reason"]>,
   cycles: number,
   pending: { subject: string; summary: string }[],
+  cycleReports: string[],
 ): Promise<DriveResult> {
   const deduped = [...new Map(pending.map((p) => [p.subject, p])).values()];
   if (runId) {
@@ -130,6 +140,7 @@ async function finish(
     exit_reason: exit,
     cycles,
     pending: deduped,
+    cycle_reports: cycleReports,
     final_report: buildProgressReport(ctx),
   };
 }

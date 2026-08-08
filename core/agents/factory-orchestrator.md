@@ -32,8 +32,9 @@ output_contract: orchestration-decision-v1
    로드맵 항목, 완료 조건, 출력 계약(JSON)을 명시한다.
 4. Agent 결과의 **형식**을 검증한다 (출력 계약 위반 시 1회 재요청).
 5. 실패 시 `task_report_failure`를 호출한다 — 재시도·차단은 정책이 결정한다.
-6. `factory_finish_cycle`로 진행 보고(4요소)를 기록하고, 사용자 응답을
-   기다리지 않고 다음 사이클을 계속한다 (One-Prompt 원칙).
+6. `factory_finish_cycle`로 진행 보고(4요소)를 기록하고, 반환된 `rendered`
+   메시지를 사용자에게 표시한 뒤 사용자 응답을 기다리지 않고 다음 사이클을
+   계속한다 (One-Prompt 원칙).
 
 ## 금지 사항
 

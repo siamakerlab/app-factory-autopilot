@@ -18,6 +18,16 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function renderProgressReport(report: ProgressReport): string {
+  return [
+    "진행 보고",
+    `- 진행 상황: ${report.summary}`,
+    `- 앞으로의 목표: ${report.goals}`,
+    `- 다음 작업: ${report.next.task_id ? `[${report.next.task_id}] ` : ""}${report.next.description}`,
+    `- 전체 진행도: ${report.progress_pct}%`,
+  ].join("\n");
+}
+
 export async function factoryInitialize(
   ctx: Ctx,
   input: { config?: Record<string, unknown> },
@@ -316,7 +326,7 @@ export async function factoryStartCycle(
 export async function factoryFinishCycle(
   ctx: Ctx,
   input: { run_id: string; cycle_seq: number; report: Omit<ProgressReport, "progress_pct"> },
-): Promise<{ run_id: string; report: ProgressReport }> {
+): Promise<{ run_id: string; report: ProgressReport; rendered: string }> {
   return ctx.store.withLock("factory_finish_cycle", () => {
     const run = ctx.store.loadRun(input.run_id);
     const cycle = (run.cycles ?? []).find((c) => c.seq === input.cycle_seq);
@@ -325,7 +335,7 @@ export async function factoryFinishCycle(
     cycle.report = report;
     cycle.ended_at = nowIso();
     ctx.store.saveRun(run);
-    return { run_id: run.id, report };
+    return { run_id: run.id, report, rendered: renderProgressReport(report) };
   });
 }
 

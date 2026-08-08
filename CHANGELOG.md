@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — 턴 종료 진행 보고 표시 경로 보강
+
+- `factory_finish_cycle`이 run 기록뿐 아니라 사용자 표시용 `rendered` 진행
+  보고를 반환하도록 보강
+- `driveAuto`가 매 사이클의 렌더링 보고를 `cycle_reports`로 누적 반환해
+  어댑터가 매 턴 종료 시 사용자에게 바로 표시할 수 있게 수정
+- 진행 보고 summary에 이번 사이클의 phase/task/note와 누적 진행 상황을 함께
+  담도록 개선
+- AFA-025 로드맵 상태를 완료로 정리하고 Factory Orchestrator 지시에
+  `rendered` 메시지 표시를 명시
+- 검증: MCP 테스트 64건 통과
+
 ### 2026-08-08 — 제품 완성도 루프 및 factory config 추가
 
 - 사용자 목표를 반영해 경쟁사 앱·커뮤니티 의견·사용자 리뷰 조사 기반의
