@@ -8,6 +8,9 @@
   provider environments that cannot create a new user turn automatically
 - Added AFA-061 as the P0 roadmap item for long-running `factory auto`
   orchestration, durable context checkpoints, and subagent fallback behavior
+- Expanded AFA-061 with a delegation decision policy and structured subagent
+  report contract so the main session can choose the right agent and judge
+  returned work reliably
 - Clarified that the existing cross-turn auto runner remains a CLI fallback,
   while session-style environments should use the main orchestrator model
 

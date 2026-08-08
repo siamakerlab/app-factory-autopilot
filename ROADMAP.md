@@ -690,25 +690,39 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   오케스트레이터로 정의한다. 메인은 직접 코딩하지 않고 상태 저장소와 MCP를
   통해 다음 작업 선정, 서브에이전트 위임, 결과 수집, verifier 재위임, 증거
   등록, 상태 전이, commit/push, 사용자 진행 보고를 반복한다. 외부 runner는
-  CLI 환경의 보조 경로로 유지한다.
+  CLI 환경의 보조 경로로 유지한다. 메인은 작업 성격, 위험도, 필요한 도구,
+  쓰기 충돌 가능성, 검증 필요성을 판단해 가장 적절한 agent/skill을 선정하고,
+  서브에이전트가 돌려준 보고를 근거로 다음 액션을 결정해야 한다.
 - **하위 작업**:
   - AFA-061a Main Orchestrator Contract — 메인 세션의 금지 사항, 위임 책임,
     사용자 보고 형식, 종료 조건을 `factory-auto`/`factory-resume`에 명시
   - AFA-061b Delegation Matrix — market research, implementation, test,
     review, UX/accessibility, security/privacy, license, dependency, emulator
     작업을 어떤 agent/skill에 위임할지 정의
-  - AFA-061c Write Serialization — 코드 수정 작업은 단일 worker만 수행하고,
+  - AFA-061c Delegation Decision Policy — 메인이 task type, roadmap phase,
+    required evidence, file ownership, dangerous tags, tool availability,
+    previous failures를 기준으로 위임 대상과 병렬 가능 여부를 결정하는 정책
+  - AFA-061d Subagent Report Contract — 서브에이전트가 메인 판단에 필요한
+    summary, changed_files, evidence_ids, findings, risks, blockers,
+    confidence, next_recommendation, verification_needed, commit_ready 여부를
+    구조화해 보고하는 계약
+  - AFA-061e Write Serialization — 코드 수정 작업은 단일 worker만 수행하고,
     읽기 중심 조사·리뷰만 병렬화하는 잠금·작업 큐 규칙 확정
-  - AFA-061d Context Checkpoint — 각 단위작업 종료와 압축 가능 지점마다
+  - AFA-061f Context Checkpoint — 각 단위작업 종료와 압축 가능 지점마다
     run/cycle, task result, evidence, finding, roadmap 상태, commit/push,
     next action을 `.app-factory`에 저장
-  - AFA-061e Subagent Fallback — 서브에이전트 미지원 Provider에서 역할 전환
+  - AFA-061g Subagent Fallback — 서브에이전트 미지원 Provider에서 역할 전환
     프롬프트로 강등하되 worker/verifier 분리 원칙을 유지
-  - AFA-061f Long-run Guardrails — 토큰/시간/반복 한도, 동일 오류 정체,
+  - AFA-061h Long-run Guardrails — 토큰/시간/반복 한도, 동일 오류 정체,
     사용자 승인 필요 작업, context 압축 후 resume 동작을 통합 검증
 - **완료 조건**:
   - [ ] `/factory auto`와 `$factory auto`가 수동 provider 세션 안에서도
     메인 오케스트레이터로 동작하며 가능한 작업을 계속 위임한다
+  - [ ] 메인 세션이 작업별로 적절한 agent/skill을 선정한 근거를 내부 run
+    기록에 남기고, 사용자에게는 필요한 결과만 간결하게 보고한다
+  - [ ] 모든 서브에이전트 보고가 구조화 계약을 따르며, 메인이 작업 성공,
+    재작업, 검증 위임, blocker, commit 가능 여부를 판단하기에 충분한 정보를
+    포함한다
   - [ ] 메인 세션은 구현 파일을 직접 수정하지 않고 worker/subagent 결과를
     통해서만 코드 변경을 진행한다
   - [ ] 각 단위작업 완료 후 evidence/report/finding/task/run 상태가
@@ -723,7 +737,9 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 - **지침**: 이 항목은 `factory auto`의 기본 UX를 결정한다. "새 턴 자동 생성"을
   Provider 기능으로 가정하지 않는다. Claude의 Stop Hook/Ralph-style block은
   같은 턴 지속 fallback일 뿐이며, Codex/Claude 공통 핵심은 메인 세션
-  오케스트레이션과 durable checkpoint다.
+  오케스트레이션과 durable checkpoint다. 서브에이전트의 자유 서술만으로는
+  완료 판단을 하지 않는다. 메인은 구조화 보고와 evidence를 대조하고, 필요한
+  경우 verifier/reviewer에게 재위임한 뒤 상태를 전이한다.
 
 ### AFA-050 빌드·테스트·Lint 게이트 실행기 — 🟦 (2026-08-05 구현 제출)
 
