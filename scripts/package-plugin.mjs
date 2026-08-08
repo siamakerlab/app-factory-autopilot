@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
 const OUT = path.join(ROOT, "packages");
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 const TARGETS = ["claude-code", "codex"];
 
 function sha256(file) {
@@ -29,22 +29,25 @@ function packageTarget(target) {
   }
   const archive = path.join(OUT, `app-factory-autopilot-${target}-v${VERSION}.tar.gz`);
   fs.rmSync(archive, { force: true });
-  execFileSync(
-    "tar",
-    [
-      "--sort=name",
-      "--mtime=@0",
-      "--owner=0",
-      "--group=0",
-      "--numeric-owner",
-      "-czf",
-      archive,
-      "-C",
-      DIST,
-      target,
-    ],
-    { stdio: "pipe" },
-  );
+  const deterministicArgs = [
+    "--sort=name",
+    "--mtime=@0",
+    "--owner=0",
+    "--group=0",
+    "--numeric-owner",
+    "-czf",
+    archive,
+    "-C",
+    DIST,
+    target,
+  ];
+  const portableArgs = ["-czf", archive, "-C", DIST, target];
+  try {
+    execFileSync("tar", deterministicArgs, { stdio: "pipe" });
+  } catch (error) {
+    fs.rmSync(archive, { force: true });
+    execFileSync("tar", portableArgs, { stdio: "pipe" });
+  }
   return { target, archive, checksum: sha256(archive) };
 }
 

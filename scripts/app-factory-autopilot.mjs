@@ -2,8 +2,9 @@
 // npm CLI for installing App Factory Autopilot provider packages.
 
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,16 +31,29 @@ function run(command, args, options = {}) {
   execFileSync(command, args, { cwd: ROOT, stdio: "inherit", ...options });
 }
 
+function installMcpDependencies() {
+  const nodeModules = path.join(ROOT, "mcp-server", "node_modules");
+  const hasLock = fs.existsSync(path.join(ROOT, "mcp-server", "package-lock.json"));
+  run("npm", ["--prefix", "mcp-server", hasLock ? "ci" : "install"]);
+  if (!fs.existsSync(nodeModules)) {
+    throw new Error("MCP server dependencies were not installed.");
+  }
+}
+
 function ensureMcpDependencies() {
   const nodeModules = path.join(ROOT, "mcp-server", "node_modules");
   if (fs.existsSync(nodeModules)) return;
-  const hasLock = fs.existsSync(path.join(ROOT, "mcp-server", "package-lock.json"));
-  run("npm", ["--prefix", "mcp-server", hasLock ? "ci" : "install"]);
+  installMcpDependencies();
 }
 
 function buildAdapters() {
   ensureMcpDependencies();
-  run("npm", ["--prefix", "mcp-server", "run", "build"]);
+  try {
+    run("npm", ["--prefix", "mcp-server", "run", "build"]);
+  } catch (error) {
+    installMcpDependencies();
+    run("npm", ["--prefix", "mcp-server", "run", "build"]);
+  }
   run("node", ["scripts/build-adapters.mjs"]);
 }
 
@@ -48,18 +62,72 @@ function packageArchives() {
   run("node", ["scripts/package-plugin.mjs"]);
 }
 
+function copyPluginPackage(source, destination) {
+  if (!fs.existsSync(source)) {
+    throw new Error(`Adapter output was not generated: ${source}`);
+  }
+  if (path.resolve(source) === path.resolve(destination)) {
+    throw new Error(`Refusing to install over the adapter source directory: ${destination}`);
+  }
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.rmSync(destination, { recursive: true, force: true });
+  fs.cpSync(source, destination, { recursive: true, force: true });
+}
+
+function updateCodexMarketplace(marketplacePath) {
+  const entry = {
+    name: "app-factory-autopilot",
+    source: { source: "local", path: "./plugins/app-factory-autopilot" },
+    policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" },
+    category: "Productivity",
+  };
+  let marketplace = {
+    name: "personal",
+    interface: { displayName: "Personal" },
+    plugins: [],
+  };
+  if (fs.existsSync(marketplacePath)) {
+    marketplace = JSON.parse(fs.readFileSync(marketplacePath, "utf-8"));
+    if (!Array.isArray(marketplace.plugins)) marketplace.plugins = [];
+    if (!marketplace.interface) marketplace.interface = { displayName: "Personal" };
+  }
+  const index = marketplace.plugins.findIndex((item) => item && item.name === entry.name);
+  if (index >= 0) marketplace.plugins[index] = entry;
+  else marketplace.plugins.push(entry);
+  fs.mkdirSync(path.dirname(marketplacePath), { recursive: true });
+  fs.writeFileSync(marketplacePath, JSON.stringify(marketplace, null, 2) + "\n", "utf-8");
+}
+
+function installClaudeCode() {
+  const home = os.homedir();
+  const source = path.join(DIST, "claude-code");
+  const destination =
+    process.env.APP_FACTORY_CLAUDE_PLUGIN_DIR ??
+    path.join(home, ".claude", "plugins", "app-factory-autopilot");
+  copyPluginPackage(source, destination);
+  process.stdout.write(`Installed App Factory Autopilot for Claude Code: ${destination}\n`);
+  process.stdout.write("Restart Claude Code, then run: /factory doctor\n");
+}
+
+function installCodex() {
+  const home = os.homedir();
+  const pluginParent = process.env.APP_FACTORY_CODEX_PLUGIN_PARENT ?? path.join(home, "plugins");
+  const marketplacePath =
+    process.env.APP_FACTORY_CODEX_MARKETPLACE ??
+    path.join(home, ".agents", "plugins", "marketplace.json");
+  const source = path.join(DIST, "codex");
+  const destination = path.join(pluginParent, "app-factory-autopilot");
+  copyPluginPackage(source, destination);
+  updateCodexMarketplace(marketplacePath);
+  process.stdout.write(`Installed App Factory Autopilot for Codex: ${destination}\n`);
+  process.stdout.write(`Updated Codex marketplace: ${marketplacePath}\n`);
+  process.stdout.write("Restart Codex, then run: $factory doctor\n");
+}
+
 function installTarget(target) {
-  const installer = path.join(DIST, target, "install-local.sh");
-  if (!fs.existsSync(installer)) {
-    buildAdapters();
-  }
-  if (!fs.existsSync(installer)) {
-    throw new Error(`Installer was not generated: ${installer}`);
-  }
-  const result = spawnSync("sh", [installer], { cwd: path.dirname(installer), stdio: "inherit" });
-  if (result.status !== 0) {
-    throw new Error(`${target} installer failed with exit code ${result.status}`);
-  }
+  if (target === "codex") installCodex();
+  else if (target === "claude-code") installClaudeCode();
+  else throw new Error(`Unsupported install target: ${target}`);
 }
 
 function main() {

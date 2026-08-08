@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.1`.
+The package is published on npm as `app-factory-autopilot@0.1.2`.
 Install the CLI with:
 
 ```bash
@@ -128,9 +128,10 @@ To confirm the published version:
 npm view app-factory-autopilot version
 ```
 
-The CLI builds the bundled MCP server, generates the adapter package, copies it
-to the provider plugin directory, and registers the default Codex personal
-marketplace entry when installing Codex. Codex installs to
+The CLI builds the bundled MCP server, generates the adapter package, and copies
+it with Node's filesystem APIs so installation does not depend on a POSIX shell.
+It also registers the default Codex personal marketplace entry when installing
+Codex. Codex installs to
 `~/plugins/app-factory-autopilot` by default and updates
 `~/.agents/plugins/marketplace.json`.
 
@@ -186,13 +187,15 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.1.tar.gz
-packages/app-factory-autopilot-codex-v0.1.1.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.2.tar.gz
+packages/app-factory-autopilot-codex-v0.1.2.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
 
-Each archive contains an `INSTALL.md` and `install-local.sh`.
+Each archive contains an `INSTALL.md` and `install-local.sh`. The npm CLI is the
+recommended cross-platform installer; the archive `install-local.sh` scripts are
+for POSIX shell environments.
 
 ### 2. Claude Code
 
@@ -202,7 +205,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.1.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.2.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -247,7 +250,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.1.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.2.tar.gz
 cd codex
 ./install-local.sh
 ```

@@ -26,6 +26,7 @@ Thumbs.db
 # 로그·임시 파일
 *.log
 *.tmp
+.tmp-install-*/
 
 # 비밀 정보 (절대 커밋 금지)
 *.keystore

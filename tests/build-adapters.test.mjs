@@ -85,13 +85,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.1.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.1.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.2.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.2.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.1\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.1\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.2\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.2\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 
@@ -107,6 +107,38 @@ test("root npm package exposes install CLI", () => {
   });
   assert.match(help, /install <codex\|claude-code\|both>/);
   assert.match(help, /npx app-factory-autopilot install codex/);
+  const cli = fs.readFileSync(path.join(ROOT, "scripts/app-factory-autopilot.mjs"), "utf-8");
+  assert.doesNotMatch(cli, /spawnSync\("sh"/);
+  assert.match(cli, /fs\.cpSync/);
+  assert.match(cli, /os\.homedir/);
+});
+
+test("npm CLI installs Codex package under the current user's configured paths", () => {
+  const home = fs.mkdtempSync(path.join(ROOT, ".tmp-install-"));
+  try {
+    const pluginParent = path.join(home, "plugins");
+    const marketplace = path.join(home, ".agents", "plugins", "marketplace.json");
+    const output = execFileSync("node", ["scripts/app-factory-autopilot.mjs", "install", "codex"], {
+      cwd: ROOT,
+      encoding: "utf-8",
+      env: {
+        ...process.env,
+        HOME: home,
+        APP_FACTORY_CODEX_PLUGIN_PARENT: pluginParent,
+        APP_FACTORY_CODEX_MARKETPLACE: marketplace,
+      },
+    });
+    const destination = path.join(pluginParent, "app-factory-autopilot");
+    assert.ok(fs.existsSync(path.join(destination, ".codex-plugin", "plugin.json")));
+    assert.ok(fs.existsSync(path.join(destination, "mcp-server", "dist", "index.js")));
+    const registry = JSON.parse(fs.readFileSync(marketplace, "utf-8"));
+    const entry = registry.plugins.find((item) => item.name === "app-factory-autopilot");
+    assert.equal(entry.source.path, "./plugins/app-factory-autopilot");
+    assert.match(output, /Restart Codex, then run: \$factory doctor/);
+    assert.doesNotMatch(output, /parameter not set/);
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
 });
 
 test("npm package excludes generated dependencies and test build output", () => {

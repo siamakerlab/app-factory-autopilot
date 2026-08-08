@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Harden npm installer portability
+
+- Prepared `app-factory-autopilot@0.1.2` as a patch release for cross-machine
+  installer hardening
+- Changed the npm `install` CLI to copy provider packages and update Codex
+  marketplace JSON directly with Node filesystem APIs instead of invoking a
+  POSIX shell installer
+- Added a functional Codex install regression test using a temporary HOME and
+  explicit install path overrides, preventing host-specific path leakage
+- Added a portable archive packaging fallback for environments where `tar` does
+  not support GNU deterministic archive flags
+
 ### 2026-08-08 — Fix Codex npm installer paths
 
 - Prepared `app-factory-autopilot@0.1.1` as a patch release for npm installer fixes
