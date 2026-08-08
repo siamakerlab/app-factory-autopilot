@@ -60,12 +60,12 @@ MVP-1의 목적은 이 시스템의 **최소 완결 공정**을 완성하는 것
 
 ### 3.1 사용자 명령
 
-MVP-1은 다음 4개 명령을 **필수**로 포함합니다. (2026-08-05 사용자 결정으로
-원본 설계서의 plan/go/review 3종 체계를 확장)
+MVP-1은 다음 5개 명령을 **필수**로 포함합니다. (2026-08-05 사용자 결정으로
+원본 설계서의 plan/go/review 3종 체계를 확장, 2026-08-08 `config` 추가)
 
 | 명령 | Claude Code | Codex | 공통 CLI | 역할 |
 |------|-------------|-------|----------|------|
-| config | `/factory config` | `$factory config` | `factory config` | 자동화 실행 옵션 체크박스 설정 — 기본은 에뮬레이터 제외 모두 활성 |
+| config | `/factory config` | `$factory config` | `factory config` | 자동화 실행 옵션 체크박스 설정 — 기본은 에뮬레이터·광고·인앱결제 제외 |
 | plan | `/factory plan "앱 설명"` | `$factory plan "앱 설명"` | `factory plan "앱 설명"` | 대화형 인터뷰 → 계획·1차 로드맵 생성 (코드 구현 안 함) |
 | init | `/factory init` | `$factory init` | `factory init` | **기존 프로젝트에 App Factory Autopilot 도입** — 코드베이스 분석(모듈 구조, Gradle 설정, 기존 라이브러리, 구현 상태), `.app-factory` 상태 저장소 생성, 현재 구현 상태와 로드맵 동기화 |
 | auto | `/factory auto` | `$factory auto` | `factory auto` | **어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행** — 상태 저장소와 실제 코드를 대조해 다음 단계를 스스로 선택하여 전체 공정(빈 폴더면 프로젝트 생성부터, 이후 구현→빌드→테스트→검증→게이트)을 **중단 없이 완료까지** 자동 수행 (3.17) |
