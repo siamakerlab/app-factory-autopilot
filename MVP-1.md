@@ -60,8 +60,9 @@ MVP-1의 목적은 이 시스템의 **최소 완결 공정**을 완성하는 것
 
 ### 3.1 사용자 명령
 
-MVP-1은 다음 5개 명령을 **필수**로 포함합니다. (2026-08-05 사용자 결정으로
-원본 설계서의 plan/go/review 3종 체계를 확장, 2026-08-08 `config` 추가)
+MVP-1은 다음 6개 명령을 **필수**로 포함합니다. (2026-08-05 사용자 결정으로
+원본 설계서의 plan/go/review 3종 체계를 확장, 2026-08-08 `config`와
+`resume` 추가)
 
 | 명령 | Claude Code | Codex | 공통 CLI | 역할 |
 |------|-------------|-------|----------|------|
@@ -69,12 +70,15 @@ MVP-1은 다음 5개 명령을 **필수**로 포함합니다. (2026-08-05 사용
 | plan | `/factory plan "앱 설명"` | `$factory plan "앱 설명"` | `factory plan "앱 설명"` | 대화형 인터뷰 → 계획·1차 로드맵 생성 (코드 구현 안 함) |
 | init | `/factory init` | `$factory init` | `factory init` | **기존 프로젝트에 App Factory Autopilot 도입** — 코드베이스 분석(모듈 구조, Gradle 설정, 기존 라이브러리, 구현 상태), `.app-factory` 상태 저장소 생성, 현재 구현 상태와 로드맵 동기화 |
 | auto | `/factory auto` | `$factory auto` | `factory auto` | **어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행** — 상태 저장소와 실제 코드를 대조해 다음 단계를 스스로 선택하여 전체 공정(빈 폴더면 프로젝트 생성부터, 이후 구현→빌드→테스트→검증→게이트)을 **중단 없이 완료까지** 자동 수행 (3.17) |
+| resume | `/factory resume` | `$factory resume` | `factory resume` | 토큰 한도, 시스템 종료, 세션 강제 종료 등 어떤 이유로든 중단된 실행을 `.app-factory` 상태 저장소 기준으로 찾아 재개 |
 | review | `/factory review` | `$factory review` | `factory review` | 구현을 신뢰하지 않는 전체 재감사 |
 
 보조 명령으로 `factory status`(현재 상태 요약 조회)와 `factory doctor`(개발
 환경 필수 역량 점검·설치 제안, 3.14 참조)를 포함합니다. 원본 설계서의
-`factory go`는 `factory auto`의 호환 별칭으로 유지합니다 (`auto`는 중단 지점부터
-이어서 진행하므로 go의 역할을 포괄).
+`factory go`는 `factory auto`의 호환 별칭으로 유지합니다. `factory auto`도
+상태 저장소 기준으로 재진입 가능하지만, `factory resume`은 중단 복구 의도를
+run 기록에 남기고 stale claim 회수와 최신 run/task/roadmap/gate 상태 탐색을
+우선 수행합니다.
 
 모든 표현은 플랫폼과 무관하게 내부적으로 동일한 Factory 워크플로를 실행합니다.
 플러그인은 향후 명령을 추가할 수 있는 확장 가능한 명령 라우팅 구조를 가져야

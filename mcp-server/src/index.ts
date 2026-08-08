@@ -18,8 +18,10 @@ import * as gate from "./tools/gate.js";
 import * as dep from "./tools/dependency.js";
 import * as ap from "./tools/approval-placeholder.js";
 import * as cap from "./tools/capability.js";
+import * as cfg from "./tools/config.js";
+import * as plan from "./tools/plan.js";
 import { decideNextAction, handleTaskFailure } from "./orchestrator.js";
-import { reviewScore, reviewSaveReport } from "./tools/review.js";
+import { reviewPlanFixes, reviewScore, reviewSaveReport } from "./tools/review.js";
 import { buildProgressReport, renderProgressReport } from "./report.js";
 
 function parseArgs(argv: string[]): { projectRoot: string; coreDir: string } {
@@ -80,6 +82,12 @@ export function buildServer(ctx: Ctx): McpServer {
     ["factory_finish_cycle", "사이클 종료 — 진행 보고 4요소 기록", any, factory.factoryFinishCycle as Handler],
     ["factory_abort_cycle", "run 중단 종료 (exit_reason 기록)", any, factory.factoryAbortCycle as Handler],
     ["factory_recover_stale_claims", "stale 클레임 회수 (재개 절차)", any, factory.recoverStaleClaims as Handler],
+    ["factory_config_get", "factory config 현재 체크박스 설정 조회", z.object({}), cfg.factoryConfigGet as Handler],
+    ["factory_config_update", "factory config 체크박스 설정 저장 및 파생 설정 동기화", any, cfg.factoryConfigUpdate as Handler],
+    // plan 인터뷰
+    ["plan_get_next_questions", "factory plan 인터뷰 다음 질문 묶음 조회", any, plan.planGetNextQuestions as Handler],
+    ["plan_submit_answers", "factory plan 인터뷰 답변 저장 및 Placeholder 변환", any, plan.planSubmitAnswers as Handler],
+    ["plan_apply_mock_answers", "factory plan E2E용 모의 응답 주입", any, plan.planApplyMockAnswers as Handler],
     // 로드맵
     ["roadmap_parse", "로드맵 항목 반입·검증 (JSON SSOT)", any, roadmap.roadmapParse as Handler],
     ["roadmap_get_items", "로드맵 항목 조회 (상태·우선순위 필터)", any, roadmap.roadmapGetItems as Handler],
@@ -122,6 +130,7 @@ export function buildServer(ctx: Ctx): McpServer {
     // review 점수화
     ["review_score", "배점표 기반 영역별 점수·격차 산정 (3.16)", any, reviewScore as Handler],
     ["review_save_report", "review 리포트 저장 (전/후 비교)", any, reviewSaveReport as Handler],
+    ["review_plan_fixes", "review 실패 항목을 안전 자동수정 후보와 사용자 판단 항목으로 분류", any, reviewPlanFixes as Handler],
     // 오케스트레이션
     ["orchestrator_decide_next", "상태 기반 다음 행동 결정 (결정론적)", z.object({}), decideNextAction as Handler],
     ["task_report_failure", "작업 실패 보고 — 재시도 정책 적용 (재큐/차단+승인요청)", any, handleTaskFailure as Handler],

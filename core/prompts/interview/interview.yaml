@@ -26,7 +26,7 @@ areas:
   - id: automation
     title: 자동화 실행 범위
     questions:
-      - { id: config_hint, ask: "`/factory config`에서 자동화 옵션을 체크박스로 바꿀 수 있습니다. 기본값은 에뮬레이터 제외 모두 활성입니다.", type: text, default: 기본값 유지, config: null, optional: true }
+      - { id: config_hint, ask: "`/factory config`에서 자동화 옵션을 체크박스로 바꿀 수 있습니다. 기본값은 에뮬레이터·광고·인앱결제 제외입니다.", type: text, default: 기본값 유지, config: null, optional: true }
       - { id: emulator_enabled, ask: "에뮬레이터 실행 검증을 자동 공정 중에 사용합니까? (기본: 사용 안 함. 마지막에만 사용 권유)", type: boolean, default: false, config: automation.emulator }
 
   - id: basics

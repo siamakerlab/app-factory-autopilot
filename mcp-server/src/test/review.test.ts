@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import { makeCtx } from "./helpers.js";
-import { reviewScore, reviewSaveReport } from "../tools/review.js";
+import { reviewPlanFixes, reviewScore, reviewSaveReport } from "../tools/review.js";
 
 test("점수 산정 — pass/fail 가중 합산, n_a 분모 제외", () => {
   const { ctx, cleanup } = makeCtx();
@@ -90,6 +90,23 @@ test("리포트 저장 — 전/후 비교표", () => {
     assert.match(content, /다국어/);
     assert.match(content, /개선 계획/);
     assert.match(content, new RegExp(`${before.overall}점 → ${after.overall}점`));
+  } finally {
+    cleanup();
+  }
+});
+
+test("안전 수정 후보와 위험 항목을 분리한다", () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    const score = reviewScore(ctx, {
+      results: {
+        i18n: { no_hardcoded_strings: "fail", locale_safe: "pass" },
+        billing: { purchase_flow: "fail", restore: "n_a", offline_grace: "n_a" },
+      },
+    });
+    const plan = reviewPlanFixes(ctx, { score });
+    assert.equal(plan.auto_fix.some((f) => f.check_id === "no_hardcoded_strings"), true);
+    assert.equal(plan.needs_human_decision.some((f) => f.check_id === "purchase_flow"), true);
   } finally {
     cleanup();
   }

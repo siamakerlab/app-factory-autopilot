@@ -15,7 +15,7 @@
     },
     "command": {
       "type": "string",
-      "enum": ["plan", "init", "auto", "review", "status", "doctor"]
+      "enum": ["config", "plan", "init", "auto", "resume", "review", "status", "doctor"]
     },
     "provider": { "type": "string", "enum": ["claude-code", "codex", "cli"] },
     "resumed_from_run_id": {

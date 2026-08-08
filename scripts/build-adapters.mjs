@@ -206,10 +206,10 @@ function latestRun(dir) {
 }
 
 const run = latestRun(path.join(process.cwd(), ".app-factory", "runs"));
-if (run && run.status === "running" && run.command === "auto") {
+if (run && run.status === "running" && (run.command === "auto" || run.command === "resume")) {
   console.log(JSON.stringify({
     decision: "block",
-    reason: "factory auto 공정이 완료되지 않았습니다. orchestrator_decide_next로 다음 사이클을 계속 진행하십시오 (One-Prompt Completion — MVP-1.md 3.17). 종료 조건: 게이트 전체 통과 / 강제 중단 / 한도 초과.",
+    reason: "factory auto/resume 공정이 완료되지 않았습니다. orchestrator_decide_next로 다음 사이클을 계속 진행하십시오 (One-Prompt Completion — MVP-1.md 3.17). 종료 조건: 게이트 전체 통과 / 강제 중단 / 한도 초과.",
   }));
 }
 process.exit(0);
@@ -226,7 +226,7 @@ write(
 
 - **공통 규칙의 단일 원본은 \`APP_FACTORY_RULES.md\`입니다. 먼저 읽으십시오.**
 - 상태 변경은 app-factory-core MCP 도구로만 수행합니다 (\`.app-factory/\` 직접 수정 금지).
-- 명령: \`/factory config|plan|init|auto|review|status|doctor\`
+- 명령: \`/factory config|plan|init|auto|resume|review|status|doctor\`
 `,
 );
 
@@ -262,7 +262,7 @@ write(
 - 역할 정의: \`.app-factory-codex/agents/\` (worker/verifier 분리 원칙 — 구현
   세션과 검증 세션을 분리 실행한다. 서브에이전트 미지원 환경에서는 역할
   전환 프롬프트로 강등하되 동일 세션에서 구현·검증 겸임 금지).
-- 명령: \`$factory config|plan|init|auto|review|status|doctor\`
+- 명령: \`$factory config|plan|init|auto|resume|review|status|doctor\`
 `,
 );
 

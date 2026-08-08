@@ -1,6 +1,6 @@
 ---
 name: factory-config
-description: 자동화 실행 옵션을 체크박스로 설정 — 기본은 에뮬레이터 제외 모두 활성
+description: 자동화 실행 옵션을 체크박스로 설정 — 기본은 에뮬레이터·광고·인앱결제 제외
 kind: entry
 uses_skills: [capability-audit]
 ---

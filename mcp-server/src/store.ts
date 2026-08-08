@@ -380,4 +380,22 @@ export class StateStore {
   saveConfigSnapshot(config: unknown): void {
     this.writeJsonAtomic(this.configSnapshotPath(), config);
   }
+
+  interviewAreaPath(area: string): string {
+    return path.join(this.root, "config", "interview", `${area}.json`);
+  }
+
+  loadInterviewArea(area: string): { version: 1; area: string; answers: Record<string, unknown>; updated_at?: string } {
+    return this.readJson(this.interviewAreaPath(area));
+  }
+
+  loadInterviewAreaIfExists(area: string): { version: 1; area: string; answers: Record<string, unknown>; updated_at?: string } {
+    const p = this.interviewAreaPath(area);
+    if (!fs.existsSync(p)) return { version: 1, area, answers: {} };
+    return this.readJson(p);
+  }
+
+  saveInterviewArea(doc: { version: 1; area: string; answers: Record<string, unknown>; updated_at?: string }): void {
+    this.writeJsonAtomic(this.interviewAreaPath(doc.area), { ...doc, updated_at: nowIso() });
+  }
 }

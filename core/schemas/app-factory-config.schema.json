@@ -37,7 +37,7 @@
     "version": { "const": 1 },
     "automation": {
       "type": "object",
-      "description": "/factory config에서 체크박스로 조정하는 자동화 실행 옵션. 기본은 emulator 제외 모두 활성.",
+      "description": "/factory config에서 체크박스로 조정하는 자동화 실행 옵션. 기본은 emulator·ads·billing 제외.",
       "additionalProperties": false,
       "properties": {
         "market_research": { "type": "boolean", "description": "경쟁 앱·커뮤니티·리뷰 조사" },

@@ -30,6 +30,14 @@ export interface AreaScore {
   failed_checks: { id: string; desc: string; weight: number }[];
 }
 
+export interface ReviewFixDecision {
+  area: string;
+  check_id: string;
+  desc: string;
+  action: "auto_fix" | "needs_human_decision";
+  rationale: string;
+}
+
 export function loadScoring(coreDir: string): ScoringDoc {
   const p = path.join(coreDir, "policies", "review-scoring.yaml");
   return parseYaml(fs.readFileSync(p, "utf-8")) as ScoringDoc;
@@ -111,4 +119,52 @@ export function reviewSaveReport(
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, lines.join("\n") + "\n", "utf-8");
   return { report_path: reportPath };
+}
+
+export function reviewPlanFixes(
+  ctx: Ctx,
+  input: {
+    score: { areas: AreaScore[] };
+    safe_fix_ids?: string[];
+    risky_fix_ids?: string[];
+  },
+): { auto_fix: ReviewFixDecision[]; needs_human_decision: ReviewFixDecision[] } {
+  const safe = new Set(input.safe_fix_ids ?? [
+    "no_hardcoded_strings",
+    "locale_safe",
+    "dark_mode",
+    "touch_targets",
+    "labels_affordance",
+    "recovery_paths",
+    "evidence_sources",
+  ]);
+  const risky = new Set(input.risky_fix_ids ?? [
+    "purchase_flow",
+    "restore",
+    "ump_consent",
+    "no_test_ids_release",
+    "play_core_policy",
+    "privacy_disclosure",
+  ]);
+  const auto_fix: ReviewFixDecision[] = [];
+  const needs_human_decision: ReviewFixDecision[] = [];
+
+  for (const area of input.score.areas) {
+    for (const failed of area.failed_checks) {
+      const decision: ReviewFixDecision = {
+        area: area.area,
+        check_id: failed.id,
+        desc: failed.desc,
+        action: safe.has(failed.id) && !risky.has(failed.id) ? "auto_fix" : "needs_human_decision",
+        rationale: "",
+      };
+      decision.rationale =
+        decision.action === "auto_fix"
+          ? "정책상 코드/문구/문서 수준의 저위험 수정 후보"
+          : "결제·광고·개인정보·스토어 정책 또는 제품 의사결정 영향으로 사용자 확인 필요";
+      (decision.action === "auto_fix" ? auto_fix : needs_human_decision).push(decision);
+    }
+  }
+
+  return { auto_fix, needs_human_decision };
 }

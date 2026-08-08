@@ -45,14 +45,15 @@
 | AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
 | AFA-026 | M3 코어 | 무중단 진행 드라이버 (One-Prompt Completion) | P0 | 🟦 |
 | AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | 🟦 |
-| AFA-031 | M4 Agent/Skill | 진입 Skill 8종 (config/plan/init/auto/review/status/doctor/factory) | P0 | 🟦 |
+| AFA-031 | M4 Agent/Skill | 진입 Skill 9종 (config/plan/init/auto/resume/review/status/doctor/factory) | P0 | 🟦 |
 | AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | 🟦 |
 | AFA-033 | M4 Agent/Skill | Capability Doctor 구현 | P1 | 🟧 |
-| AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름·산출물 생성 | P0 | 🟧 |
+| AFA-034 | M4 Agent/Skill | factory plan 인터뷰 흐름·산출물 생성 | P0 | 🟦 |
 | AFA-035 | M4 Agent/Skill | project-template (plan 산출물 17종 템플릿) | P0 | 🟧 |
 | AFA-036 | M4 Agent/Skill | factory review 파이프라인·점수화 | P0 | 🟧 |
 | AFA-057 | M4 Agent/Skill | 경쟁사·커뮤니티 리서치 기반 제품 완성도 루프 | P0 | 🟧 |
 | AFA-058 | M4 Agent/Skill | factory config 자동화 옵션 체크박스 | P0 | 🟧 |
+| AFA-059 | M4 Agent/Skill | factory resume 중단 복구 명령 | P0 | 🟦 |
 | AFA-040 | M5 어댑터 | Claude Code 어댑터 | P0 | 🟧 |
 | AFA-041 | M5 어댑터 | Codex 어댑터 | P0 | 🟧 |
 | AFA-042 | M5 어댑터 | 코어→어댑터 빌드 파이프라인 | P0 | 🟦 |
@@ -499,12 +500,12 @@
   테스트 유효성→빌드 증거)를 순서대로 명시하고, 각 검사의 증거 등록을
   요구한다.
 
-### AFA-031 진입 Skill 8종 — 🟦 (2026-08-08 구현 제출 보강)
+### AFA-031 진입 Skill 9종 — 🟦 (2026-08-08 구현 제출 보강)
 
 - **근거**: MVP-1.md 3.1, 3.12 / **의존성**: AFA-020, AFA-026(auto의
   무중단 드라이버), AFA-033(doctor 진입) / **위험도**: 중
 - **구현 범위**: `factory`(라우터), `factory-config`, `factory-plan`,
-  `factory-init`, `factory-auto`, `factory-review`, `factory-status`,
+  `factory-init`, `factory-auto`, `factory-resume`, `factory-review`, `factory-status`,
   `factory-doctor`
 - **완료 조건**:
   - [x] `factory` 라우터가 하위 명령을 파싱해 해당 Skill로 위임한다 (미지원
@@ -514,6 +515,7 @@
   - [x] `factory-init`이 빈 폴더에서 실행되면 "기존 프로젝트 전용" 안내와
     함께 plan을 권한다
   - [x] `factory-go` 별칭이 auto로 연결된다
+  - [x] `factory-resume`이 중단 복구 명령으로 라우터와 어댑터 산출물에 포함된다
 - **지침**: 진입 Skill은 얇게 유지한다 — 인자 파싱, 전제 조건 확인
   (프리플라이트 capability-audit 포함), 오케스트레이터/공정 Skill 위임까지만.
   공정 로직을 진입 Skill에 넣으면 플랫폼별 변환에서 중복이 생긴다.
@@ -565,7 +567,7 @@
   (`<!-- app-factory:capabilities:start/end -->`) 내부만 교체한다. 전역
   문서는 사용자 소유이므로 추가 전 diff를 보여주고 확인받는다.
 
-### AFA-034 factory plan 인터뷰 흐름·산출물 생성 — 🟧 (2026-08-08 로컬 구현 보강)
+### AFA-034 factory plan 인터뷰 흐름·산출물 생성 — 🟦 (2026-08-08 구현 제출)
 
 - **근거**: MVP-1.md 3.11, 3.10, 설계서 5장 / **의존성**: AFA-004,
   AFA-035(템플릿) / **위험도**: 상
@@ -574,16 +576,18 @@
   생성 규칙. **인터뷰 결과 → AFA-035 템플릿 렌더링 → plan 산출물 17종 생성기
   포함** (2026-08-05 정밀점검: 산출물 생성 로직의 소유 항목이 없던 누락 보완)
 - **완료 조건**:
-  - [ ] 질문이 영역별 작은 묶음으로 제시된다 (한 번에 수십 개 금지)
-  - [ ] 이미 답한 내용을 다시 묻지 않는다 (답변은 즉시 상태 저장소에 기록)
-  - [ ] "모름/미정" 응답이 올바른 Placeholder + 메타데이터로 변환된다
-  - [ ] 인터뷰 중단 후 재실행 시 남은 질문부터 이어진다
+  - [x] 질문이 영역별 작은 묶음으로 제시된다 (한 번에 수십 개 금지)
+  - [x] 이미 답한 내용을 다시 묻지 않는다 (답변은 즉시 상태 저장소에 기록)
+  - [x] "모름/미정" 응답이 올바른 Placeholder + 메타데이터로 변환된다
+  - [x] 인터뷰 중단 후 재실행 시 남은 질문부터 이어진다
   - [x] 인터뷰 완료 시 3.10 산출물 17종이 생성되고 스키마 검증을 통과한다
-  - [ ] 모의 응답 주입 모드를 지원한다 (E2E AFA-053이 이 모드를 사용)
-- **로컬 검증 보강**: `scripts/render-app-factory-project.mjs --scope docs`가
-  예시 APP_FACTORY 설정에서 plan 산출물 17종을 생성하고 미해결 템플릿 변수가
-  남지 않는지 `tests/factory-project-render.test.mjs`로 검증한다. 실제 대화형
-  인터뷰 진행과 중단 후 질문 재개는 어댑터/실세션 검증 필요로 🟧 유지.
+  - [x] 모의 응답 주입 모드를 지원한다 (E2E AFA-053이 이 모드를 사용)
+- **로컬 검증 보강**: `plan_get_next_questions`, `plan_submit_answers`,
+  `plan_apply_mock_answers` MCP 도구와 `tests/plan-config.test.ts`가 작은 질문 묶음,
+  답변 즉시 저장, 재실행 시 이미 답한 질문 생략, 미정 응답의 Placeholder 변환,
+  모의 응답 파일 주입을 검증한다. `scripts/render-app-factory-project.mjs
+  --scope docs`는 예시 APP_FACTORY 설정에서 plan 산출물 17종 생성과 미해결
+  템플릿 변수 부재를 검증한다.
 - **지침**: 인터뷰 정의는 데이터(YAML: 질문 ID, 조건, 기본값, 답변 타입,
   placeholder 매핑)로 작성하고 진행 로직은 공통 하나로 만든다. 질문을
   프롬프트에 하드코딩하면 영역 추가·수정 시 회귀가 생긴다. 기술 자동 결정
@@ -705,6 +709,25 @@
   에뮬레이터 기본값은 false이며, false일 때는 중간에 사용 여부를 묻지 않는다.
   최종 보고에서만 "에뮬레이터 검증을 켜고 재실행" 권유를 표시한다.
 
+### AFA-059 factory resume 중단 복구 명령 — 🟦 (2026-08-08 구현 제출)
+
+- **근거**: 사용자 요구(토큰 한도, 시스템 종료, 세션 강제 종료 등 어떤 이유로든
+  작업 세션이 중단된 경우 `/factory resume`으로 중단 지점을 찾아 계속 진행) /
+  **의존성**: AFA-003, AFA-020, AFA-026, AFA-031 / **위험도**: 상
+- **구현 범위**: `/factory resume`, `$factory resume`, `factory resume` 진입
+  Skill. `.app-factory` 상태 저장소 기준으로 최신 run/task/roadmap/gate 상태를
+  읽고 stale claim을 회수한 뒤 `driveAuto(command=resume)`로 동일 지점부터
+  무중단 진행한다.
+- **완료 조건**:
+  - [x] `factory-resume` Skill과 라우터 위임 항목이 존재한다
+  - [x] Run 스키마와 MCP 타입이 `command=resume`을 허용한다
+  - [x] Stop Hook이 `auto`뿐 아니라 `resume` 실행 중에도 종료를 차단한다
+  - [x] `factory_recover_stale_claims` 후 상태 저장소만 보고 다음 작업을
+    결정하는 드라이버 테스트가 존재한다
+- **지침**: resume은 대화 이력을 신뢰하지 않는다. 복구 기준은 항상
+  `.app-factory` 상태 저장소이며, 완료된 작업은 재수행하지 않는다. 위험 작업,
+  승인, Placeholder, evidence, gate 정책은 `factory auto`와 동일하게 적용한다.
+
 ---
 
 ## M5. 어댑터 (`adapters/`)
@@ -716,7 +739,7 @@
   서브에이전트 변환, Skill 변환, MCP 서버 등록 설정, CLAUDE.md 생성기
   (공통 규칙 파일을 읽으라는 지시만 배치)
 - **완료 조건**:
-  - [ ] 로컬 설치 후 `/factory config|plan|init|auto|review|status|doctor`가 모두
+  - [ ] 로컬 설치 후 `/factory config|plan|init|auto|resume|review|status|doctor`가 모두
     호출된다
   - [x] 생성된 CLAUDE.md가 APP_FACTORY_RULES.md 참조 지시만 포함한다 (내용
     중복 없음)
@@ -738,7 +761,7 @@
 - **구현 범위**: Codex 매니페스트/설정, `$factory` 진입, AGENTS.md 생성기,
   MCP 설정, 실행 래퍼
 - **완료 조건**:
-  - [ ] Codex 환경에서 `$factory config|plan|init|auto|review`가 동작한다
+  - [ ] Codex 환경에서 `$factory config|plan|init|auto|resume|review`가 동작한다
   - [x] 실행 래퍼 루프가 공정 완료까지 사이클을 자동 반복한다 (AFA-026 연동)
   - [x] AGENTS.md가 공통 규칙 참조 방식으로 생성된다
   - [ ] 동일 프로젝트를 Claude Code ↔ Codex가 번갈아 열어도 상태 저장소가
@@ -889,7 +912,6 @@
 | 항목 | 잔여 검증 | 필요 환경 |
 |------|-----------|-----------|
 | AFA-033 | 실제 설치 명령 실행, 전역 관리문서 반영 확인 | Claude Code 플러그인 설치 환경 |
-| AFA-034 | 대화형 인터뷰, 중단 후 재개, 모의 응답 주입 산출물 생성 | 플러그인 대화 세션 |
 | AFA-035 | 스캐폴드 치환 후 `assembleDebug` 성공 | Gradle wrapper/Android 빌드 환경 |
 | AFA-036 | 안전 수정 자동 실행과 위험 수정 보류의 provider 실동작 | 플러그인 실환경 |
 | AFA-040 | 플러그인 설치, /factory 호출, Stop Hook 무중단 동작 | Claude Code 실환경 |
