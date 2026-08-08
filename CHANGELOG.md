@@ -6,6 +6,7 @@
 
 - Added root npm package metadata and the `app-factory-autopilot` / `afa` CLI
   for `npm install -g` and `npx` based installation
+- Published `app-factory-autopilot@0.1.0` to the public npm registry
 - Added CLI commands: `install <codex|claude-code|both>`, `build`, `package`,
   and `path`
 - Added Codex plugin manifest generation (`.codex-plugin/plugin.json`) and Codex

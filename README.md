@@ -101,7 +101,8 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-After the package is published, install the CLI with:
+The package is published on npm as `app-factory-autopilot@0.1.0`.
+Install the CLI with:
 
 ```bash
 npm install -g app-factory-autopilot
@@ -119,6 +120,12 @@ For one-off usage:
 ```bash
 npx app-factory-autopilot install codex
 npx app-factory-autopilot install claude-code
+```
+
+To confirm the published version:
+
+```bash
+npm view app-factory-autopilot version
 ```
 
 The CLI builds the bundled MCP server, generates the adapter package, copies it
