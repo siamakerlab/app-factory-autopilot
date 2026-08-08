@@ -16,33 +16,48 @@ emit() {
   printf '{ "status": "%s", "detail": "%s" }\n' "$1" "$2" | tee "$OUT/result.json"
 }
 
-command -v adb >/dev/null 2>&1 || { emit blocked "adb 없음 — Android SDK platform-tools 필요"; exit 3; }
+find_adb() {
+  if command -v adb >/dev/null 2>&1; then
+    command -v adb
+    return 0
+  fi
+  for sdk in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}" "$HOME/Android/Sdk"; do
+    [ -n "$sdk" ] || continue
+    if [ -x "$sdk/platform-tools/adb" ]; then
+      printf '%s\n' "$sdk/platform-tools/adb"
+      return 0
+    fi
+  done
+  return 1
+}
 
-DEVICE=$(adb devices | awk 'NR>1 && $2=="device" {print $1; exit}')
+ADB="$(find_adb)" || { emit blocked "adb 없음 — Android SDK platform-tools 필요"; exit 3; }
+
+DEVICE=$("$ADB" devices | awk 'NR>1 && $2=="device" {print $1; exit}')
 [ -n "${DEVICE:-}" ] || { emit blocked "연결된 디바이스/에뮬레이터 없음"; exit 3; }
 
-adb -s "$DEVICE" install -r "$APK" >/dev/null 2>&1 || { emit crash "APK 설치 실패"; exit 1; }
-adb -s "$DEVICE" shell pm clear "$PKG" >/dev/null 2>&1   # 앱 데이터 초기화
-adb -s "$DEVICE" logcat -c
-adb -s "$DEVICE" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 \
+"$ADB" -s "$DEVICE" install -r "$APK" >/dev/null 2>&1 || { emit crash "APK 설치 실패"; exit 1; }
+"$ADB" -s "$DEVICE" shell pm clear "$PKG" >/dev/null 2>&1   # 앱 데이터 초기화
+"$ADB" -s "$DEVICE" logcat -c
+"$ADB" -s "$DEVICE" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 \
   || { emit crash "앱 실행 실패"; exit 1; }
 
 sleep 10   # 초기 크래시 관찰 구간
 
 # 프로세스 생존 확인
-if ! adb -s "$DEVICE" shell pidof "$PKG" >/dev/null 2>&1; then
-  adb -s "$DEVICE" logcat -d -b crash > "$OUT/logcat-fatal.txt" 2>/dev/null
+if ! "$ADB" -s "$DEVICE" shell pidof "$PKG" >/dev/null 2>&1; then
+  "$ADB" -s "$DEVICE" logcat -d -b crash > "$OUT/logcat-fatal.txt" 2>/dev/null
   emit crash "실행 10초 내 프로세스 종료 — logcat-fatal.txt 확인"
   exit 1
 fi
 
 # FATAL 로그 스캔
-adb -s "$DEVICE" logcat -d | grep -E "FATAL EXCEPTION|ANR in $PKG" > "$OUT/logcat-fatal.txt" 2>/dev/null
+"$ADB" -s "$DEVICE" logcat -d | grep -E "FATAL EXCEPTION|ANR in $PKG" > "$OUT/logcat-fatal.txt" 2>/dev/null
 if [ -s "$OUT/logcat-fatal.txt" ]; then
   emit crash "FATAL/ANR 로그 감지 — logcat-fatal.txt 확인"
   exit 1
 fi
 
-adb -s "$DEVICE" exec-out screencap -p > "$OUT/screenshot.png" 2>/dev/null
+"$ADB" -s "$DEVICE" exec-out screencap -p > "$OUT/screenshot.png" 2>/dev/null
 emit ok "설치·실행·10초 생존·FATAL 없음 (screenshot.png 저장)"
 exit 0

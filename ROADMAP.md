@@ -1013,6 +1013,10 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   `automation.emulator=true`로 켠 경우 디바이스 부재는 `BLOCKED`로 남기되,
   3.17 질문 지연 원칙에 따라 `pending_decisions`로 적체하고 나머지 게이트를
   마저 수행한 뒤 종료 보고에 포함한다.
+- **로컬 검증 보강**: `scripts/emulator-smoke.sh`는 PATH 외에도
+  `ANDROID_HOME`, `ANDROID_SDK_ROOT`, `~/Android/Sdk` 아래의 adb를 탐색한다.
+  현재 환경에서 SDK adb를 찾아 연결 디바이스 없음 상태를 `blocked`로 기록하는
+  경로를 확인했다. 실제 APK 설치·실행·스크린샷 증거는 연결 디바이스 필요.
 
 ### AFA-053 E2E: 빈 폴더 신규 개발 시나리오 — 🟧 (2026-08-08 로컬 구현 보강)
 

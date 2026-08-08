@@ -26,6 +26,13 @@
   Skill/MVP/ROADMAP에 명시
 - 검증: MCP 테스트 75건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트 통과
 
+### 2026-08-08 — 에뮬레이터 smoke adb 탐색 보강
+
+- `scripts/emulator-smoke.sh`가 PATH뿐 아니라 `ANDROID_HOME`, `ANDROID_SDK_ROOT`,
+  `~/Android/Sdk` 아래의 `platform-tools/adb`를 탐색하도록 보강
+- 검증: `sh -n scripts/emulator-smoke.sh` 통과, PATH에서 adb를 제거한 상태에서
+  SDK adb를 찾아 연결 디바이스 없음 `blocked` 결과를 기록함
+
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
 
 - AdMob 광고와 인앱결제는 `plan` 또는 `config`에서 사용자가 명시하지 않으면
