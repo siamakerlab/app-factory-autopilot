@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Automate provider activation after npm install
+
+- Prepared `app-factory-autopilot@0.1.4` as a patch release for one-command
+  provider setup
+- `app-factory-autopilot install codex` now registers the personal marketplace
+  and tries `codex plugin add app-factory-autopilot@personal`
+- `app-factory-autopilot install claude-code` now creates a local Claude
+  marketplace and tries `claude plugin marketplace add` plus
+  `claude plugin install app-factory-autopilot@app-factory-autopilot-local`
+- Added `APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1` for CI or manual activation
+  flows
+
 ### 2026-08-08 — Add common factory runtime helper
 
 - Prepared `app-factory-autopilot@0.1.3` as a patch release for command-surface

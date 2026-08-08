@@ -85,13 +85,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.3.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.3.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.4.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.4.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.3\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.3\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.4\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.4\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 
@@ -112,6 +112,8 @@ test("root npm package exposes install CLI", () => {
   assert.doesNotMatch(cli, /spawnSync\("sh"/);
   assert.match(cli, /fs\.cpSync/);
   assert.match(cli, /os\.homedir/);
+  assert.ok(cli.includes('"codex", ["plugin", "add"'));
+  assert.ok(cli.includes('"claude", ["plugin", "marketplace", "add"'));
 });
 
 test("common factory runtime CLI exposes local status, config, doctor, and test helpers", () => {
@@ -160,6 +162,7 @@ test("npm CLI installs Codex package under the current user's configured paths",
         HOME: home,
         APP_FACTORY_CODEX_PLUGIN_PARENT: pluginParent,
         APP_FACTORY_CODEX_MARKETPLACE: marketplace,
+        APP_FACTORY_SKIP_PROVIDER_ACTIVATION: "1",
       },
     });
     const destination = path.join(pluginParent, "app-factory-autopilot");
@@ -169,7 +172,33 @@ test("npm CLI installs Codex package under the current user's configured paths",
     const entry = registry.plugins.find((item) => item.name === "app-factory-autopilot");
     assert.equal(entry.source.path, "./plugins/app-factory-autopilot");
     assert.match(output, /Restart Codex, then run: \$factory doctor/);
+    assert.match(output, /Activation pending: Codex plugin activation skipped/);
     assert.doesNotMatch(output, /parameter not set/);
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("npm CLI installs Claude package as a local marketplace and skips activation in CI", () => {
+  const home = fs.mkdtempSync(path.join(ROOT, ".tmp-install-"));
+  try {
+    const marketplaceRoot = path.join(home, ".claude", "plugins", "marketplaces", "app-factory-autopilot-local");
+    const output = execFileSync("node", ["scripts/app-factory-autopilot.mjs", "install", "claude-code"], {
+      cwd: ROOT,
+      encoding: "utf-8",
+      env: {
+        ...process.env,
+        HOME: home,
+        APP_FACTORY_CLAUDE_MARKETPLACE_ROOT: marketplaceRoot,
+        APP_FACTORY_SKIP_PROVIDER_ACTIVATION: "1",
+      },
+    });
+    const destination = path.join(marketplaceRoot, "plugins", "app-factory-autopilot");
+    assert.ok(fs.existsSync(path.join(destination, ".claude-plugin", "plugin.json")));
+    const marketplace = JSON.parse(fs.readFileSync(path.join(marketplaceRoot, ".claude-plugin", "marketplace.json"), "utf-8"));
+    assert.equal(marketplace.name, "app-factory-autopilot-local");
+    assert.equal(marketplace.plugins[0].source, "./plugins/app-factory-autopilot");
+    assert.match(output, /Activation pending: Claude marketplace registration skipped/);
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }

@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.3`.
+The package is published on npm as `app-factory-autopilot@0.1.4`.
 Install the CLI with:
 
 ```bash
@@ -130,8 +130,9 @@ npm view app-factory-autopilot version
 
 The CLI builds the bundled MCP server, generates the adapter package, and copies
 it with Node's filesystem APIs so installation does not depend on a POSIX shell.
-It also registers the default Codex personal marketplace entry when installing
-Codex. Codex installs to
+It also registers provider marketplaces and tries to activate the plugin with
+`codex plugin add` or `claude plugin install` when those CLIs are available.
+Codex installs to
 `~/plugins/app-factory-autopilot` by default and updates
 `~/.agents/plugins/marketplace.json`.
 
@@ -142,6 +143,12 @@ APP_FACTORY_CODEX_PLUGIN_PARENT="$HOME/plugins" \
 APP_FACTORY_CODEX_MARKETPLACE="$HOME/.agents/plugins/marketplace.json" \
 app-factory-autopilot install codex
 ```
+
+Claude Code installs through a local marketplace rooted at
+`~/.claude/plugins/marketplaces/app-factory-autopilot-local` by default. Override
+it with `APP_FACTORY_CLAUDE_MARKETPLACE_ROOT`. Set
+`APP_FACTORY_SKIP_PROVIDER_ACTIVATION=1` to copy/register files without invoking
+provider CLIs.
 
 Useful CLI commands:
 
@@ -202,8 +209,8 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.3.tar.gz
-packages/app-factory-autopilot-codex-v0.1.3.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.4.tar.gz
+packages/app-factory-autopilot-codex-v0.1.4.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
@@ -220,7 +227,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.3.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.4.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -265,7 +272,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.3.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.4.tar.gz
 cd codex
 ./install-local.sh
 ```
