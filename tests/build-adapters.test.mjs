@@ -37,15 +37,24 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.ok(first.has("claude-code/project-template/docs/APP_FACTORY_RULES.md.mustache"));
   assert.ok(first.has("claude-code/scripts/render-app-factory-project.mjs"));
   assert.ok(first.has("codex/prompts/factory.md"));
+  assert.ok(first.has("codex/.codex-plugin/plugin.json"));
+  assert.ok(first.has("codex/.mcp.json"));
   assert.ok(first.has("codex/config/mcp.toml"));
   assert.ok(first.has("codex/bin/factory-auto-loop.sh"));
   assert.ok(first.has("codex/mcp-server/dist/index.js"));
   assert.ok(first.has("codex/mcp-server/package.json"));
   assert.ok(first.has("codex/project-template/android/settings.gradle.kts.mustache"));
   assert.ok(first.has("codex/scripts/render-app-factory-project.mjs"));
+  assert.ok(first.has("codex/INSTALL.md"));
+  assert.ok(first.has("codex/install-local.sh"));
+  assert.ok(first.has("claude-code/INSTALL.md"));
+  assert.ok(first.has("claude-code/install-local.sh"));
 
   const manifest = JSON.parse(first.get("claude-code/.claude-plugin/plugin.json"));
   assert.equal(manifest.name, "app-factory-autopilot");
+  const codexManifest = JSON.parse(first.get("codex/.codex-plugin/plugin.json"));
+  assert.equal(codexManifest.name, "app-factory-autopilot");
+  assert.equal(codexManifest.mcpServers, "./.mcp.json");
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /decision: "block"/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "resume"/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "test"/);
@@ -54,9 +63,29 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("codex/config/mcp.toml"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("codex/config/mcp.toml"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/bin/factory-auto-loop.sh"), /\$factory auto/);
+  assert.match(first.get("codex/install-local.sh"), /marketplace\.json/);
+  assert.match(first.get("codex/INSTALL.md"), /\$factory doctor/);
+  assert.match(first.get("claude-code/INSTALL.md"), /\/factory doctor/);
   assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|test\|review/);
   assert.match(first.get("codex/templates/AGENTS.md"), /auto\|resume\|test\|review/);
 
   const mode = fs.statSync(path.join(ROOT, "dist/codex/bin/factory-auto-loop.sh")).mode & 0o777;
   assert.equal(mode, 0o755);
+  const codexInstallMode = fs.statSync(path.join(ROOT, "dist/codex/install-local.sh")).mode & 0o777;
+  assert.equal(codexInstallMode, 0o755);
+  const claudeInstallMode = fs.statSync(path.join(ROOT, "dist/claude-code/install-local.sh")).mode & 0o777;
+  assert.equal(claudeInstallMode, 0o755);
+});
+
+test("plugin packaging emits provider archives and checksums", () => {
+  execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
+  const packages = path.join(ROOT, "packages");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.0.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.0.tar.gz");
+  assert.ok(fs.existsSync(claudeArchive));
+  assert.ok(fs.existsSync(codexArchive));
+  const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.0\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.0\.tar\.gz/);
+  assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });

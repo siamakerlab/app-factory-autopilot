@@ -1,6 +1,7 @@
 # 배포 산출물
 dist/*
 !dist/.gitkeep
+packages/
 
 # Node
 node_modules/

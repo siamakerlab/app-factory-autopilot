@@ -112,9 +112,35 @@ This generates:
 - `dist/claude-code/`
 - `dist/codex/`
 
+For install-friendly archives, run:
+
+```bash
+node scripts/package-plugin.mjs
+```
+
+This creates:
+
+```text
+packages/app-factory-autopilot-claude-code-v0.1.0.tar.gz
+packages/app-factory-autopilot-codex-v0.1.0.tar.gz
+packages/SHA256SUMS
+packages/README.md
+```
+
+Each archive contains an `INSTALL.md` and `install-local.sh`.
+
 ### 2. Claude Code
 
 Use the generated Claude Code package in `dist/claude-code/`.
+
+If you built archives, install from the package:
+
+```bash
+cd packages
+tar -xzf app-factory-autopilot-claude-code-v0.1.0.tar.gz
+cd claude-code
+./install-local.sh
+```
 
 The package contains:
 
@@ -152,10 +178,21 @@ The expected command form is:
 
 Use the generated Codex package in `dist/codex/`.
 
+If you built archives, install from the package:
+
+```bash
+cd packages
+tar -xzf app-factory-autopilot-codex-v0.1.0.tar.gz
+cd codex
+./install-local.sh
+```
+
 The package contains:
 
+- `.codex-plugin/plugin.json`
 - `$factory` prompt entry points
 - Factory agents and process skills
+- `.mcp.json`
 - `config/mcp.toml` MCP snippet
 - `bin/factory-auto-loop.sh`
 - Bundled MCP server files

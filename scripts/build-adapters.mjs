@@ -88,6 +88,11 @@ function copyRenderSupport(dst) {
   }
 }
 
+function writeInstallScript(target, lines) {
+  write(target, lines.join("\n") + "\n");
+  fs.chmodSync(target, 0o755);
+}
+
 // ── 로드 ────────────────────────────────────────────────────────────────
 
 const agents = readDirMd(path.join(CORE, "agents"));
@@ -234,11 +239,94 @@ write(
 copyDir(CORE, path.join(CC, "core"));
 copyMcpServer(path.join(CC, "mcp-server"));
 copyRenderSupport(CC);
+write(
+  path.join(CC, "INSTALL.md"),
+  `# App Factory Autopilot for Claude Code
+
+This directory is a ready-to-copy Claude Code plugin package.
+
+## Quick Install
+
+\`\`\`bash
+./install-local.sh
+\`\`\`
+
+The installer copies this package to:
+
+\`\`\`text
+~/.claude/plugins/app-factory-autopilot
+\`\`\`
+
+It does not edit unrelated user files. After installing, restart Claude Code and run:
+
+\`\`\`text
+/factory doctor
+/factory status
+\`\`\`
+
+## Included
+
+- Claude plugin manifest: \`.claude-plugin/plugin.json\`
+- /factory command router
+- Factory agents and skills
+- Stop Hook for auto/resume/test continuation
+- app-factory-core MCP server bundle
+- Android project templates and render scripts
+
+## Runtime Setup
+
+\`factory doctor\` checks the actual user environment after installation. If Android SDK,
+adb, emulator images, AVDs, mobile-mcp, or related tools are missing, it reports what is
+missing and asks whether App Factory should prepare it.
+`,
+);
+writeInstallScript(path.join(CC, "install-local.sh"), [
+  "#!/bin/sh",
+  "set -eu",
+  'SRC="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
+  'DEST="${APP_FACTORY_CLAUDE_PLUGIN_DIR:-$HOME/.claude/plugins/app-factory-autopilot}"',
+  'mkdir -p "$(dirname "$DEST")"',
+  'rm -rf "$DEST"',
+  'cp -R "$SRC" "$DEST"',
+  'echo "Installed App Factory Autopilot for Claude Code: $DEST"',
+  'echo "Restart Claude Code, then run: /factory doctor"',
+]);
 
 // ── Codex 어댑터 (AFA-041) ──────────────────────────────────────────────
 
 const CX = path.join(DIST, "codex");
 fs.rmSync(CX, { recursive: true, force: true });
+
+write(
+  path.join(CX, ".codex-plugin", "plugin.json"),
+  JSON.stringify(
+    {
+      name: "app-factory-autopilot",
+      version: "0.1.0",
+      description: "Android app planning, implementation, verification, and emulator testing autopilot.",
+      author: { name: "Sia Makerlab" },
+      skills: "./skills/",
+      mcpServers: "./.mcp.json",
+      interface: {
+        displayName: "App Factory Autopilot",
+        shortDescription: "Generate and verify production-oriented Android apps.",
+        longDescription:
+          "Plans Android apps, creates roadmaps, drives implementation, resumes interrupted sessions, reviews quality, and runs emulator scenario testing through a bundled MCP core.",
+        developerName: "Sia Makerlab",
+        category: "Productivity",
+        capabilities: [
+          "Android project planning",
+          "Automated implementation workflow",
+          "Capability and runtime environment checks",
+          "Emulator scenario testing",
+        ],
+        defaultPrompt: "$factory doctor",
+      },
+    },
+    null,
+    2,
+  ) + "\n",
+);
 
 // $factory 프롬프트 (Codex 커스텀 프롬프트 — 인자 라우팅 포함)
 write(
@@ -274,7 +362,10 @@ for (const a of agents) {
   );
 }
 for (const s of processSkills) {
-  write(path.join(CX, "skills", `${s.meta.name}.md`), WARN_MD + s.body + "\n");
+  write(
+    path.join(CX, "skills", s.meta.name, "SKILL.md"),
+    `---\nname: ${s.meta.name}\ndescription: "${s.meta.description}"\n---\n\n` + WARN_MD + `\n${s.body}\n`,
+  );
 }
 
 // MCP 설정 (config.toml 스니펫)
@@ -285,6 +376,27 @@ write(
 command = "node"
 args = ["<설치 경로>/mcp-server/dist/index.js", "--project-root", ".", "--core-dir", "<설치 경로>/core"]
 `,
+);
+write(
+  path.join(CX, ".mcp.json"),
+  JSON.stringify(
+    {
+      mcpServers: {
+        "app-factory-core": {
+          command: "node",
+          args: [
+            "${CODEX_PLUGIN_ROOT}/mcp-server/dist/index.js",
+            "--project-root",
+            ".",
+            "--core-dir",
+            "${CODEX_PLUGIN_ROOT}/core",
+          ],
+        },
+      },
+    },
+    null,
+    2,
+  ) + "\n",
 );
 
 // 실행 래퍼 — 공정 완료까지 사이클 자동 반복 (AFA-026 연동)
@@ -314,6 +426,104 @@ fs.chmodSync(path.join(CX, "bin", "factory-auto-loop.sh"), 0o755);
 copyDir(CORE, path.join(CX, "core"));
 copyMcpServer(path.join(CX, "mcp-server"));
 copyRenderSupport(CX);
+write(
+  path.join(CX, "INSTALL.md"),
+  `# App Factory Autopilot for Codex
+
+This directory is a local Codex plugin package.
+
+## Quick Install
+
+\`\`\`bash
+./install-local.sh
+\`\`\`
+
+The installer copies this package to:
+
+\`\`\`text
+~/.agents/plugins/app-factory-autopilot
+\`\`\`
+
+It also creates or updates the default personal marketplace file:
+
+\`\`\`text
+~/.agents/plugins/marketplace.json
+\`\`\`
+
+After installing, restart Codex and run:
+
+\`\`\`text
+$factory doctor
+$factory status
+\`\`\`
+
+## Included
+
+- Codex plugin manifest: \`.codex-plugin/plugin.json\`
+- $factory prompt entry points
+- Factory agents and skills
+- app-factory-core MCP server bundle
+- MCP companion manifest: \`.mcp.json\`
+- Android project templates and render scripts
+
+## Runtime Setup
+
+\`factory doctor\` checks the actual user environment after installation. If Android SDK,
+adb, emulator images, AVDs, mobile-mcp, or related tools are missing, it reports what is
+missing and asks whether App Factory should prepare it.
+`,
+);
+writeInstallScript(path.join(CX, "install-local.sh"), [
+  "#!/bin/sh",
+  "set -eu",
+  'SRC="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
+  'ROOT="${APP_FACTORY_CODEX_PLUGIN_ROOT:-$HOME/.agents/plugins}"',
+  'DEST="$ROOT/plugins/app-factory-autopilot"',
+  'MARKETPLACE="$ROOT/marketplace.json"',
+  'mkdir -p "$ROOT/plugins"',
+  'rm -rf "$DEST"',
+  'cp -R "$SRC" "$DEST"',
+  'node "$DEST/scripts/install-codex-marketplace.mjs" "$MARKETPLACE"',
+  'echo "Installed App Factory Autopilot for Codex: $DEST"',
+  'echo "Restart Codex, then run: $factory doctor"',
+]);
+write(
+  path.join(CX, "scripts", "install-codex-marketplace.mjs"),
+  `#!/usr/bin/env node
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+const marketplacePath = process.argv[2];
+if (!marketplacePath) {
+  console.error("Usage: install-codex-marketplace.mjs <marketplace.json>");
+  process.exit(2);
+}
+const root = path.dirname(marketplacePath);
+const entry = {
+  name: "app-factory-autopilot",
+  source: { source: "local", path: "./plugins/app-factory-autopilot" },
+  policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" },
+  category: "Productivity",
+};
+let marketplace = {
+  name: "personal",
+  interface: { displayName: "Personal" },
+  plugins: [],
+};
+if (fs.existsSync(marketplacePath)) {
+  marketplace = JSON.parse(fs.readFileSync(marketplacePath, "utf-8"));
+  if (!Array.isArray(marketplace.plugins)) marketplace.plugins = [];
+  if (!marketplace.interface) marketplace.interface = { displayName: "Personal" };
+}
+const idx = marketplace.plugins.findIndex((item) => item && item.name === entry.name);
+if (idx >= 0) marketplace.plugins[idx] = entry;
+else marketplace.plugins.push(entry);
+fs.mkdirSync(root, { recursive: true });
+fs.writeFileSync(marketplacePath, JSON.stringify(marketplace, null, 2) + "\\n", "utf-8");
+console.log("Updated Codex marketplace: " + marketplacePath);
+`,
+);
+fs.chmodSync(path.join(CX, "scripts", "install-codex-marketplace.mjs"), 0o755);
 
 console.log("빌드 완료:");
 console.log(`- claude-code: 에이전트 ${agents.length}, 스킬 ${skills.length - 1}, 커맨드 1, 훅 1`);

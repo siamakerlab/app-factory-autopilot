@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Install-friendly plugin packages
+
+- Added Codex plugin manifest generation (`.codex-plugin/plugin.json`) and Codex
+  MCP companion manifest (`.mcp.json`) to adapter output
+- Added provider-specific `INSTALL.md` and `install-local.sh` files to generated
+  Claude Code and Codex packages
+- Added `scripts/package-plugin.mjs` to build ready-to-extract tarballs and
+  `SHA256SUMS` under `packages/`
+- Updated README installation instructions to prefer the package archive flow
+- Verification: Codex plugin validation passed, MCP tests 76 passed, Node script
+  tests 19 passed, schema positive/negative tests passed
+
 ### 2026-08-08 — English README user documentation
 
 - Rewrote `README.md` in English with plugin purpose, repository layout,
@@ -45,7 +57,7 @@
 - `resolve-gradle-version.mjs`가 공식 Gradle current 메타데이터로 확인한 최신
   안정화 버전을 캐시하고, 구버전 캐시 사용 안내가 아닌 최신 버전 업데이트·다운로드
   진행 메시지를 반환하도록 보강
-- 검증: MCP 테스트 76건, Node 스크립트 테스트 18건, 스키마 양성/부정 테스트,
+- 검증: MCP 테스트 76건, Node 스크립트 테스트 19건, 스키마 양성/부정 테스트,
   `sh -n scripts/emulator-smoke.sh` 통과
 
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
