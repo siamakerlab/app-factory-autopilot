@@ -112,6 +112,20 @@ function makeSimulator(projectRoot: string) {
         fs.mkdirSync(path.join(projectRoot, "docs"), { recursive: true });
         fs.writeFileSync(path.join(projectRoot, "docs", "DOCS_INDEX.md"), "# DOCS");
         return { progressed: true };
+      case "market_research":
+        await evidenceRegister(ctx, {
+          kind: "market_research_report",
+          created_by: { role: "auditor", name: "market-research" },
+          data: { market_research: true, competitor_count: 5, community_source_count: 3, review_sample_count: 20 },
+        });
+        return { progressed: true };
+      case "roadmap_refinement":
+        await evidenceRegister(ctx, {
+          kind: "roadmap_reflection_report",
+          created_by: { role: "auditor", name: "roadmap-auditor" },
+          data: { roadmap_reflection: true, reflected_findings: [] },
+        });
+        return { progressed: true };
       case "roadmap_audit":
         await evidenceRegister(ctx, {
           kind: "verifier_report",
@@ -170,6 +184,13 @@ function makeSimulator(projectRoot: string) {
           data: { crash: false },
         });
         return { progressed: true };
+      case "quality_review":
+        await evidenceRegister(ctx, {
+          kind: "review_report",
+          created_by: { role: "auditor", name: "factory-review" },
+          data: { quality_review: true, review_score: true, all_targets_met: true, overall: 100 },
+        });
+        return { progressed: true };
       case "final_gate":
         await evidenceRegister(ctx, {
           kind: "license_report",
@@ -213,6 +234,32 @@ test("드라이버 — 사용자 입력 없이 완료까지 무중단 진행 (On
       assert.ok(c.report.next.description.length > 0);
       assert.ok(c.report.progress_pct >= 0);
     }
+  } finally {
+    cleanup();
+  }
+});
+
+test("decideNextAction — final gate evidence alone is not production completion", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    ctx.store.saveConfigSnapshot({
+      version: 1,
+      automation: { market_research: true, emulator: false },
+      commands: { build: "true", test: "true", lint: "true" },
+    });
+    fs.writeFileSync(path.join(ctx.projectRoot, "settings.gradle.kts"), "// existing");
+    fs.mkdirSync(path.join(ctx.projectRoot, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(ctx.projectRoot, "docs", "DOCS_INDEX.md"), "# DOCS");
+    await roadmapParse(ctx, { items: [sampleItem({ id: "RM-001", status: "VERIFIED" })] });
+    await evidenceRegister(ctx, {
+      kind: "gate_result",
+      created_by: { role: "gate", name: "final_gate" },
+      data: { final_gate: true, all_passed: true },
+    });
+
+    const action = decideNextAction(ctx);
+    assert.equal(action.kind, "dispatch");
+    if (action.kind === "dispatch") assert.equal(action.phase.id, "market_research");
   } finally {
     cleanup();
   }

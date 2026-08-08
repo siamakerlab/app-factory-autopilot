@@ -90,6 +90,11 @@ test("리포트 저장 — 전/후 비교표", () => {
     assert.match(content, /다국어/);
     assert.match(content, /개선 계획/);
     assert.match(content, new RegExp(`${before.overall}점 → ${after.overall}점`));
+    const evidence = ctx.store.listEvidence().find((item) => item.kind === "review_report");
+    assert.ok(evidence?.data);
+    assert.equal(evidence.data["quality_review"], true);
+    assert.equal(evidence.data["review_score"], true);
+    assert.equal(evidence.data["all_targets_met"], false);
   } finally {
     cleanup();
   }

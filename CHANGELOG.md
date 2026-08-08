@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Enforce production readiness gate evidence
+
+- Prepared `app-factory-autopilot@0.1.7` as a patch release for deterministic
+  production-readiness enforcement
+- Added explicit `market_research`, `roadmap_refinement`, and `quality_review`
+  workflow phases before final completion
+- Added the blocking `production_readiness` gate so final-gate evidence alone
+  cannot complete `factory auto`
+- Persisted `review_save_report` quality-review evidence for automatic
+  completion checks
+- Updated provider prompts so research reports, roadmap reflection, clean
+  roadmap audit, quality review, and final gates are all required for terminal
+  completion
+
 ### 2026-08-08 — Guard goal completion against roadmap-only termination
 
 - Prepared `app-factory-autopilot@0.1.6` as a patch release for Goal-backed

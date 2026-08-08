@@ -31,4 +31,6 @@ implemented the code, according to `APP_FACTORY.yaml providers.verification`.
    roadmap items to `PARTIAL`. Record product or policy decisions as
    `NEEDS_HUMAN_DECISION`.
 6. Re-score with the same rubric and show before/after comparison.
-7. Save the report to `.app-factory/reports/review-<RunID>.md`.
+7. Save the report with `review_save_report`. This writes
+   `.app-factory/reports/review-<RunID>.md` and registers quality-review
+   evidence for `factory auto` completion checks.

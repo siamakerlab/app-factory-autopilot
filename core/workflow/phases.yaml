@@ -31,6 +31,20 @@ phases:
     done: docs_index_exists
     on_failure: retry
 
+  - id: market_research
+    title: 경쟁앱·커뮤니티 리서치
+    agent: roadmap-architect
+    entry: market_research_missing
+    done: market_research_done
+    on_failure: retry
+
+  - id: roadmap_refinement
+    title: 리서치 기반 로드맵 보강
+    agent: roadmap-auditor
+    entry: roadmap_reflection_missing
+    done: roadmap_reflection_done
+    on_failure: block
+
   - id: roadmap_audit
     title: 1차 로드맵 정밀 감사
     agent: roadmap-auditor
@@ -66,9 +80,16 @@ phases:
     done: emulator_gate_passed_or_blocked
     on_failure: block
 
+  - id: quality_review
+    title: 프로덕션 품질 정밀 리뷰
+    agent: completion-verifier
+    entry: quality_review_missing
+    done: quality_review_passed
+    on_failure: block
+
   - id: final_gate
     title: 최종 완료 게이트
-    agent: final-gate                 # gate_run_all — 콜드 컨텍스트 완전판은 MVP-4
+    agent: final-gate
     entry: all_items_verified
     done: all_gates_passed
     on_failure: block

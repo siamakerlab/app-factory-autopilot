@@ -99,6 +99,20 @@ test("실행 게이트 — automation.emulator=false이면 마지막 권유만 �
   }
 });
 
+test("프로덕션 준비도 게이트 — 리서치·로드맵 반영·품질 리뷰 증거 없으면 실패", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    ctx.store.saveConfigSnapshot({ version: 1, automation: { market_research: true } });
+    const r = await gateRun(ctx, { gate_id: "production_readiness" });
+    assert.equal(r.passed, false);
+    assert.match(r.detail, /market_research/);
+    assert.match(r.detail, /roadmap_reflection/);
+    assert.match(r.detail, /quality_review_all_targets_met/);
+  } finally {
+    cleanup();
+  }
+});
+
 test("최종 게이트 — gateRunAll이 완료 predicate용 summary evidence를 남긴다", async () => {
   const { ctx, cleanup } = makeCtx();
   try {
@@ -108,6 +122,26 @@ test("최종 게이트 — gateRunAll이 완료 predicate용 summary evidence를
       kind: "license_report",
       created_by: { role: "gate", name: "license" },
       data: { ok: true },
+    });
+    await evidenceRegister(ctx, {
+      kind: "market_research_report",
+      created_by: { role: "auditor", name: "market-research" },
+      data: { market_research: true },
+    });
+    await evidenceRegister(ctx, {
+      kind: "roadmap_reflection_report",
+      created_by: { role: "auditor", name: "roadmap-auditor" },
+      data: { roadmap_reflection: true },
+    });
+    await evidenceRegister(ctx, {
+      kind: "verifier_report",
+      created_by: { role: "auditor", name: "roadmap-auditor" },
+      data: { audit: "roadmap", clean: true },
+    });
+    await evidenceRegister(ctx, {
+      kind: "review_report",
+      created_by: { role: "auditor", name: "factory-review" },
+      data: { quality_review: true, review_score: true, all_targets_met: true },
     });
     await evidenceRegister(ctx, {
       kind: "emulator_scenario_result",

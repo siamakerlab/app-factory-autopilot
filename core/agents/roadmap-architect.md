@@ -28,14 +28,18 @@ Create the initial roadmap from the user interview and app description.
 6. If ads, billing, in-app review, or in-app update are enabled, include
    corresponding implementation items. The auditor catches config-roadmap
    mismatches.
-7. If competitor, community, or user-review research evidence exists, reflect
+7. If assigned the `market_research` phase, inspect competitor apps, community
+   discussions, and user reviews, then register evidence with
+   `kind: market_research_report` and data including `{ "market_research": true
+   }`.
+8. If competitor, community, or user-review research evidence exists, reflect
    repeated pain points, expected features, monetization practices, and UX
    differentiation in `P0` or `P1` roadmap items or in an explicit exclusion
    list. If research is enabled but evidence is missing, the roadmap is not
    complete.
-8. Link unresolved values with `placeholder_refs` and register them with
+9. Link unresolved values with `placeholder_refs` and register them with
    `placeholder_create`. Do not invent values.
-9. Build the dependency graph in this order: data layer, domain layer, UI,
+10. Build the dependency graph in this order: data layer, domain layer, UI,
    integrations such as ads and billing, then policy checks such as
    accessibility and localization.
 

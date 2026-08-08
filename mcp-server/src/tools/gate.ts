@@ -56,6 +56,15 @@ function emulatorEnabled(ctx: Ctx): boolean {
   }
 }
 
+function automationEnabled(ctx: Ctx, key: string, defaultValue = true): boolean {
+  try {
+    const config = ctx.store.loadConfigSnapshot<{ automation?: Record<string, boolean> }>();
+    return config.automation?.[key] ?? defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
 function openBlockers(ctx: Ctx, areas: string[]): number {
   return ctx.store
     .listFindings()
@@ -65,6 +74,38 @@ function openBlockers(ctx: Ctx, areas: string[]): number {
         f.severity === "blocker" &&
         areas.includes(f.area),
     ).length;
+}
+
+function hasEvidence(ctx: Ctx, match: (kind: string, data: Record<string, unknown>) => boolean): boolean {
+  const dir = path.join(ctx.store.root, "evidence");
+  if (!fs.existsSync(dir)) return false;
+  return fs.readdirSync(dir).some((d) => {
+    try {
+      const meta = ctx.store.loadEvidence(d);
+      return match(meta.kind, meta.data ?? {});
+    } catch {
+      return false;
+    }
+  });
+}
+
+function marketResearchComplete(ctx: Ctx): boolean {
+  if (!automationEnabled(ctx, "market_research", true)) return true;
+  return hasEvidence(ctx, (kind, data) => kind === "market_research_report" || data["market_research"] === true);
+}
+
+function roadmapReflectionComplete(ctx: Ctx): boolean {
+  if (!automationEnabled(ctx, "market_research", true)) return true;
+  return hasEvidence(ctx, (kind, data) => kind === "roadmap_reflection_report" || data["roadmap_reflection"] === true);
+}
+
+function qualityReviewComplete(ctx: Ctx): boolean {
+  return hasEvidence(
+    ctx,
+    (_kind, data) =>
+      (data["quality_review"] === true || data["review_score"] === true) &&
+      data["all_targets_met"] === true,
+  );
 }
 
 const CHECKERS: Record<string, Checker> = {
@@ -151,6 +192,39 @@ const CHECKERS: Record<string, Checker> = {
     return ok
       ? { passed: true, detail: `에뮬레이터 검증 통과 (${latest.id})` }
       : { passed: false, detail: `에뮬레이터 검증 실패 — 크래시 감지 (${latest.id})` };
+  },
+  production_readiness_complete: (ctx) => {
+    const missing: string[] = [];
+    if (!marketResearchComplete(ctx)) missing.push("market_research");
+    if (!roadmapReflectionComplete(ctx)) missing.push("roadmap_reflection");
+    if (!hasEvidence(ctx, (_kind, data) => data["audit"] === "roadmap" && data["clean"] === true)) missing.push("roadmap_audit_clean");
+    if (!qualityReviewComplete(ctx)) missing.push("quality_review_all_targets_met");
+
+    const reviewBlockers = openBlockers(ctx, [
+      "requirement",
+      "market_research",
+      "ui_flow",
+      "ux_modernity",
+      "ux_intuitiveness",
+      "security",
+      "ads",
+      "billing",
+      "in_app_review",
+      "in_app_update",
+      "testing",
+      "build",
+      "dependency_version",
+      "license",
+      "performance",
+      "accessibility",
+      "i18n",
+      "placeholder",
+    ]);
+    if (reviewBlockers > 0) missing.push(`open_review_blockers:${reviewBlockers}`);
+
+    return missing.length === 0
+      ? { passed: true, detail: "프로덕션 준비도 증거 충족" }
+      : { passed: false, detail: `프로덕션 준비도 증거 누락: ${missing.join(", ")}` };
   },
 };
 

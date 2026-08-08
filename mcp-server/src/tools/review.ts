@@ -118,6 +118,27 @@ export function reviewSaveReport(
   const reportPath = path.join(ctx.store.root, "reports", `review-${input.run_id}.md`);
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, lines.join("\n") + "\n", "utf-8");
+  const finalScore = input.after ?? input.before;
+  const allTargetsMet = finalScore.areas.every((a) => a.score === null || a.score >= a.target);
+  const evidenceId = ctx.store.nextEvidenceId();
+  ctx.store.saveEvidence({
+    version: 1,
+    id: evidenceId,
+    kind: "review_report",
+    title: "factory review score report",
+    created_by: { role: "auditor", name: "factory-review", run_id: input.run_id },
+    summary: allTargetsMet
+      ? `품질 리뷰 목표 충족 — overall ${finalScore.overall}`
+      : `품질 리뷰 목표 미달 — overall ${finalScore.overall}`,
+    data: {
+      quality_review: true,
+      review_score: true,
+      all_targets_met: allTargetsMet,
+      overall: finalScore.overall,
+      report_path: reportPath,
+    },
+    created_at: new Date().toISOString(),
+  });
   return { report_path: reportPath };
 }
 

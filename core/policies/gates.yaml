@@ -66,6 +66,12 @@ gates:
     blocking: true
     on_unavailable: blocked         # 디바이스 없으면 skip이 아니라 BLOCKED (AFA-052)
 
+  - id: production_readiness
+    title: 프로덕션 준비도 게이트
+    kind: check
+    checker: production_readiness_complete
+    blocking: true
+
 execution:
   timeout_seconds_default: 900      # 15분 (AFA-050)
   cache_by_commit: true             # 동일 커밋 재실행 시 캐시 허용, --force로 무시

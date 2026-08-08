@@ -37,6 +37,8 @@ of these are true:
   completion, placeholder, license/notice/SBOM, enabled in-app review/update,
   accessibility, security/privacy, performance, and emulator evidence when
   emulator automation is enabled.
+- The blocking `production_readiness` gate passes. Final-gate evidence alone is
+  not enough to complete the Goal.
 
 Never treat "no remaining roadmap item" as terminal by itself. If research,
 review, scoring, audit, or final-gate evidence is missing, add the missing work
@@ -63,6 +65,14 @@ to the roadmap/task queue and continue.
    - For `project_setup`, generate Android scaffold with
      `scripts/render-app-factory-project.mjs --scope android` only when official
      latest-stable version context is available.
+   - For `market_research`, save evidence with `kind: market_research_report`
+     after competitor, community, and user-review inputs are summarized.
+   - For `roadmap_refinement`, update or add roadmap items from useful research
+     and review findings, then save evidence with
+     `kind: roadmap_reflection_report`.
+   - For `quality_review`, run the review rubric, save the report through
+     `review_save_report`, and continue fixing until all release-blocking targets
+     pass or a real blocker is recorded.
    - Show one four-part progress report in the user's language at the end of the
      turn.
    - If human decisions are needed and do not block the critical path, record

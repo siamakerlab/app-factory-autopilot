@@ -45,6 +45,10 @@ report findings.
   `{ "audit": "roadmap", "clean": <boolean> }`.
 - `clean=true` is allowed only when blocker and major finding counts are both
   zero.
+- If assigned the `roadmap_refinement` phase and useful research or review
+  findings have been reflected into roadmap items or explicit exclusions, also
+  register `kind: roadmap_reflection_report` with data
+  `{ "roadmap_reflection": true }`.
 
 ## Output Contract
 

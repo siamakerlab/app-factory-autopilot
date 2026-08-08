@@ -60,6 +60,15 @@ function emulatorEnabled(ctx: Ctx): boolean {
   }
 }
 
+function automationEnabled(ctx: Ctx, key: string, defaultValue = true): boolean {
+  try {
+    const config = ctx.store.loadConfigSnapshot<{ automation?: Record<string, boolean> }>();
+    return config.automation?.[key] ?? defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
 const PREDICATES: Record<string, Predicate> = {
   always: () => true,
   config_snapshot_exists: (ctx) => fs.existsSync(ctx.store.configSnapshotPath()),
@@ -80,6 +89,22 @@ const PREDICATES: Record<string, Predicate> = {
     return !hasEvidence(ctx, (d) => d["audit"] === "roadmap");
   },
   roadmap_audit_clean: (ctx) => hasEvidence(ctx, (d) => d["audit"] === "roadmap" && d["clean"] === true),
+  market_research_missing: (ctx) =>
+    automationEnabled(ctx, "market_research", true) &&
+    !hasEvidence(ctx, (d) => d["market_research"] === true) &&
+    !hasEvidenceKind(ctx, "market_research_report"),
+  market_research_done: (ctx) =>
+    !automationEnabled(ctx, "market_research", true) ||
+    hasEvidence(ctx, (d) => d["market_research"] === true) ||
+    hasEvidenceKind(ctx, "market_research_report"),
+  roadmap_reflection_missing: (ctx) =>
+    automationEnabled(ctx, "market_research", true) &&
+    !hasEvidence(ctx, (d) => d["roadmap_reflection"] === true) &&
+    !hasEvidenceKind(ctx, "roadmap_reflection_report"),
+  roadmap_reflection_done: (ctx) =>
+    !automationEnabled(ctx, "market_research", true) ||
+    hasEvidence(ctx, (d) => d["roadmap_reflection"] === true) ||
+    hasEvidenceKind(ctx, "roadmap_reflection_report"),
   queued_implement_tasks_exist: (ctx) =>
     ctx.store.listTasks().some((t) => t.status === "queued" && (t.type === "implement" || t.type === "fix")),
   no_queued_implement_tasks: (ctx) =>
@@ -106,6 +131,12 @@ const PREDICATES: Record<string, Predicate> = {
     const items = ctx.store.loadRoadmap().items.filter((i) => i.priority !== "P2");
     return items.length > 0 && items.every((i) => i.status === "VERIFIED");
   },
+  quality_review_missing: (ctx) =>
+    !hasEvidence(ctx, (d) => d["quality_review"] === true && d["all_targets_met"] === true) &&
+    !hasEvidence(ctx, (d) => d["review_score"] === true && d["all_targets_met"] === true),
+  quality_review_passed: (ctx) =>
+    hasEvidence(ctx, (d) => d["quality_review"] === true && d["all_targets_met"] === true) ||
+    hasEvidence(ctx, (d) => d["review_score"] === true && d["all_targets_met"] === true),
   all_gates_passed: (ctx) => hasEvidence(ctx, (d) => d["final_gate"] === true && d["all_passed"] === true),
 };
 

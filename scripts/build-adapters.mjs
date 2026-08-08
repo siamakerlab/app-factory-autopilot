@@ -15,7 +15,7 @@ const CORE = path.join(ROOT, "core");
 const DIST = path.join(ROOT, "dist");
 const MCP = path.join(ROOT, "mcp-server");
 const PROJECT_TEMPLATE = path.join(ROOT, "project-template");
-const VERSION = "0.1.6";
+const VERSION = "0.1.7";
 
 const WARN_MD = `<!-- Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs. -->\n`;
 const WARN_JS = `// Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs.\n`;
