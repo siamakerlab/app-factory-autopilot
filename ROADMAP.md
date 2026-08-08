@@ -166,8 +166,9 @@ Provider가 새 사용자 턴을 직접 만들 수 없는 환경에서는 `facto
   결과 검증 요청, 상태 전이, commit/push, 사용자 진행 보고를 담당한다.
 - 조사, 구현, 테스트, 리뷰, UX·접근성 점검, 보안·라이선스 검토, 에뮬레이터
   시나리오 준비와 분석은 가능한 한 전문 서브에이전트가 수행한다.
-- 코드 쓰기 작업은 충돌 방지를 위해 한 번에 하나만 실행한다. 조사·리뷰처럼
-  읽기 중심 작업만 병렬화할 수 있다.
+- agent/subagent 작업은 상호 충돌을 배제하기 위해 항상 한 번에 하나만 실행한다.
+  조사·리뷰처럼 읽기 중심 작업도 병렬화하지 않고, 메인이 순차적으로 위임·수집·
+  판단한 뒤 다음 작업으로 넘어간다.
 - 서브에이전트가 없는 Provider에서는 동일 세션 안의 역할 전환 프롬프트로
   강등하되, worker/verifier 분리 원칙과 증거 기반 완료 판정은 유지한다.
 - 외부 auto runner와 Claude Stop Hook은 보조 수단이다. Vibe Coder 같은
@@ -701,13 +702,14 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
     작업을 어떤 agent/skill에 위임할지 정의
   - AFA-061c Delegation Decision Policy — 메인이 task type, roadmap phase,
     required evidence, file ownership, dangerous tags, tool availability,
-    previous failures를 기준으로 위임 대상과 병렬 가능 여부를 결정하는 정책
+    previous failures를 기준으로 위임 대상을 결정하되 agent/subagent 실행은
+    항상 직렬화하는 정책
   - AFA-061d Subagent Report Contract — 서브에이전트가 메인 판단에 필요한
     summary, changed_files, evidence_ids, findings, risks, blockers,
     confidence, next_recommendation, verification_needed, commit_ready 여부를
     구조화해 보고하는 계약
-  - AFA-061e Write Serialization — 코드 수정 작업은 단일 worker만 수행하고,
-    읽기 중심 조사·리뷰만 병렬화하는 잠금·작업 큐 규칙 확정
+  - AFA-061e Agent Serialization — 코드 수정, 조사, 테스트, 리뷰를 포함한 모든
+    agent/subagent 작업을 한 번에 하나만 수행하도록 잠금·작업 큐 규칙 확정
   - AFA-061f Context Checkpoint — 각 단위작업 종료와 압축 가능 지점마다
     run/cycle, task result, evidence, finding, roadmap 상태, commit/push,
     next action을 `.app-factory`에 저장
@@ -728,8 +730,8 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   - [ ] 각 단위작업 완료 후 evidence/report/finding/task/run 상태가
     `.app-factory`에 저장되어 자동 context 압축 후에도 `/factory resume`으로
     같은 지점부터 이어진다
-  - [ ] 코드 쓰기 작업의 병렬 실행이 방지되고, 조사·리뷰 작업은 안전한 경우
-    병렬 위임된다
+  - [ ] 코드 수정, 조사, 테스트, 리뷰를 포함한 모든 agent/subagent 작업이
+    직렬 실행되며 동시에 둘 이상의 agent가 실행되지 않는다
   - [ ] 사용자에게 보이는 메시지는 실질 진행, 검증 결과, commit/push,
     blocker, 다음 작업만 포함하고 내부 라우팅 설명은 생략한다
   - [ ] 샘플 프로젝트에서 새 사용자 턴 생성 없이 메인 세션이 최소 3개 이상의

@@ -11,6 +11,8 @@
 - Expanded AFA-061 with a delegation decision policy and structured subagent
   report contract so the main session can choose the right agent and judge
   returned work reliably
+- Clarified that all agent/subagent work is serialized to avoid conflicts;
+  even research and review agents are delegated one at a time
 - Clarified that the existing cross-turn auto runner remains a CLI fallback,
   while session-style environments should use the main orchestrator model
 
