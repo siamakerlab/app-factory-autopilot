@@ -24,6 +24,8 @@ function sampleContext(overrides = {}) {
     uses_room: config.architecture.persistence.includes("room"),
     versions: {
       agp: "9.0.1",
+      gradle: "9.7.0",
+      gradleDistributionSha256: "84fbba45c7f4c64abc77460e1c00f541e9f960e3c7ed2538f1ede19eacd873ae",
       kotlin: "2.2.0",
       ksp: "2.2.0-2.0.2",
       composeBom: "2026.01.00",
@@ -56,6 +58,24 @@ function renderedFiles(dir) {
   return files;
 }
 
+test("project templates do not pin dependency or Gradle versions", () => {
+  const templateRoot = path.join(ROOT, "project-template");
+  const offenders = [];
+  for (const file of renderedFiles(templateRoot).filter((name) => name.endsWith(".mustache"))) {
+    const rel = path.relative(templateRoot, file);
+    const text = fs.readFileSync(file, "utf-8");
+    for (const [idx, line] of text.split("\n").entries()) {
+      if (line.includes("{{versions.")) continue;
+      if (line.trim().startsWith("#") || line.trim().startsWith("//") || line.trim().startsWith("<!--")) continue;
+      if (/^<\?xml version="1\.0"/.test(line)) continue;
+      if (/\b\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9_.-]+)?\b/.test(line)) {
+        offenders.push(`${rel}:${idx + 1}: ${line.trim()}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
 test("render rejects unresolved variables", () => {
   assert.throws(
     () => render("name={{project.name}} missing={{project.missing}}", sampleContext()),
@@ -67,7 +87,7 @@ test("android template renders a buildable scaffold shape", () => {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "afa-template-"));
   const count = renderDirectory(path.join(ROOT, "project-template/android"), outDir, sampleContext());
 
-  assert.equal(count, 15);
+  assert.equal(count, 16);
   assert.ok(fs.existsSync(path.join(outDir, ".gitignore")));
   assert.ok(fs.existsSync(path.join(outDir, "app/src/main/kotlin/App.kt")));
   assert.ok(fs.existsSync(path.join(outDir, "app/src/main/kotlin/ui/AppRoot.kt")));
@@ -81,6 +101,7 @@ test("android template renders a buildable scaffold shape", () => {
   const appBuild = readRendered(outDir, "app/build.gradle.kts");
   const catalog = readRendered(outDir, "gradle/libs.versions.toml");
   const manifest = readRendered(outDir, "app/src/main/AndroidManifest.xml");
+  const wrapper = readRendered(outDir, "gradle/wrapper/gradle-wrapper.properties");
 
   assert.doesNotMatch(rootBuild, /alias\(libs\.plugins\.kotlin\.android\)/);
   assert.doesNotMatch(appBuild, /alias\(libs\.plugins\.kotlin\.android\)/);
@@ -90,6 +111,8 @@ test("android template renders a buildable scaffold shape", () => {
   assert.match(appBuild, /릴리스 키스토어가 없습니다/);
   assert.match(manifest, /android:name="\.MemoApp"/);
   assert.match(manifest, /android:icon="@drawable\/ic_launcher"/);
+  assert.match(wrapper, /gradle-9\.7\.0-bin\.zip/);
+  assert.match(wrapper, /distributionSha256Sum=84fbba45c7f4c64abc77460e1c00f541e9f960e3c7ed2538f1ede19eacd873ae/);
 });
 
 test("room dependencies are omitted when Room is not selected", () => {

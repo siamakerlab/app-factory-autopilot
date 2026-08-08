@@ -596,8 +596,11 @@
 - **로컬 검증 보강**: `scripts/render-template.mjs`와
   `tests/template-render.test.mjs`로 Android 템플릿 15개 파일 렌더링,
   미해결 변수 차단, Room 조건부 의존성, AGP 9 built-in Kotlin 플러그인
-  제거, 외부 키스토어 릴리스 차단 문구를 검증했다. `assembleDebug`는
-  Gradle wrapper/실 Android 빌드 환경 필요.
+  제거, 외부 키스토어 릴리스 차단 문구를 검증했다. Gradle wrapper
+  properties는 공식 Gradle current 메타데이터로 확인한
+  `{{versions.gradle}}`와 `{{versions.gradleDistributionSha256}}`만 받으며,
+  템플릿 내 의존성·Gradle 버전 하드코딩은 테스트로 금지한다.
+  `assembleDebug`는 Gradle wrapper jar/실 Android 빌드 환경 필요.
 - **지침**: 템플릿 변수는 `{{mustache}}` 스타일 단일 문법으로 통일한다.
   Android 스캐폴드의 라이브러리 버전은 템플릿에 박아 두지 말고 "생성 시점에
   Dependency Version Manager가 채운다"는 주석과 함께 placeholder로 둔다

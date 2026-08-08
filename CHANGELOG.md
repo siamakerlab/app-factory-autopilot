@@ -10,12 +10,16 @@
 - AFA-035 🟧 보강: Android 스캐폴드 렌더링 회귀 테스트 추가
   (`tests/template-render.test.mjs`) — 미해결 변수, Room 조건부 블록, AGP 9
   built-in Kotlin 플러그인 제거, 키스토어 외부 참조/릴리스 차단 확인
+- Gradle/라이브러리 버전 정책 보강: 템플릿 내 어떤 의존성·Gradle 버전도
+  고정하지 않도록 회귀 테스트 추가. Gradle wrapper 버전은
+  `scripts/resolve-gradle-version.mjs`가 공식 Gradle current 메타데이터에서
+  최신 안정화 버전과 distribution SHA-256을 확인해 `{{versions.*}}`로 주입
 - AFA-040/AFA-041/AFA-042 보강: 어댑터 빌드 결정론 테스트 추가
   (`tests/build-adapters.test.mjs`), Codex 래퍼 실행 권한 0755 설정
 - AFA-051 🟧 보강: `generate-notices.mjs`를 import 가능한 API로 분리하고
   허용 라이선스 고지/SBOM 생성, GPL·불명·수동검토 위반 판정 테스트 추가
   (`tests/notices.test.mjs`). `GNU General Public License ...` 표기 정규화 보강
-- 검증: MCP 테스트 61건 통과, Node 스크립트 테스트 8건 통과, 스키마 부정
+- 검증: MCP 테스트 61건 통과, Node 스크립트 테스트 12건 통과, 스키마 부정
   케이스 7건 통과
 
 ### 2026-08-05 (12차) — M5·M6 구현, 전체 로드맵 구현 사이클 완료 (테스트 61건)

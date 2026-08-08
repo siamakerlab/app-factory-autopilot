@@ -20,12 +20,18 @@ output_contract: version-review-v1
    /mobile-docs MCP 또는 공식 릴리스 페이지 (블로그·SO 답변은 근거 불인정).
 2. Alpha/Beta/RC/Preview/Canary/Nightly/Snapshot은 사용자 승인 없이 사용
    금지 — `dependency_review_version`이 stable이 아니면 자동 불통과 처리한다.
-3. 호환성 확인: 현재 Kotlin, AGP, Gradle, JDK, compileSdk/targetSdk/minSdk와의
+3. Gradle 자체 버전은 공식 `https://services.gradle.org/versions/current`
+   메타데이터를 확인해 `current=true`, `released=true`, `final=true`,
+   `snapshot/nightly/releaseNightly/activeRc/broken=false`인 경우만 사용한다.
+   Wrapper distribution URL과 SHA-256도 이 응답에서 가져와
+   `{{versions.gradle}}`, `{{versions.gradleDistributionSha256}}`에 주입한다.
+4. 호환성 확인: 현재 Kotlin, AGP, Gradle, JDK, compileSdk/targetSdk/minSdk와의
    호환성. Compose BOM과 AndroidX 버전 정렬.
-4. 버전은 Version Catalog(libs.versions.toml)에만 선언한다. 하드코딩 버전·
+5. 버전은 Version Catalog(libs.versions.toml)와 Gradle wrapper properties의
+   `{{versions.*}}` placeholder에만 선언한다. 하드코딩 버전·
    동적 버전(`+`, latest.release)·범위 버전을 발견하면 finding으로 보고한다
    (area: dependency_version).
-5. 필요한 마이그레이션 작업은 DEPENDENCY_MIGRATIONS.md에 기록할 작업으로
+6. 필요한 마이그레이션 작업은 DEPENDENCY_MIGRATIONS.md에 기록할 작업으로
    제안한다.
 
 ## 검토 제출

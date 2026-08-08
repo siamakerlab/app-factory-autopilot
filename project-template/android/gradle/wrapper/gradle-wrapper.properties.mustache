@@ -1,0 +1,9 @@
+# Gradle Wrapper distribution.
+# {{versions.gradle}} 값은 생성 시점에 scripts/resolve-gradle-version.mjs가
+# 공식 Gradle current 메타데이터에서 확인한 최신 안정화 버전으로 채운다.
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-{{versions.gradle}}-bin.zip
+distributionSha256Sum={{versions.gradleDistributionSha256}}
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
