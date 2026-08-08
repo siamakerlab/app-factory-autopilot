@@ -1,77 +1,362 @@
 # App Factory Autopilot
 
-빈 폴더에서 Android 앱 기획 → 요구사항 수집 → 로드맵 → 구현 → 빌드/테스트 →
-독립 검증 → 최종 완료 판정까지 자동화하는 앱 개발 오케스트레이션 시스템입니다.
-Claude Code와 Codex 양쪽에서 동작하는 플러그인과 공통 CLI를 목표로 합니다.
+App Factory Autopilot is an Android app production orchestrator for Claude Code,
+Codex, and a shared MCP core. Its goal is to take a new folder or an existing
+Android project from product planning through roadmap creation, implementation,
+build/test/lint gates, independent verification, UX/accessibility review, and
+emulator scenario testing.
 
-## 핵심 명령
+The project is currently an MVP-1 implementation. The roadmap and completion
+criteria are tracked in [ROADMAP.md](./ROADMAP.md), which is the single source of
+truth for scope and remaining verification work.
 
-| 명령 | 역할 |
-|------|------|
-| `factory config` | 자동화 실행 옵션을 체크박스로 설정 |
-| `factory plan "앱 설명"` | 대화형 인터뷰로 프로젝트 계획과 1차 로드맵 생성 |
-| `factory init` | 기존 프로젝트에 도입 — 코드베이스 분석, 상태 저장소 생성, 로드맵 동기화 |
-| `factory auto` | 현재 진행 상태를 분석하고 알아서 진행 (빈 폴더면 프로젝트 생성부터) |
-| `factory resume` | 토큰 한도·시스템 종료·세션 종료 등으로 중단된 실행을 중단 지점부터 재개 |
-| `factory test` | 에뮬레이터 승인 전제로 모든 사용자 시나리오·버튼·기능을 스크린샷 기반 전수검사 |
-| `factory review` | 구현 기록을 신뢰하지 않는 전체 재감사 |
+## What It Builds
 
-- Claude Code: `/factory config|plan|init|auto|resume|test|review`
-- Codex: `$factory config|plan|init|auto|resume|test|review`
-- `factory go`는 `factory auto`의 호환 별칭이며, 보조 명령으로
-  `factory status`(상태 요약)와 `factory doctor`(개발 환경 필수 스킬·MCP 점검
-  및 설치 제안)를 제공합니다.
+App Factory Autopilot is designed to generate production-oriented Android apps,
+not just starter templates. A full run can include:
+
+- Product planning from an app idea.
+- Competitive app, community, and review research when enabled.
+- Requirements, roadmap, and project documentation.
+- Android project scaffold generation.
+- Modern Android UI/UX checks, Material 3, adaptive layout, and accessibility
+  review.
+- In-app review and in-app update implementation when enabled.
+- Build, unit test, lint, license, SBOM, placeholder, and emulator gates.
+- Full emulator scenario testing through `factory test`.
+- Resume support after token limits, system shutdowns, or interrupted sessions.
+
+AdMob ads and in-app billing are excluded by default. They are implemented only
+when the user explicitly enables them through `factory config` or `factory plan`.
+
+## Repository Layout
+
+```text
+core/               Platform-neutral source: agents, skills, schemas, prompts, policies
+mcp-server/         app-factory-core MCP server
+orchestrator/       Deterministic workflow/orchestration logic
+adapters/           Claude Code and Codex adapter notes
+project-template/   Android project and planning document templates
+scripts/            Adapter build, rendering, Gradle version, license scripts
+tests/              Repository-level tests
+dist/               Generated adapter packages, not the source of truth
+```
+
+Generated adapter output is recreated from `core/` by:
+
+```bash
+node scripts/build-adapters.mjs
+```
+
+Do not edit generated files under `dist/` manually.
+
+## Requirements
+
+For local development of this repository:
+
+- Node.js 20 or newer.
+- npm.
+- Python 3 for schema tests.
+
+For generated Android projects:
+
+- Android SDK.
+- `adb` and emulator tools when emulator testing is enabled.
+- A JDK compatible with the generated Android toolchain.
+- Gradle wrapper metadata generated from the official Gradle current release
+  endpoint.
+
+The plugin does not assume that these tools are already installed. `factory
+doctor`, `factory auto`, and `factory test` are expected to inspect the current
+user environment and report missing tools, settings, permissions, or devices. For
+emulator-related gaps, the user-facing flow should ask: "Prepare it now?" and,
+after approval, install or create what can be prepared automatically.
+
+## Build And Test
+
+From the repository root:
+
+```bash
+node scripts/build-adapters.mjs
+node --test tests/*.mjs
+python3 tests/schema-positive-tests.py
+python3 tests/schema-negative-tests.py
+```
+
+For the MCP server:
+
+```bash
+cd mcp-server
+npm test
+```
+
+Useful validation commands:
+
+```bash
+git diff --check
+sh -n scripts/emulator-smoke.sh
+```
+
+## Installation
+
+### 1. Build The Adapter Packages
+
+```bash
+npm --prefix mcp-server install
+npm --prefix mcp-server run build
+node scripts/build-adapters.mjs
+```
+
+This generates:
+
+- `dist/claude-code/`
+- `dist/codex/`
+
+### 2. Claude Code
+
+Use the generated Claude Code package in `dist/claude-code/`.
+
+The package contains:
+
+- `.claude-plugin/plugin.json`
+- `.mcp.json`
+- `/factory` command
+- Factory agents
+- Factory skills
+- Stop Hook for `factory auto`, `factory resume`, and `factory test`
+- Bundled MCP server files
+- Project templates and rendering scripts
+
+After installing or linking the generated package into Claude Code, verify:
+
+```text
+/factory doctor
+/factory status
+```
+
+The expected command form is:
+
+```text
+/factory config
+/factory plan "app idea"
+/factory init
+/factory auto
+/factory resume
+/factory test
+/factory review
+/factory status
+/factory doctor
+```
+
+### 3. Codex
+
+Use the generated Codex package in `dist/codex/`.
+
+The package contains:
+
+- `$factory` prompt entry points
+- Factory agents and process skills
+- `config/mcp.toml` MCP snippet
+- `bin/factory-auto-loop.sh`
+- Bundled MCP server files
+- Project templates and rendering scripts
+
+Merge the generated MCP config into the target Codex configuration as appropriate
+for the local Codex installation, then verify:
+
+```text
+$factory doctor
+$factory status
+```
+
+The expected command form is:
+
+```text
+$factory config
+$factory plan "app idea"
+$factory init
+$factory auto
+$factory resume
+$factory test
+$factory review
+$factory status
+$factory doctor
+```
+
+## Command Reference
+
+| Command | Claude Code | Codex | Purpose |
+| --- | --- | --- | --- |
+| `config` | `/factory config` | `$factory config` | Configure automation options before a run. |
+| `plan` | `/factory plan "idea"` | `$factory plan "idea"` | Interview the user and generate project planning artifacts. |
+| `init` | `/factory init` | `$factory init` | Adopt an existing Android project without modifying source code. |
+| `auto` | `/factory auto` | `$factory auto` | Continue implementation, gates, and verification until done or blocked. |
+| `resume` | `/factory resume` | `$factory resume` | Resume from `.app-factory/` state after interruption. |
+| `test` | `/factory test` | `$factory test` | Run exhaustive emulator scenario testing. |
+| `review` | `/factory review` | `$factory review` | Re-audit implementation without trusting prior claims. |
+| `status` | `/factory status` | `$factory status` | Show current run, roadmap, findings, and next work. |
+| `doctor` | `/factory doctor` | `$factory doctor` | Inspect skills, MCP servers, agents, and runtime environment. |
+
+`factory go` is a compatibility alias for `factory auto`.
+
+## Typical Workflows
+
+### New App
+
+```text
+factory config
+factory plan "A habit tracker for busy students"
+factory auto
+factory review
+factory test
+```
+
+### Existing Android Project
+
+```text
+factory init
+factory config
+factory plan "Improve the existing app toward production readiness"
+factory auto
+factory review
+factory test
+```
+
+### Interrupted Session
+
+```text
+factory resume
+```
+
+Resume never relies on chat history. It reads `.app-factory/`, recovers stale
+claims, skips completed work, and continues from the next valid task.
+
+## Configuration Defaults
+
+`factory config` edits `APP_FACTORY.automation.*`.
+
+Default behavior:
+
+- `market_research`: enabled
+- `modern_ui`: enabled
+- `ux_intuitiveness_review`: enabled
+- `accessibility_review`: enabled
+- `in_app_review`: enabled
+- `in_app_update`: enabled
+- `store_readiness`: enabled
+- `observability`: enabled
+- `performance_review`: enabled
+- `security_privacy_review`: enabled
+- `license_review`: enabled
+- `emulator`: disabled by default
+- `ads`: disabled by default
+- `billing`: disabled by default
+
+When `emulator=false`, automation should implement all code-verifiable work and
+only recommend enabling emulator validation in the final report. It should not
+ask about emulator use in the middle of the run.
+
+When `factory test` is executed, emulator use is considered approved for that
+command. If emulator tools or devices are missing, the plugin should report what
+is missing and ask whether it should prepare them now.
+
+## Version And Dependency Policy
+
+No Gradle or library version is pinned in templates.
+
+Before adding or rendering a dependency, the plugin must:
+
+1. Check the official documentation or metadata for the latest stable version.
+2. Prefer mobile docs MCP.
+3. Use context7 as a secondary source when installed.
+4. Fall back to the official web page only when the MCP sources are unavailable.
+5. Reject preview, alpha, beta, rc, canary, nightly, snapshot, dynamic, or unknown
+   versions unless an explicit user approval path exists.
+6. Cache the confirmed latest stable version and source URL.
+
+The cache is not a stale-version fallback. User-facing messaging should say:
+
+```text
+The latest stable Gradle version has been updated to 9.7. Downloading it and continuing.
+```
+
+It should not say:
+
+```text
+Gradle 9.7 is unavailable, so using cached 9.6.1.
+```
+
+Gradle itself is resolved by:
+
+```bash
+node scripts/resolve-gradle-version.mjs --cache .app-factory/cache/gradle-current.json
+```
+
+The script trusts only `https://services.gradle.org/versions/current`, requires a
+stable final release, and records the distribution SHA-256.
 
 ## Capability Doctor
 
-Android 앱 제작에 필요한 스킬·MCP 서버·서브에이전트가 설치되어 있는지
-점검하고, 미설치 항목을 카테고리별 체크리스트로 보여 준 뒤 **사용자가 선택한
-항목만** 전역/프로젝트 스코프를 골라 일괄 설치합니다. 설치된 스킬의 사용
-지침은 선택한 스코프의 관리문서에 자동 추가됩니다. 사용자 확인 없는 자동
-설치는 하지 않습니다.
+`factory doctor` checks:
 
-카탈로그에는 공식/공개 레포에서 검증된 스킬만 등록합니다 — Google 공식
-`android/skills` 11종, `google/skills`(Mobile Ads) 1종, 공개 커뮤니티 4종,
-Claude Code 내장 15종(존재 점검만). SSOT는
-[`core/policies/capability-catalog.yaml`](./core/policies/capability-catalog.yaml)입니다.
+- Required/recommended/optional skills.
+- MCP servers such as mobile-docs, context7, mobile-mcp, and GitHub.
+- Provider-specific agents or subagents.
+- Android SDK, `adb`, emulator, Gradle/Wrapper, AVDs, connected devices, and
+  other runtime prerequisites.
 
-## 핵심 원칙
+Missing capabilities are shown with:
 
-- **구현과 완료 판정 분리** — 구현 Agent는 `IMPLEMENTED`까지만, 독립 검증을
-  통과한 항목만 `VERIFIED`(유일한 완료 상태)가 됩니다.
-- **모르는 값은 지어내지 않음** — 미확정 항목은 `${PLACEHOLDER_*}`로 관리합니다.
-- **증거 기반 판정** — 증거 없는 완료 주장은 인정하지 않습니다.
-- **플랫폼 비종속** — 공통 코어 원본 하나 + 플랫폼별 어댑터 구조입니다.
+- Status: available, missing, blocked, or unknown.
+- Required feature or command.
+- Remediation.
+- Whether the gap blocks the current command.
+- Whether App Factory can prepare it after user approval.
 
-## 문서
+Automatic installation or environment modification requires user confirmation.
 
-- [ROADMAP.md](./ROADMAP.md) — MVP-1 공식 명세와 개발 로드맵의 단일 원본
-- [mvp.txt](./mvp.txt) — 원본 통합 설계서
-- [CHANGELOG.md](./CHANGELOG.md) — 변경 이력
-- [LICENSE](./LICENSE) — Apache License 2.0
+## Completion Model
 
-## 라이선스
+Only `VERIFIED` is complete.
+
+Implementation workers may submit `IMPLEMENTED`, but they cannot mark roadmap
+items as verified. Completion requires independent verifier evidence such as
+code references, tests, build logs, lint output, screenshots, emulator results,
+license reports, SBOMs, or gate results.
+
+The state machine is:
+
+```text
+NOT_STARTED -> IN_PROGRESS -> IMPLEMENTED -> VERIFIED
+                    |              |
+                    +-> PARTIAL ---+
+                    +-> BLOCKED
+                    +-> NEEDS_HUMAN_DECISION
+```
+
+## Important Safety Rules
+
+- Do not invent unknown values. Use `${PLACEHOLDER_*}` with metadata.
+- Do not generate release keystores automatically.
+- Do not perform real store deployment without explicit user approval.
+- Do not enable ads or billing unless the plan/config explicitly enables them.
+- Do not mark work complete without evidence.
+- Do not treat skipped emulator checks as passed.
+- Do not use cached old Gradle/library versions as a substitute for latest stable
+  official verification.
+- Do not modify generated adapter output manually.
+
+## Documentation
+
+- [ROADMAP.md](./ROADMAP.md) - MVP-1 scope, completion criteria, and remaining work.
+- [CHANGELOG.md](./CHANGELOG.md) - Change history.
+- [LICENSE](./LICENSE) - Apache License 2.0.
+- [NOTICE](./NOTICE) - Copyright notice.
+- [mvp.txt](./mvp.txt) - Original planning notes retained for historical context.
+
+## License
 
 Copyright 2026 Sia Makerlab.
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](./LICENSE) and
 [NOTICE](./NOTICE).
-
-## 저장소 구조
-
-```
-core/               플랫폼 독립 원본 (workflow, agents, skills, schemas, prompts, policies)
-mcp-server/         app-factory-core MCP 서버
-orchestrator/       결정론적 오케스트레이터
-adapters/           claude-code, codex 어댑터
-project-template/   빈 폴더 초기화 템플릿
-scripts/            빌드·패키징 스크립트
-tests/              테스트
-dist/               배포 패키지 (git 추적 제외)
-```
-
-## 상태
-
-MVP-1 로컬 구현은 실프로젝트 실행 검증이 필요한 항목을 제외하고 진행되었습니다.
-범위, 완료 기준, 잔여 검증은 [ROADMAP.md](./ROADMAP.md)의 🟧 항목을 기준으로
-추적합니다.

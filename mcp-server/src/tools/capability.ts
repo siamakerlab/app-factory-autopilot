@@ -55,6 +55,7 @@ export interface EnvironmentCheck {
   detail?: string;
   remediation: string;
   blocking_when?: string;
+  auto_prepare?: boolean;
 }
 
 const GUIDANCE_START = "<!-- app-factory:capabilities:start -->";
@@ -194,8 +195,11 @@ export async function capabilityRecordEnvironment(
     `- 차단: ${blocked.length}`,
   ];
   for (const check of [...blocked, ...missing]) {
+    const offer = check.auto_prepare
+      ? " 바로 준비해드릴까요?"
+      : "";
     lines.push(
-      `- ${check.label}: ${check.detail ?? check.status}. 필요 기능: ${check.required_for.join(", ")}. 조치: ${check.remediation}`,
+      `- ${check.label}: ${check.detail ?? check.status}. 필요 기능: ${check.required_for.join(", ")}. 조치: ${check.remediation}.${offer}`,
     );
   }
   return {

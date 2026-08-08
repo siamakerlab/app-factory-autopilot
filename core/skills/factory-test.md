@@ -25,7 +25,8 @@ uses_skills: [capability-audit, completion-verify, final-gate]
      도구를 폴백으로 사용한다.
    - 실행 환경 점검 결과를 사용자에게 표시한다. 실행 가능한 AVD/디바이스,
      adb, APK 경로, 패키지명이 부족하면 어떤 항목이 필요한지와 조치 방법을
-     안내하고 test run을 blocked로 기록한다.
+     안내하고 "바로 준비해드릴까요?"라고 묻는다. 사용자가 승인하면 준비 작업을
+     진행하고 재점검한다. 준비되지 않은 상태에서는 test run을 blocked로 기록한다.
 2. 에뮬레이터 사용 승인 기록:
    - `factory_test_prepare`를 호출해 `automation.emulator=true`,
      `automation.defer_emulator_prompt_until_final=false`를 저장한다.

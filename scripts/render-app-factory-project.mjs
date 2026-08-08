@@ -29,7 +29,7 @@ function usage() {
   return [
     "사용법: render-app-factory-project.mjs --config <APP_FACTORY.json> --out <출력 디렉터리> [--template <project-template>] [--scope docs|android|all] [--today YYYY-MM-DD]",
     "",
-    "android/all 범위는 config.versions.* 최신 안정화 검토 결과가 이미 채워져 있어야 합니다.",
+    "android/all 범위는 공식 문서/메타데이터로 확인하고 캐시한 config.versions.* 최신 안정화 값이 필요합니다.",
   ].join("\n");
 }
 

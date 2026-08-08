@@ -11,6 +11,8 @@
 // }
 
 import { pathToFileURL } from "node:url";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export const GRADLE_CURRENT_URL = "https://services.gradle.org/versions/current";
 
@@ -41,6 +43,44 @@ export function parseGradleCurrentResponse(data, sourceUrl = GRADLE_CURRENT_URL)
   };
 }
 
+function compareVersions(a, b) {
+  const aa = String(a).split(".").map((n) => Number(n));
+  const bb = String(b).split(".").map((n) => Number(n));
+  const len = Math.max(aa.length, bb.length);
+  for (let i = 0; i < len; i++) {
+    const d = (aa[i] ?? 0) - (bb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+function readCache(cachePath) {
+  if (!cachePath || !fs.existsSync(cachePath)) return undefined;
+  try {
+    return JSON.parse(fs.readFileSync(cachePath, "utf-8"));
+  } catch {
+    return undefined;
+  }
+}
+
+function writeCache(cachePath, result) {
+  if (!cachePath) return;
+  fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+  fs.writeFileSync(
+    cachePath,
+    JSON.stringify({ version: 1, cachedAt: new Date().toISOString(), gradle: result }, null, 2) + "\n",
+    "utf-8",
+  );
+}
+
+export function formatGradleResolutionMessage(result, previousCache) {
+  const previous = previousCache?.gradle?.gradle;
+  if (previous && compareVersions(result.gradle, previous) > 0) {
+    return `Gradle 최신 안정화 버전이 ${result.gradle}로 업데이트되었습니다. 다운로드 후 진행합니다.`;
+  }
+  return `Gradle 최신 안정화 버전 ${result.gradle}을 공식 메타데이터로 확인했습니다. 다운로드 후 진행합니다.`;
+}
+
 export async function resolveGradleVersion(fetchImpl = fetch) {
   const response = await fetchImpl(GRADLE_CURRENT_URL, {
     headers: { accept: "application/json" },
@@ -51,8 +91,23 @@ export async function resolveGradleVersion(fetchImpl = fetch) {
   return parseGradleCurrentResponse(await response.json(), GRADLE_CURRENT_URL);
 }
 
+export async function resolveGradleVersionWithCache(options = {}) {
+  const { fetchImpl = fetch, cachePath } = options;
+  const previousCache = readCache(cachePath);
+  const result = await resolveGradleVersion(fetchImpl);
+  writeCache(cachePath, result);
+  return {
+    ...result,
+    cachePath,
+    message: formatGradleResolutionMessage(result, previousCache),
+  };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  resolveGradleVersion()
+  const args = process.argv.slice(2);
+  const cacheIdx = args.indexOf("--cache");
+  const cachePath = cacheIdx >= 0 ? args[cacheIdx + 1] : undefined;
+  resolveGradleVersionWithCache({ cachePath })
     .then((result) => {
       console.log(JSON.stringify(result, null, 2));
     })

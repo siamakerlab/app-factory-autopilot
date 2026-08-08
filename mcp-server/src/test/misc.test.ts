@@ -177,6 +177,7 @@ test("역량 — 환경 점검 결과는 부족분과 조치 안내를 사용자
           detail: "실행 가능한 AVD 없음",
           remediation: "Android Studio Device Manager 또는 avdmanager로 테스트 디바이스를 생성한다",
           blocking_when: "automation.emulator=true 또는 factory test",
+          auto_prepare: true,
         },
       ],
     });
@@ -185,6 +186,7 @@ test("역량 — 환경 점검 결과는 부족분과 조치 안내를 사용자
     assert.equal(result.blocked.length, 1);
     assert.match(result.user_message, /mobile-mcp/);
     assert.match(result.user_message, /실행 가능한 AVD 없음/);
+    assert.match(result.user_message, /바로 준비해드릴까요\?/);
     const state = await capabilityScan(ctx, {
       installed_skills: [],
       installed_mcp_servers: [],

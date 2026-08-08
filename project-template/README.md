@@ -22,4 +22,5 @@ Android 스캐폴드의 라이브러리 버전은 템플릿에 박지 않는다.
 문서에서 확인한 최신 안정화 버전으로 채운다 (템플릿 구식화 방지).
 Gradle wrapper도 예외가 아니다. `{{versions.gradle}}`와
 `{{versions.gradleDistributionSha256}}`는 `scripts/resolve-gradle-version.mjs`가
-공식 Gradle current 메타데이터에서 확인한 안정 릴리스 값으로 채운다.
+공식 Gradle current 메타데이터에서 확인한 안정 릴리스 값으로 채우고 캐시를
+갱신한다. 캐시는 구버전 fallback용이 아니라 최신 안정화 확인 결과 보존용이다.

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — English README user documentation
+
+- Rewrote `README.md` in English with plugin purpose, repository layout,
+  installation paths, Claude Code/Codex usage, command reference, workflows,
+  configuration defaults, version policy, Capability Doctor behavior, safety
+  rules, and documentation links for both users and AI agents
+
 ### 2026-08-08 — MVP 명세를 ROADMAP 단일 원본으로 통합
 
 - 중복 관리 방지를 위해 `MVP-1.md`를 제거하고, MVP-1 범위·완료 기준·로드맵을
@@ -33,7 +40,12 @@
 - `capability_record_environment` MCP 도구 추가: 각 사용자 실행 환경에서
   Android SDK/adb/emulator/Gradle/AVD/mobile-mcp 등 점검 결과를 기록하고,
   부족한 항목의 필요 기능·조치 방법·차단 조건을 사용자 메시지로 반환
-- 검증: MCP 테스트 76건, Node 스크립트 테스트 16건, 스키마 양성/부정 테스트,
+- 에뮬레이터/AVD/adb 부족분은 자동 준비 가능 항목으로 표시하고
+  "바로 준비해드릴까요?" 제안 문구를 포함하도록 보강
+- `resolve-gradle-version.mjs`가 공식 Gradle current 메타데이터로 확인한 최신
+  안정화 버전을 캐시하고, 구버전 캐시 사용 안내가 아닌 최신 버전 업데이트·다운로드
+  진행 메시지를 반환하도록 보강
+- 검증: MCP 테스트 76건, Node 스크립트 테스트 18건, 스키마 양성/부정 테스트,
   `sh -n scripts/emulator-smoke.sh` 통과
 
 ### 2026-08-08 — 광고·인앱결제 기본 제외 정책 반영
