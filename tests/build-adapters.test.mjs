@@ -37,6 +37,7 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.ok(first.has("claude-code/mcp-server/dist/index.js"));
   assert.ok(first.has("claude-code/mcp-server/package.json"));
   assert.ok(first.has("claude-code/project-template/docs/APP_FACTORY_RULES.md.mustache"));
+  assert.ok(first.has("claude-code/core/policies/delegation.yaml"));
   assert.ok(first.has("claude-code/scripts/render-app-factory-project.mjs"));
   assert.ok(first.has("codex/prompts/factory.md"));
   assert.ok(first.has("codex/.codex-plugin/plugin.json"));
@@ -46,6 +47,7 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.ok(first.has("codex/mcp-server/dist/index.js"));
   assert.ok(first.has("codex/mcp-server/package.json"));
   assert.ok(first.has("codex/project-template/android/settings.gradle.kts.mustache"));
+  assert.ok(first.has("codex/core/policies/delegation.yaml"));
   assert.ok(first.has("codex/scripts/render-app-factory-project.mjs"));
   assert.ok(first.has("codex/INSTALL.md"));
   assert.ok(first.has("codex/install-local.sh"));
@@ -113,6 +115,15 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Goal Completion Boundary/);
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Never treat "no remaining roadmap item" as terminal by itself/);
   assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /roadmap depletion alone is not terminal/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /core\/policies\/delegation\.yaml/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /Never run two agents or subagents at the same time/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /check its status every 5 minutes/);
+  assert.match(first.get("claude-code/agents/factory-orchestrator.md"), /subagent report contract/);
+  assert.match(first.get("codex/agents/factory-orchestrator.md"), /core\/policies\/delegation\.yaml/);
+  assert.match(first.get("codex/prompts/factory-auto.md"), /never run parallel agents/);
+  assert.match(first.get("codex/prompts/factory-auto.md"), /check every 5 minutes/);
+  assert.match(first.get("codex/core/policies/delegation.yaml"), /allow_parallel_agents: false/);
+  assert.match(first.get("codex/core/policies/delegation.yaml"), /interval_minutes: 5/);
   assert.match(first.get("claude-code/skills/final-gate/SKILL.md"), /factory auto` must not stop at this gate if production-readiness evidence is\s+missing/);
   assert.match(first.get("claude-code/skills/final-gate/SKILL.md"), /production_readiness/);
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Treat `factory auto` as an execution mode, not a tutorial/);

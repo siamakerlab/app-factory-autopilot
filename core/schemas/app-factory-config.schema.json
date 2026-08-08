@@ -333,8 +333,8 @@
       "properties": {
         "max_iterations": { "type": "integer", "minimum": 1 },
         "max_retries": { "type": "integer", "minimum": 1 },
-        "concurrent_read_agents": { "type": "integer", "minimum": 1, "default": 4 },
-        "concurrent_write_agents": { "type": "integer", "minimum": 1, "maximum": 1, "default": 1, "description": "쓰기 Agent는 항상 1 (설계서 17장)" },
+        "concurrent_read_agents": { "type": "integer", "minimum": 1, "maximum": 1, "default": 1, "description": "AFA-061: 읽기 Agent도 충돌 방지를 위해 항상 1" },
+        "concurrent_write_agents": { "type": "integer", "minimum": 1, "maximum": 1, "default": 1, "description": "쓰기 Agent는 항상 1" },
         "task_budget": { "type": "integer", "minimum": 1 }
       }
     },

@@ -128,7 +128,7 @@
   "limits": {
     "max_iterations": 5,
     "max_retries": 3,
-    "concurrent_read_agents": 4,
+    "concurrent_read_agents": 1,
     "concurrent_write_agents": 1,
     "task_budget": 200
   },

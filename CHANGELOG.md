@@ -4,8 +4,15 @@
 
 ### 2026-08-09 — Add in-session autopilot roadmap
 
+- Prepared `app-factory-autopilot@0.1.12` as a patch release for in-session
+  main-orchestrator autopilot behavior
 - Added the main-session subagent orchestration model to ROADMAP.md for
   provider environments that cannot create a new user turn automatically
+- Added `core/policies/delegation.yaml` as the SSOT for serialized delegation,
+  subagent report contracts, and the five-minute subagent watchdog
+- Updated provider prompts so manual `/factory auto` and `$factory auto` use
+  the main session as a long-running orchestrator instead of assuming a new user
+  turn can be created
 - Added AFA-061 as the P0 roadmap item for long-running `factory auto`
   orchestration, durable context checkpoints, and subagent fallback behavior
 - Expanded AFA-061 with a delegation decision policy and structured subagent

@@ -54,6 +54,28 @@ def validate_default_monetization_off():
     return 0
 
 
+def validate_serial_agent_defaults():
+    config = example("app-factory-config.example.json")
+    errors = []
+    if config["limits"]["concurrent_read_agents"] != 1:
+        errors.append("limits.concurrent_read_agents 기본값은 1이어야 함")
+    if config["limits"]["concurrent_write_agents"] != 1:
+        errors.append("limits.concurrent_write_agents 기본값은 1이어야 함")
+    schema = load("app-factory-config.schema.json")
+    limits = schema["properties"]["limits"]["properties"]
+    if limits["concurrent_read_agents"].get("maximum") != 1:
+        errors.append("concurrent_read_agents 스키마 maximum은 1이어야 함")
+    if limits["concurrent_write_agents"].get("maximum") != 1:
+        errors.append("concurrent_write_agents 스키마 maximum은 1이어야 함")
+    if errors:
+        print("[문제] agent 직렬 실행 기본 정책 위반")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("[통과 OK] agent 작업은 기본 직렬 실행")
+    return 0
+
+
 def main() -> int:
     failures = 0
     failures += validate("app-factory-config.schema.json", "app-factory-config.example.json")
@@ -62,6 +84,7 @@ def main() -> int:
     failures += validate("task.schema.json", "task.example.json")
     failures += validate("run.schema.json", "run.example.json")
     failures += validate_default_monetization_off()
+    failures += validate_serial_agent_defaults()
     return 1 if failures else 0
 
 

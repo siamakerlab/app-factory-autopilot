@@ -1,0 +1,80 @@
+version: 1
+
+# AFA-061: main-session long-running auto orchestration.
+# This policy is the shared contract for provider prompts and future runtime
+# enforcement. The main session remains the only orchestrator; agent work is
+# always serialized to avoid file, state, and judgment conflicts.
+
+execution:
+  mode: main_session_orchestrator
+  agent_concurrency: 1
+  allow_parallel_agents: false
+  allow_parallel_read_agents: false
+  allow_parallel_write_agents: false
+  one_active_delegation_only: true
+
+delegation_decision:
+  required_inputs:
+    - task_type
+    - roadmap_phase
+    - required_evidence
+    - file_ownership
+    - dangerous_tags
+    - tool_availability
+    - previous_failures
+  rule: >
+    Select exactly one agent or role-switch fallback for the next bounded unit.
+    Record the selection rationale in the run/cycle state, but show users only
+    material outcomes.
+
+agent_matrix:
+  project_setup: implementation-worker
+  project_explore: project-explorer
+  market_research: roadmap-architect
+  roadmap_refinement: roadmap-auditor
+  roadmap_audit: roadmap-auditor
+  implementation_loop: implementation-worker
+  verification: completion-verifier
+  rework_loop: implementation-worker
+  quality_review: completion-verifier
+  dependency_version_review: dependency-version-manager
+  license_review: license-compliance-auditor
+  emulator_check: completion-verifier
+  final_gate: completion-verifier
+
+subagent_report_contract:
+  required_fields:
+    - summary
+    - changed_files
+    - evidence_ids
+    - findings
+    - risks
+    - blockers
+    - confidence
+    - next_recommendation
+    - verification_needed
+    - commit_ready
+  confidence_values:
+    - low
+    - medium
+    - high
+  main_session_actions:
+    - accept_and_checkpoint
+    - request_one_correction
+    - delegate_verification
+    - create_finding_and_rework
+    - convert_to_blocker
+
+watchdog:
+  interval_minutes: 5
+  user_visible_every_check: false
+  actions:
+    running: wait
+    stopped: retry
+    no_response: retry
+    stale_owner: force_terminate_then_retry
+    limit_exceeded: convert_to_blocker
+  record_to:
+    - run_cycle
+    - task_claim
+    - finding_when_blocked

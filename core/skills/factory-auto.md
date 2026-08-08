@@ -11,11 +11,11 @@ uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate
 Alias: `factory go`.
 
 Analyze the current project state and keep the autopilot mission moving until
-the app reaches production readiness or a real blocker is found. Each provider
-turn should complete one roadmap item or one coherent unit of work, then end
-with a concise status summary and the next resume prompt. Automatic continuation
-must be handled by the provider hook/wrapper or a new invocation within the
-configured delay; a one-cycle full stop is a failure mode.
+the app reaches production readiness or a real blocker is found. In a manual
+provider session, the main session is the long-running orchestrator: it selects
+one agent/skill, delegates one bounded unit, validates the structured report,
+checkpoints durable state, and then selects the next unit. External provider
+turn runners are CLI fallbacks, not the core UX.
 
 ## Goal Completion Boundary
 
@@ -53,13 +53,23 @@ to the roadmap/task queue and continue.
    - `/factory auto` and `$factory auto` are provider-turn prompts. When launched
      by the auto runner, they perform the current bounded unit and let the runner
      start the next turn. When launched manually, they still leave state ready
-     for `factory auto` to continue.
+     for `factory auto` to continue, and should keep running in-session when
+     the provider supports subagents, goals, or long-running execution.
 1. Run `capability-audit` preflight.
 2. Prepare resume state with `factory_recover_stale_claims`, then read the state
    store in the order defined by `state-store.md`. If `.app-factory` is missing:
    - if no plan artifact exists, tell the user to run `factory plan`;
    - if plan artifacts exist, import them and continue.
-3. Run one bounded work unit for the next actionable roadmap item or task:
+3. Follow `core/policies/delegation.yaml` for the in-session autopilot model:
+   - the main session does not code directly;
+   - choose exactly one agent/skill from the delegation matrix;
+   - never run parallel agents, including read-only research/review agents;
+   - pass the required subagent report contract;
+   - if a subagent is delayed, check every 5 minutes and choose wait, retry,
+     forced termination plus retry, or blocker conversion;
+   - save watchdog outcomes to run/cycle state or reports, and surface only
+     meaningful actions to the user.
+4. Run one bounded work unit for the next actionable roadmap item or task:
    - `orchestrator_decide_next` -> delegate phase -> validate result -> record
      progress report.
    - For `project_setup`, generate Android scaffold with
@@ -82,9 +92,9 @@ to the roadmap/task queue and continue.
      verification only in the final report.
    - On build or test failure, call `task_report_failure` and let retry policy
      decide.
-4. Before ending the turn, commit and push completed changes when source files
+5. Before ending the turn, commit and push completed changes when source files
    changed and repository remotes are available.
-5. At the turn boundary, report:
+6. At the turn boundary, report:
    - `completed`: all gates passed plus evidence list;
    - `unit_complete`: completed unit, evidence, commit/push status, and that the
      autopilot will continue with `factory resume`;
@@ -110,11 +120,14 @@ to the roadmap/task queue and continue.
   explaining. Ask only for blocking product decisions, credentials, legal/store
   policy, signing, ads/billing, emulator preparation, or dangerous operations.
 - End the provider turn after one completed unit, but do not end the overall
-  autopilot mission. The next turn must resume automatically when the provider
-  environment supports the auto runner or a continuation hook.
+  autopilot mission. In manual sessions, continue through the main-session
+  orchestrator when the provider can keep running. In CLI mode, the next turn
+  must resume automatically when the provider environment supports the auto
+  runner or a continuation hook.
 
 ## Prohibited
 
 - Running dangerous work without approval.
+- Running parallel agents or subagents.
 - Reporting completion for partially implemented work. Completion means all
   final gates pass.

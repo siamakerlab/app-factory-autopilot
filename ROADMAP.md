@@ -262,7 +262,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 | AFA-024 | M3 코어 | 재시도·예산·강제 중단 정책 | P1 | 🟦 |
 | AFA-025 | M3 코어 | 턴 종료 진행 보고 생성기 | P0 | 🟦 |
 | AFA-026 | M3 코어 | 무중단 진행 드라이버 (Cross-Turn Autopilot) | P0 | 🟦 |
-| AFA-061 | M3 코어 | 메인 세션 서브에이전트 장기 실행 Auto | P0 | ⬜ |
+| AFA-061 | M3 코어 | 메인 세션 서브에이전트 장기 실행 Auto | P0 | 🟧 |
 | AFA-030 | M4 Agent/Skill | Agent 정의 8종 | P0 | 🟦 |
 | AFA-031 | M4 Agent/Skill | 진입 Skill 10종 (config/plan/init/auto/resume/test/review/status/doctor/factory) | P0 | 🟦 |
 | AFA-032 | M4 Agent/Skill | 공정 Skill 13종 | P0 | 🟦 |
@@ -682,7 +682,7 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   러너"는 저장소 내 개발·테스트용 실행 스크립트를 의미한다. npm 배포·OS별
   설치기·배포판 CLI는 1.0 범위(통합 명세 4)이므로 여기서 만들지 않는다.
 
-### AFA-061 메인 세션 서브에이전트 장기 실행 Auto — ⬜
+### AFA-061 메인 세션 서브에이전트 장기 실행 Auto — 🟧 (2026-08-09 로컬 구현 보강)
 
 - **근거**: 통합 명세 3.10, 사용자 목표(새 사용자 턴 생성 없이도 `factory auto`
   단일 실행으로 프로덕션 준비도까지 자동 진행) / **의존성**: AFA-020,
@@ -723,19 +723,19 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
 - **완료 조건**:
   - [ ] `/factory auto`와 `$factory auto`가 수동 provider 세션 안에서도
     메인 오케스트레이터로 동작하며 가능한 작업을 계속 위임한다
-  - [ ] 메인 세션이 작업별로 적절한 agent/skill을 선정한 근거를 내부 run
+  - [x] 메인 세션이 작업별로 적절한 agent/skill을 선정한 근거를 내부 run
     기록에 남기고, 사용자에게는 필요한 결과만 간결하게 보고한다
-  - [ ] 모든 서브에이전트 보고가 구조화 계약을 따르며, 메인이 작업 성공,
+  - [x] 모든 서브에이전트 보고가 구조화 계약을 따르며, 메인이 작업 성공,
     재작업, 검증 위임, blocker, commit 가능 여부를 판단하기에 충분한 정보를
     포함한다
-  - [ ] 메인 세션은 구현 파일을 직접 수정하지 않고 worker/subagent 결과를
+  - [x] 메인 세션은 구현 파일을 직접 수정하지 않고 worker/subagent 결과를
     통해서만 코드 변경을 진행한다
-  - [ ] 각 단위작업 완료 후 evidence/report/finding/task/run 상태가
+  - [x] 각 단위작업 완료 후 evidence/report/finding/task/run 상태가
     `.app-factory`에 저장되어 자동 context 압축 후에도 `/factory resume`으로
     같은 지점부터 이어진다
-  - [ ] 코드 수정, 조사, 테스트, 리뷰를 포함한 모든 agent/subagent 작업이
+  - [x] 코드 수정, 조사, 테스트, 리뷰를 포함한 모든 agent/subagent 작업이
     직렬 실행되며 동시에 둘 이상의 agent가 실행되지 않는다
-  - [ ] 서브에이전트 응답 지연 시 메인이 5분마다 진행 상태를 확인하고,
+  - [x] 서브에이전트 응답 지연 시 메인이 5분마다 진행 상태를 확인하고,
     아직 실행 중이면 대기, 정지·응답 없음이면 재실행, stale 실행이 상태를
     점유하면 강제종료 후 재실행 또는 blocker 전환을 수행한다
   - [ ] 사용자에게 보이는 메시지는 실질 진행, 검증 결과, commit/push,
@@ -751,6 +751,12 @@ MVP-1은 다음을 모두 만족할 때 완료로 인정한다.
   사용자에게 반복적으로 노출하지 않는다. 5분 단위 watchdog 결과는 run/cycle
   내부 기록으로 남기고, 사용자에게는 재실행, 강제종료, blocker 같은 의미 있는
   조치가 발생했을 때만 짧게 보고한다.
+- **로컬 검증 보강**: `core/policies/delegation.yaml`을 추가해 위임 결정,
+  agent 직렬 실행, 구조화 subagent report, 5분 watchdog 정책을 SSOT로
+  정의했다. `factory-orchestrator`, `factory-auto`, `factory-resume` 프롬프트가
+  이 정책을 참조하며, 어댑터 빌드 테스트가 Claude/Codex 산출물에 정책과
+  핵심 문구가 포함되는지 검증한다. 실제 provider 세션에서의 장기 실행
+  orchestration 실측은 남아 있어 PARTIAL로 둔다.
 
 ### AFA-050 빌드·테스트·Lint 게이트 실행기 — 🟦 (2026-08-05 구현 제출)
 

@@ -1,6 +1,6 @@
 {
   "name": "app-factory-autopilot",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Installable Claude Code and Codex plugin for Android app planning, implementation, verification, and emulator testing.",
   "type": "module",
   "license": "Apache-2.0",

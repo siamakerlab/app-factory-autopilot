@@ -22,7 +22,9 @@ first searches for the interruption point.
 4. Read the latest run, task queue, roadmap status, gate results, and pending
    decisions to determine the resume point.
 5. Run the same bounded work-unit procedure as `factory auto` with
-   `command=resume`.
+   `command=resume`. Follow `core/policies/delegation.yaml`: one active
+   agent/subagent only, structured subagent reports, 5-minute delayed-response
+   watchdog, and durable checkpointing before moving to the next unit.
 6. Record the four-part progress report after the unit. If the production
    mission is not terminal, leave state ready for the automatic next provider
    turn.
