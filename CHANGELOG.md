@@ -11,6 +11,10 @@
 - Replaced empty generic MCP tool input schemas with explicit top-level
   argument schemas for core factory, roadmap, evidence, gate, dependency,
   approval, capability, and review tools
+- Kept Claude Code plugin copies under the marketplace root so marketplace
+  `source` paths and installed files cannot diverge on another machine
+- Added verified MCP install metadata for Sia Makerlab mobile docs, Context7,
+  and mobile-mcp so capability planning can produce provider install commands
 
 ### 2026-08-08 — Refresh Codex local plugin installs
 

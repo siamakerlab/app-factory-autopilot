@@ -336,7 +336,7 @@ writeInstallScript(path.join(CC, "install-local.sh"), [
   "set -eu",
   'SRC="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"',
   'MARKETPLACE_ROOT="${APP_FACTORY_CLAUDE_MARKETPLACE_ROOT:-$HOME/.claude/plugins/marketplaces/app-factory-autopilot-local}"',
-  'DEST="${APP_FACTORY_CLAUDE_PLUGIN_DIR:-$MARKETPLACE_ROOT/plugins/app-factory-autopilot}"',
+  'DEST="$MARKETPLACE_ROOT/plugins/app-factory-autopilot"',
   'mkdir -p "$(dirname "$DEST")"',
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',

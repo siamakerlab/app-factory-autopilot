@@ -109,7 +109,7 @@ skills:
     purpose: "Google Mobile Ads SDK(AdMob)+UMP 동의 구현/디버그 (요청명 admob-agent-skill의 공식 대응)"
     priority: recommended
     condition: "광고 사용 앱이면 required"
-    install: { method: skills-cli, source: "google/skills", path: "skills/ads" }
+    install: { method: skills-cli, source: "google/skills/skills/ads" }
     verified: { repo: "https://github.com/google/skills", date: 2026-08-05, doc: "https://developers.google.com/admob/android/agent-skills" }
     guidance_doc: "AdMob/UMP 구현·디버그 시 google-mobile-ads 스킬을 사용한다."
 
@@ -181,15 +181,21 @@ mcp_servers:
     purpose: "Android/모바일 공식 문서 검색·인덱싱"
     priority: recommended
     requires_api_key: false
+    install: { method: mcp-npm, package: "@siamakerlab/android-docs-mcp-server", command: "docs-mcp-server" }
+    verified: { repo: "https://github.com/siamakerlab/mobile-docs-mcp-server", package: "@siamakerlab/android-docs-mcp-server", date: 2026-08-08 }
   - id: context7
     purpose: "라이브러리 최신 공식 문서 조회"
     priority: recommended
     requires_api_key: false
+    install: { method: mcp-npm, package: "@upstash/context7-mcp", command: "context7-mcp" }
+    verified: { repo: "https://github.com/upstash/context7", date: 2026-08-08 }
   - id: mobile-mcp
     purpose: "에뮬레이터/디바이스 조작 (설치·실행·스크린샷)"
     priority: recommended
     requires_api_key: false
     condition: "에뮬레이터 검증 단계에서는 required"
+    install: { method: mcp-npm, package: "mobile-mcp", command: "mobile-mcp" }
+    verified: { repo: "https://github.com/mobile-next/mobile-mcp", date: 2026-08-08 }
   - id: playwright
     purpose: "브라우저 자동화 (웹 조사·UI 검증)"
     priority: recommended

@@ -116,13 +116,15 @@ test("역량 — 스캔 대조, 설치 계획, 거절 반복 제안 금지", asy
       selections: [
         { id: "edge-to-edge", scope: "project" },
         { id: "compose-expert", scope: "global" },
+        { id: "mobile-docs", scope: "global" },
         { id: "kotlin-expert", scope: "project" }, // 미검증 — 불가
         { id: "dataviz", scope: "project" }, // 내장 — 불필요
       ],
       provider: "claude-code",
     });
-    assert.equal(plan.plan.length, 2);
+    assert.equal(plan.plan.length, 3);
     assert.match(plan.plan[0]!.command, /npx skills add android\/skills/);
+    assert.match(plan.plan[2]!.command, /claude mcp add mobile-docs --scope user -- npx -y @siamakerlab\/android-docs-mcp-server@latest/);
     assert.equal(plan.unavailable.length, 2);
 
     // 거절 기록 → 재스캔 시 제안 안 됨

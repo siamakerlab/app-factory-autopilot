@@ -65,7 +65,16 @@ test("MCP tools expose non-empty input schemas for core mutation tools", async (
 
     const result = await waitForToolList(server) as { tools: { name: string; inputSchema?: { properties?: Record<string, unknown> } }[] };
     const byName = new Map(result.tools.map((tool) => [tool.name, tool]));
-    for (const name of ["factory_claim_task", "roadmap_update_status", "evidence_register", "gate_run_all"]) {
+    for (const name of [
+      "factory_claim_task",
+      "roadmap_update_status",
+      "evidence_register",
+      "gate_run_all",
+      "dependency_review_version",
+      "approval_decide",
+      "placeholder_resolve",
+      "task_report_failure",
+    ]) {
       const properties = byName.get(name)?.inputSchema?.properties ?? {};
       assert.notEqual(Object.keys(properties).length, 0, `${name} inputSchema.properties must not be empty`);
     }
@@ -73,6 +82,10 @@ test("MCP tools expose non-empty input schemas for core mutation tools", async (
     assert.ok(byName.get("roadmap_update_status")?.inputSchema?.properties?.item_id);
     assert.ok(byName.get("evidence_register")?.inputSchema?.properties?.created_by);
     assert.ok(byName.get("gate_run_all")?.inputSchema?.properties?.release);
+    assert.ok(byName.get("dependency_review_version")?.inputSchema?.properties?.dependency_id);
+    assert.ok(byName.get("approval_decide")?.inputSchema?.properties?.approved);
+    assert.ok(byName.get("placeholder_resolve")?.inputSchema?.properties?.resolved_value);
+    assert.ok(byName.get("task_report_failure")?.inputSchema?.properties?.error_message);
   } finally {
     server.kill();
     fs.rmSync(projectRoot, { recursive: true, force: true });

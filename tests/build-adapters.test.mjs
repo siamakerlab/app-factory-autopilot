@@ -64,6 +64,7 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_RUNNER=1/);
   assert.match(first.get("claude-code/bin/factory-auto-runner.sh"), /\/factory resume/);
   assert.match(first.get("claude-code/install-local.sh"), /APP_FACTORY_CLAUDE_MARKETPLACE_ROOT/);
+  assert.doesNotMatch(first.get("claude-code/install-local.sh"), /APP_FACTORY_CLAUDE_PLUGIN_DIR/);
   assert.match(first.get("claude-code/install-local.sh"), /install-claude-marketplace\.mjs/);
   assert.match(first.get("claude-code/install-local.sh"), /npm ci --omit=dev/);
   assert.match(first.get("claude-code/install-local.sh"), /claude plugin marketplace update app-factory-autopilot-local/);

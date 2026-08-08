@@ -25,7 +25,15 @@ interface Catalog {
   skills: CatalogSkill[];
   builtin_skills: { id: string; category: string; purpose: string }[];
   excluded_unverified: string[];
-  mcp_servers: { id: string; purpose: string; priority: string; requires_api_key: boolean; condition?: string }[];
+  mcp_servers: {
+    id: string;
+    purpose: string;
+    priority: string;
+    requires_api_key: boolean;
+    condition?: string;
+    install?: { method: string; package?: string; command?: string };
+    verified?: Record<string, unknown>;
+  }[];
   subagents: { id: string; purpose: string; priority: string }[];
 }
 
@@ -252,7 +260,24 @@ export function capabilityInstallPlan(
   for (const sel of input.selections) {
     const skill = catalog.skills.find((s) => s.id === sel.id);
     if (!skill) {
-      if (catalog.excluded_unverified.includes(sel.id)) {
+      const mcp = catalog.mcp_servers.find((m) => m.id === sel.id);
+      if (mcp) {
+        if (!mcp.install || mcp.install.method !== "mcp-npm" || !mcp.install.package) {
+          unavailable.push({ id: sel.id, reason: "MCP 설치 방법 미정" });
+          continue;
+        }
+        const runner = mcp.install.command ?? mcp.install.package;
+        const command = input.provider === "claude-code"
+          ? `claude mcp add ${mcp.id} --scope ${sel.scope === "global" ? "user" : "project"} -- npx -y ${mcp.install.package}@latest`
+          : `codex mcp add ${mcp.id} -- npx -y ${mcp.install.package}@latest`;
+        plan.push({
+          id: mcp.id,
+          scope: sel.scope,
+          method: mcp.install.method,
+          command,
+          guidance_doc: `Use ${mcp.id} before web fallback when current Android or library documentation is needed. Binary: ${runner}.`,
+        });
+      } else if (catalog.excluded_unverified.includes(sel.id)) {
         unavailable.push({ id: sel.id, reason: "공개 레포 미검증 — 설치 소스 없음" });
       } else if (catalog.builtin_skills.some((b) => b.id === sel.id)) {
         unavailable.push({ id: sel.id, reason: "내장 스킬 — 설치 불필요" });

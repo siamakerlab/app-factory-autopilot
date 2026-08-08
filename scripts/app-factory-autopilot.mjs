@@ -218,9 +218,7 @@ function installClaudeCode() {
   const marketplaceRoot =
     process.env.APP_FACTORY_CLAUDE_MARKETPLACE_ROOT ??
     path.join(home, ".claude", "plugins", "marketplaces", "app-factory-autopilot-local");
-  const destination =
-    process.env.APP_FACTORY_CLAUDE_PLUGIN_DIR ??
-    path.join(marketplaceRoot, "plugins", "app-factory-autopilot");
+  const destination = path.join(marketplaceRoot, "plugins", "app-factory-autopilot");
   copyPluginPackage(source, destination);
   installBundledMcpRuntime(destination);
   const marketplacePath = writeClaudeMarketplace(marketplaceRoot);

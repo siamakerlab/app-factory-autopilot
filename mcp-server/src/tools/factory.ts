@@ -356,8 +356,9 @@ export async function factoryAbortCycle(
 /** 재개 시 stale 클레임 회수 (state-store.md 5절) — 드라이버·재개 절차가 호출 */
 export async function recoverStaleClaims(
   ctx: Ctx,
-  staleMinutes = 60,
+  input: number | { stale_minutes?: number } = 60,
 ): Promise<{ recovered: string[] }> {
+  const staleMinutes = typeof input === "number" ? input : input.stale_minutes ?? 60;
   return ctx.store.withLock("recover_stale_claims", () => {
     const cutoff = Date.now() - staleMinutes * 60 * 1000;
     const latestRun = ctx.store.latestRun();
