@@ -1,7 +1,5 @@
-// 무중단 진행 드라이버 (AFA-026, One-Prompt Completion — 통합 명세 3.17)
-// 종료 조건(정상 완료·강제 중단·한도 초과) 도달까지 사이클을 반복한다.
-// LLM 실행은 executor 콜백으로 위임 — 어댑터(Claude Code Stop Hook, Codex 래퍼,
-// 개발용 CLI)가 이 드라이버를 감싼다. 드라이버 자체는 얇은 껍데기다.
+// Continuous workflow driver (AFA-026, One-Prompt Completion).
+// Repeats cycles until completed, forced_stop, or limit_exceeded.
 
 import type { Ctx } from "./context.js";
 import type { Run } from "./types.js";
@@ -15,12 +13,12 @@ import {
 } from "./tools/factory.js";
 
 export interface ExecutorResult {
-  /** executor가 이번 사이클에서 상태를 전진시켰는지 (false 연속 시 정체로 판단) */
+  /** Whether the executor advanced state this cycle. Consecutive false results count as a stall. */
   progressed: boolean;
   note?: string;
 }
 
-/** phase 작업을 실제 수행하는 콜백 — 어댑터가 LLM Agent 실행으로 구현 */
+/** Adapter callback that performs the selected phase, usually through an LLM agent. */
 export type Executor = (
   ctx: Ctx,
   action: Extract<NextAction, { kind: "dispatch" }>,
@@ -35,7 +33,7 @@ export interface DriveResult {
   final_report: ReturnType<typeof buildProgressReport>;
 }
 
-const STALL_LIMIT = 3; // 연속 무진전 사이클 한도 (안전장치 — 예산과 별개)
+const STALL_LIMIT = 3;
 
 export async function driveAuto(
   ctx: Ctx,
@@ -46,7 +44,6 @@ export async function driveAuto(
   const provider = opts.provider ?? "cli";
   const command = opts.command ?? "auto";
 
-  // 재개 절차: stale 클레임 회수 (state-store.md 5·6절)
   await recoverStaleClaims(ctx);
 
   let cycles = 0;
@@ -65,12 +62,10 @@ export async function driveAuto(
       return await finish(ctx, runId, "completed", cycles, pending, cycleReports);
     }
     if (action.kind === "blocked") {
-      // 질문 지연·일괄 처리: 미결 항목을 적재하고 종료 보고에 포함 (3.17)
       pending.push(...action.pending);
       return await finish(ctx, runId, "forced_stop", cycles, pending, cycleReports);
     }
 
-    // dispatch — 사이클 시작
     cycles += 1;
     const { run_id, cycle_seq } = await factoryStartCycle(ctx, {
       command,
@@ -85,14 +80,9 @@ export async function driveAuto(
 
     const result = await executor(ctx, action);
 
-    // 턴 종료 보고 기록 후 자동으로 다음 사이클 계속 (보고는 정지점이 아님)
     const report = buildProgressReport(ctx);
-    const cycleSummary = [
-      `이번 사이클: ${action.phase.title}`,
-      action.task_id ? `작업 ${action.task_id}` : "",
-      result.note ?? "",
-      `누적: ${report.summary}`,
-    ].filter(Boolean).join(" — ");
+    const outcome = result.note?.trim() || (action.task_id ? `작업 ${action.task_id} 처리` : action.phase.title);
+    const cycleSummary = `결과: ${outcome} / 누적: ${report.summary}`;
     const finished = await factoryFinishCycle(ctx, {
       run_id,
       cycle_seq,
@@ -111,7 +101,7 @@ export async function driveAuto(
       if (stall >= STALL_LIMIT) {
         pending.push({
           subject: action.phase.id,
-          summary: `단계 '${action.phase.title}'에서 ${STALL_LIMIT}사이클 연속 무진전 — 개입 필요`,
+          summary: `${STALL_LIMIT}사이클 연속 무진전 — 개입 필요`,
         });
         return await finish(ctx, runId, "forced_stop", cycles, pending, cycleReports);
       }
@@ -129,8 +119,7 @@ async function finish(
 ): Promise<DriveResult> {
   const deduped = [...new Map(pending.map((p) => [p.subject, p])).values()];
   if (runId) {
-    // pending_decisions 일괄 기록 (3.17 마지막 일괄 보고)
-    const run = ctx.store.loadRun(runId);
+        const run = ctx.store.loadRun(runId);
     run.pending_decisions = deduped.map((p) => ({ ...p, blocking_critical_path: false }));
     ctx.store.saveRun(run);
     await factoryAbortCycle(ctx, { run_id: runId, exit_reason: exit });

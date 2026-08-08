@@ -1,43 +1,85 @@
 ---
 name: factory-auto
-description: 진행 상태 분석 후 완료까지 무중단 자동 진행 (One-Prompt Completion)
+description: Continues app development automatically until production readiness, using bounded turn-sized work units
 kind: entry
 uses_agents: [factory-orchestrator, implementation-worker, completion-verifier]
 uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate]
 ---
 
-# factory auto (별칭: factory go)
+# factory auto
 
-어디까지 진행되었는지 현재 프로젝트를 분석하고 알아서 진행합니다. 작업이
-끊기지 않고 **모든 공정이 끝날 때까지** 계속됩니다 (통합 명세 3.17).
+Alias: `factory go`.
 
-## 절차
+Analyze the current project state and keep the autopilot mission moving until
+the app reaches production readiness or a real blocker is found. Each provider
+turn should complete one roadmap item or one coherent unit of work, then end
+with a concise status summary and the next resume prompt. Automatic continuation
+must be handled by the provider hook/wrapper or a new invocation within the
+configured delay; a one-cycle full stop is a failure mode.
 
-1. `capability-audit` 프리플라이트.
-2. 재개 준비: `factory_recover_stale_claims` → 상태 저장소 읽기
-   (state-store.md 6절 순서). `.app-factory` 부재 시:
-   - plan 산출물도 없으면 `factory plan` 안내 후 종료
-   - plan 산출물이 있으면 반입 후 진행
-3. **드라이버 루프** (`driveAuto` — 어댑터의 세션 지속 장치와 연동):
-   - `orchestrator_decide_next` → 단계 위임 → 결과 검증 → 진행 보고 기록
-   - `project_setup` 단계는 `scripts/render-app-factory-project.mjs --scope android`를
-     사용해 공식 문서로 확인된 최신 안정화 버전 컨텍스트가 채워진 경우에만
-     Android scaffold를 생성한다.
-   - 매 사이클 종료 시 3.15 진행 보고 4요소를 표시하되 **사용자 응답을
-     기다리지 않고 계속한다**
-   - 사용자 판단 필요 항목은 크리티컬 패스 비차단 시
-     `NEEDS_HUMAN_DECISION`으로 적재하고 계속 (질문 지연·일괄 처리)
-   - `automation.emulator=false`이면 중간에 에뮬레이터 실행 여부를 묻지
-     않는다. 구현 가능한 기능과 정적·단위·빌드 검증을 최대한 완료한 뒤
-     마지막 보고에서만 에뮬레이터 검증 사용을 권유한다.
-   - 빌드·테스트 실패는 `task_report_failure` — 재시도 정책이 처리
-4. 종료 조건 도달 시 최종 보고:
-   - completed: 게이트 전체 통과 요약 + 증거 목록
-   - forced_stop: 미결 항목(pending_decisions) 일괄 보고 + 선택지·근거·
-     위험·추천안
-   - limit_exceeded: 현재 상태와 남은 작업 보고
+## Procedure
 
-## 금지
+0. Entry-point rule:
+   - `factory auto [codex|claude-code] [project-path]` is the unattended
+     production-readiness command. It starts provider turns, waits the configured
+     delay, and reinvokes `factory resume` until a terminal state.
+   - `/factory auto` and `$factory auto` are provider-turn prompts. When launched
+     by the auto runner, they perform the current bounded unit and let the runner
+     start the next turn. When launched manually, they still leave state ready
+     for `factory auto` to continue.
+1. Run `capability-audit` preflight.
+2. Prepare resume state with `factory_recover_stale_claims`, then read the state
+   store in the order defined by `state-store.md`. If `.app-factory` is missing:
+   - if no plan artifact exists, tell the user to run `factory plan`;
+   - if plan artifacts exist, import them and continue.
+3. Run one bounded work unit for the next actionable roadmap item or task:
+   - `orchestrator_decide_next` -> delegate phase -> validate result -> record
+     progress report.
+   - For `project_setup`, generate Android scaffold with
+     `scripts/render-app-factory-project.mjs --scope android` only when official
+     latest-stable version context is available.
+   - Show one four-part progress report in the user's language at the end of the
+     turn.
+   - If human decisions are needed and do not block the critical path, record
+     them as `NEEDS_HUMAN_DECISION` and continue.
+   - If `automation.emulator=false`, do not ask about emulator use mid-workflow.
+     Implement and statically verify everything possible, then recommend emulator
+     verification only in the final report.
+   - On build or test failure, call `task_report_failure` and let retry policy
+     decide.
+4. Before ending the turn, commit and push completed changes when source files
+   changed and repository remotes are available.
+5. At the turn boundary, report:
+   - `completed`: all gates passed plus evidence list;
+   - `unit_complete`: completed unit, evidence, commit/push status, and that the
+     autopilot will continue with `factory resume`;
+   - `forced_stop`: pending decisions with options, rationale, risk, and
+     recommendation;
+   - `limit_exceeded`: current state and remaining work.
 
-- 승인 없는 위험 작업(dangerous 태그) 실행
-- 부분 구현 상태로 "완료" 보고 (완료 = 3.9 게이트 전체 통과뿐)
+## User Communication
+
+- Treat `factory auto` as an execution mode, not a tutorial. Do not describe
+  internal skill routing, prompt rules, state-machine phases, or why a step
+  exists unless the user asks.
+- Normal updates should be short and outcome-oriented:
+  - current concrete work;
+  - evidence or result, such as files changed, test result, finding ID, commit,
+    or push;
+  - next concrete action;
+  - progress percentage when available.
+- Do not show full checklists, scoring matrices, or long option comparisons
+  during the run. Save them as evidence/report artifacts and surface only the
+  summary.
+- If the next action is obvious and safe, execute it instead of asking or
+  explaining. Ask only for blocking product decisions, credentials, legal/store
+  policy, signing, ads/billing, emulator preparation, or dangerous operations.
+- End the provider turn after one completed unit, but do not end the overall
+  autopilot mission. The next turn must resume automatically when the provider
+  environment supports the auto runner or a continuation hook.
+
+## Prohibited
+
+- Running dangerous work without approval.
+- Reporting completion for partially implemented work. Completion means all
+  final gates pass.

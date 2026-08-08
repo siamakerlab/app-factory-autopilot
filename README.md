@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.4`.
+The package is published on npm as `app-factory-autopilot@0.1.5`.
 Install the CLI with:
 
 ```bash
@@ -209,8 +209,8 @@ node scripts/package-plugin.mjs
 This creates:
 
 ```text
-packages/app-factory-autopilot-claude-code-v0.1.4.tar.gz
-packages/app-factory-autopilot-codex-v0.1.4.tar.gz
+packages/app-factory-autopilot-claude-code-v0.1.5.tar.gz
+packages/app-factory-autopilot-codex-v0.1.5.tar.gz
 packages/SHA256SUMS
 packages/README.md
 ```
@@ -227,7 +227,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-claude-code-v0.1.4.tar.gz
+tar -xzf app-factory-autopilot-claude-code-v0.1.5.tar.gz
 cd claude-code
 ./install-local.sh
 ```
@@ -239,7 +239,9 @@ The package contains:
 - `/factory` command
 - Factory agents
 - Factory skills
-- Stop Hook for `factory auto`, `factory resume`, and `factory test`
+- Cross-turn automatic continuation runner for production-readiness automation
+- Optional Stop Hook fallback for `factory auto`, `factory resume`, and
+  `factory test`
 - Bundled MCP server files
 - Project templates and rendering scripts
 
@@ -264,6 +266,13 @@ The expected command form is:
 /factory doctor
 ```
 
+For unattended completion after planning, run the npm CLI from the target
+project instead of manually retyping provider prompts:
+
+```bash
+factory auto claude-code .
+```
+
 ### 3. Codex
 
 Use the generated Codex package in `dist/codex/`.
@@ -272,7 +281,7 @@ If you built archives, install from the package:
 
 ```bash
 cd packages
-tar -xzf app-factory-autopilot-codex-v0.1.4.tar.gz
+tar -xzf app-factory-autopilot-codex-v0.1.5.tar.gz
 cd codex
 ./install-local.sh
 ```
@@ -284,7 +293,7 @@ The package contains:
 - Factory agents and process skills
 - `.mcp.json`
 - `config/mcp.toml` MCP snippet
-- `bin/factory-auto-loop.sh`
+- Cross-turn automatic continuation runner
 - Bundled MCP server files
 - Project templates and rendering scripts
 
@@ -310,6 +319,13 @@ $factory status
 $factory doctor
 ```
 
+For unattended completion after planning, run the npm CLI from the target
+project:
+
+```bash
+factory auto codex .
+```
+
 ## Command Reference
 
 | Command | Claude Code | Codex | Purpose |
@@ -317,7 +333,7 @@ $factory doctor
 | `config` | `/factory config` | `$factory config` | Configure automation options before a run. |
 | `plan` | `/factory plan "idea"` | `$factory plan "idea"` | Interview the user and generate project planning artifacts. |
 | `init` | `/factory init` | `$factory init` | Adopt an existing Android project without modifying source code. |
-| `auto` | `/factory auto` | `$factory auto` | Continue implementation, gates, and verification until done or blocked. |
+| `auto` | `/factory auto` | `$factory auto` | Continue production-readiness automation across bounded turns until done or blocked. |
 | `resume` | `/factory resume` | `$factory resume` | Resume from `.app-factory/` state after interruption. |
 | `test` | `/factory test` | `$factory test` | Run exhaustive emulator scenario testing. |
 | `review` | `/factory review` | `$factory review` | Re-audit implementation without trusting prior claims. |
@@ -326,6 +342,19 @@ $factory doctor
 
 `factory go` is a provider command compatibility alias for `factory auto`.
 
+For unattended production-readiness automation from a shell, use the npm CLI:
+
+```bash
+factory auto codex .
+# or
+factory auto claude-code .
+```
+
+The CLI runs the provider `factory auto`, waits 30 seconds between provider
+turns, then continues with `factory resume` until the app reaches a terminal state:
+`completed`, `forced_stop`, `limit_exceeded`, `user_abort`, or `error`.
+Override the delay with `APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS`.
+
 ## Typical Workflows
 
 ### New App
@@ -333,7 +362,7 @@ $factory doctor
 ```text
 factory config
 factory plan "A habit tracker for busy students"
-factory auto
+factory auto codex .
 factory review
 factory test
 ```
@@ -344,7 +373,7 @@ factory test
 factory init
 factory config
 factory plan "Improve the existing app toward production readiness"
-factory auto
+factory auto codex .
 factory review
 factory test
 ```

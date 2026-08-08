@@ -1,15 +1,16 @@
 ---
 name: roadmap-audit
-description: 로드맵 누락·모순 감사 — 감사 증거 등록 (clean 여부)
+description: Audits roadmap omissions and contradictions and registers clean-or-not evidence
 kind: process
 uses_agents: [roadmap-auditor]
 ---
 
 # roadmap-audit
 
-Roadmap Auditor Agent를 호출합니다 (검사 목록은 Agent 정의 참조).
+Invoke Roadmap Auditor. The checklist is defined in the agent.
 
-- 결과는 finding + 감사 증거(`data: { audit: "roadmap", clean: <bool> }`)로
-  기록된다. 오케스트레이터의 roadmap_audit 단계 done 판정이 이 증거를
-  참조한다.
-- clean=true 조건: blocker·major finding 0건.
+- Record results as findings plus audit evidence:
+  `data: { audit: "roadmap", clean: <bool> }`.
+- The orchestrator uses this evidence to decide whether roadmap-audit phase is
+  done.
+- `clean=true` requires zero blocker and major findings.

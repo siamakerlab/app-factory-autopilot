@@ -199,7 +199,8 @@ test("드라이버 — 사용자 입력 없이 완료까지 무중단 진행 (On
     assert.ok(result.cycles >= 5, `사이클 수 ${result.cycles}`);
     assert.equal(result.cycle_reports.length, result.cycles);
     assert.match(result.cycle_reports[0]!, /진행 보고/);
-    assert.match(result.cycle_reports[0]!, /이번 사이클:/);
+    assert.match(result.cycle_reports[0]!, /결과:/);
+    assert.doesNotMatch(result.cycle_reports[0]!, /이번 사이클:/);
     assert.match(result.cycle_reports[0]!, /다음 작업:/);
     assert.match(result.cycle_reports[0]!, /전체 진행도:/);
     assert.equal(result.final_report.progress_pct, 100);

@@ -1,69 +1,65 @@
 ---
 name: factory-config
-description: 자동화 실행 옵션을 체크박스로 설정 — 기본은 에뮬레이터·광고·인앱결제 제외
+description: Configures automation options as checkboxes; defaults exclude emulator, ads, and billing
 kind: entry
 uses_skills: [capability-audit]
 ---
 
 # factory config
 
-현재 프로젝트의 자동화 범위를 변경할 때 실행합니다. `factory plan`에서 이미
-선택한 값이나 저장된 APP_FACTORY 설정이 있으면 그 값을 체크박스의 현재 선택
-상태로 표시해야 하며, 기본값 복원 용도로 시간을 쓰면 안 됩니다. 플랫폼이
-체크박스 UI를 지원하면 체크박스로 표시하고, 지원하지 않으면 동일 항목을 목록으로
-보여 준 뒤 사용자가 바꾼 선택 값을 저장합니다.
+Use this command to change the current project's automation scope. If values
+were already selected in `factory plan` or saved in APP_FACTORY config, display
+those values as the current checkbox state. Do not spend time resetting the
+project to defaults. If the platform supports checkbox UI, use checkboxes; if
+not, show the same items as a list and save the user's changed selections.
 
-## 기본값
+## Defaults
 
-- 기본적으로 모든 프로덕션 품질 검토 기능을 활성화한다.
-- 예외: `automation.emulator=false`, `automation.ads=false`,
-  `automation.billing=false`가 기본값이다. 광고와 인앱결제는 plan/config에서
-  사용자가 명시적으로 켠 경우에만 탑재한다.
-- `automation.defer_emulator_prompt_until_final=true`가 기본값이다. 에뮬레이터를
-  사용하지 않는 경우 중간 공정에서는 묻지 않고, 코드로 구현 가능한 모든 기능을
-  최대한 구현·검증한 뒤 마지막 보고에서 에뮬레이터 검증 사용을 권유한다.
+- Enable all production quality review features by default.
+- Exceptions: `automation.emulator=false`, `automation.ads=false`, and
+  `automation.billing=false` are defaults. Ads and in-app billing are included
+  only when the user explicitly enables them in plan or config.
+- `automation.defer_emulator_prompt_until_final=true` is the default. When
+  emulator is disabled, do not ask during the middle of the workflow. Implement
+  and verify everything possible in code, then recommend emulator verification
+  only in the final report.
 
-## 체크박스 항목
+## Checkbox Items
 
-| 설정 | 기본값 | 의미 |
-|------|--------|------|
-| `market_research` | true | 경쟁 앱·커뮤니티·사용자 리뷰 조사 |
-| `modern_ui` | true | Material 3/Adaptive UI 현대화 |
-| `ux_intuitiveness_review` | true | 주요 기능 UX 직관성 검토·수정 |
-| `accessibility_review` | true | 접근성 검토·수정 |
-| `in_app_review` | true | Google Play 인앱리뷰 기능 탑재 |
-| `in_app_update` | true | Google Play 인앱업데이트 기능 탑재 |
-| `ads` | false | 광고·동의 흐름 탑재 |
-| `billing` | false | 인앱결제·구매 복원 탑재 |
-| `store_readiness` | true | 스토어 등록 준비 점검 |
-| `observability` | true | 크래시/분석 이벤트 등 관측성 탑재 |
-| `performance_review` | true | 성능·메모리·시작 시간 검토 |
-| `security_privacy_review` | true | 보안·개인정보 검토 |
-| `license_review` | true | 라이선스·고지·SBOM 검토 |
-| `emulator` | false | 에뮬레이터 실행 검증 |
+| Setting | Default | Meaning |
+|---|---:|---|
+| `market_research` | true | Competitor, community, and user-review research |
+| `modern_ui` | true | Material 3 and adaptive UI modernization |
+| `ux_intuitiveness_review` | true | Core UX intuitiveness review and fixes |
+| `accessibility_review` | true | Accessibility review and fixes |
+| `in_app_review` | true | Google Play in-app review |
+| `in_app_update` | true | Google Play in-app update |
+| `ads` | false | Ads and consent flow |
+| `billing` | false | In-app billing and purchase restore |
+| `store_readiness` | true | Store listing readiness checks |
+| `observability` | true | Crash and analytics observability |
+| `performance_review` | true | Performance, memory, and startup review |
+| `security_privacy_review` | true | Security and privacy review |
+| `license_review` | true | License, notices, and SBOM review |
+| `emulator` | false | Emulator execution verification |
 
-## 적용 규칙
+## Application Rules
 
-1. 조회 시 체크박스 초기 상태는 `defaults.yaml < factory plan 답변 < 저장된
-   APP_FACTORY 설정` 우선순위의 현재값을 사용한다.
-2. 선택 값은 APP_FACTORY 설정의 `automation.*`에 저장한다.
-3. 관련 설정도 동기화한다:
-   - `automation.in_app_review=false` → `in_app_review.enabled=false`
-   - `automation.in_app_update=false` → `in_app_update.enabled=false`
-   - `automation.ads=false` → `ads.enabled=false`
-   - `automation.billing=false` → `billing.enabled=false`
-   - `automation.market_research=false` → `market_research.enabled=false`
-   - `automation.accessibility_review=false` → `ux_quality.accessibility_required=false`
-4. 비활성화한 기능은 로드맵·review-scoring에서 `n_a`로 처리한다. 단 보안,
-   라이선스, 개인정보처럼 출시 위험과 직접 연결되는 항목은 사용자가 끄더라도
-   최소 정적 검사는 유지한다.
-5. `automation.emulator=false`이면 `factory auto`는 에뮬레이터 게이트를
-   중간 강제 중단 사유로 삼지 않는다. 마지막 완료 보고에서만 에뮬레이터 실행을
-   권유하고, 에뮬레이터 미검증 상태를 release-readiness 경고로 남긴다.
+1. Initial checkbox state uses this precedence: `defaults.yaml < factory plan
+   answers < saved APP_FACTORY config`.
+2. Save selections under APP_FACTORY `automation.*`.
+3. Synchronize related settings, such as disabling `in_app_review.enabled` when
+   `automation.in_app_review=false`.
+4. Treat disabled features as `n_a` in roadmap and review scoring. Keep minimal
+   static checks for security, license, and privacy because they affect release
+   risk.
+5. If `automation.emulator=false`, `factory auto` must not treat emulator gate as
+   a mid-workflow hard stop. Leave a release-readiness warning and recommend
+   emulator verification only in the final report.
 
-## 출력
+## Output
 
-- 현재 설정 요약
-- 변경된 항목 목록
-- 비활성화로 인해 `n_a` 처리될 review 영역 목록
-- 에뮬레이터 비활성 시 마지막 권유 메시지 예약 여부
+- Current setting summary.
+- Changed item list.
+- Review areas marked `n_a` because of disabled features.
+- Whether the final emulator recommendation is deferred.

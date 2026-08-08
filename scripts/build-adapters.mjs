@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// 코어 → 어댑터 빌드 파이프라인 (AFA-042)
-// core/ 원본(SSOT)을 읽어 dist/claude-code/, dist/codex/ 산출물을 생성한다.
-// - 결정론적: 같은 입력 → 같은 출력 (타임스탬프 미포함)
-// - 산출물마다 "수동 편집 금지" 경고 헤더 포함
-// - 변환 불가 구문 발견 시 실패 (어댑터 편법 금지 — 코어를 고친다)
+// Core -> adapter build pipeline (AFA-042).
+// Reads core/ as the SSOT and generates dist/claude-code/ and dist/codex/.
+// - Deterministic: same input -> same output, with no timestamps.
+// - Every generated artifact includes a "do not edit" warning.
+// - Unsupported source syntax fails the build; fix core/ instead of adapters.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -15,15 +15,37 @@ const CORE = path.join(ROOT, "core");
 const DIST = path.join(ROOT, "dist");
 const MCP = path.join(ROOT, "mcp-server");
 const PROJECT_TEMPLATE = path.join(ROOT, "project-template");
+const VERSION = "0.1.5";
 
-const WARN_MD = `<!-- 자동 생성 파일 — 직접 수정 금지. 원본: core/ (scripts/build-adapters.mjs가 덮어씀) -->\n`;
-const WARN_JS = `// 자동 생성 파일 — 직접 수정 금지. 원본: core/ (scripts/build-adapters.mjs가 덮어씀)\n`;
+const WARN_MD = `<!-- Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs. -->\n`;
+const WARN_JS = `// Generated file. Do not edit directly. Source: core/; overwritten by scripts/build-adapters.mjs.\n`;
+const PROMPT_LANGUAGE_POLICY = `## Prompt Language and User Output Policy
 
-// ── frontmatter 파서 (외부 의존성 없음) ────────────────────────────────
+- Internal plugin prompts and operational instructions must be written in English.
+- Preserve code identifiers, command names, schema keys, file paths, and user-provided text exactly unless a task explicitly asks to change them.
+- User-facing responses, progress reports, questions, warnings, and final summaries must be written in the user's language.
+- Infer the user's language from the latest user message. If the user switches language, switch user-facing output to that language.
+- Do not expose this policy as a feature explanation unless the user asks about language behavior.
+
+## Quiet Automation Policy
+
+- Do not narrate internal routing, skill names, prompt rules, policy clauses, or procedural reasons such as "because factory-xx says so" unless the user explicitly asks.
+- During factory auto, prefer doing the next concrete task over explaining the workflow. User-visible updates should describe only material work, blockers, decisions needed, test/build results, commits, pushes, and final status.
+- Factory auto's mission is continuous until production readiness or a real blocker. Each provider turn is bounded to one roadmap item or one coherent unit of work, then the auto runner or continuation hook must start the next resume invocation after the configured delay.
+- Keep routine cycle updates to at most four short lines: current work, evidence/result, next concrete action, and progress percentage when available.
+- Do not print full checklists, scoring tables, or option analyses during normal automation. Save detailed artifacts to files and mention the file path only when useful.
+- Ask the user only for decisions that block the critical path or are required by safety, credentials, legal, store-policy, emulator preparation, payment, ads, signing, or destructive operations.
+`;
+
+function promptBody(body) {
+  return `${WARN_MD}\n${PROMPT_LANGUAGE_POLICY}\n${body}`;
+}
+
+// Frontmatter parser with no external dependency.
 
 function parseFrontmatter(text, file) {
   const m = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!m) throw new Error(`frontmatter 없음: ${file}`);
+  if (!m) throw new Error(`Missing frontmatter: ${file}`);
   const meta = {};
   let currentKey = null;
   for (const line of m[1].split("\n")) {
@@ -75,7 +97,7 @@ function copyMcpServer(dst) {
   write(
     path.join(dst, "README.md"),
     WARN_MD +
-      "app-factory-core MCP 서버 번들입니다. 설치 후 이 폴더에서 `npm ci --omit=dev`를 실행해 런타임 의존성을 설치하십시오.\n",
+      "Bundled app-factory-core MCP server. After installation, run `npm ci --omit=dev` in this directory to install runtime dependencies.\n",
   );
 }
 
@@ -93,15 +115,15 @@ function writeInstallScript(target, lines) {
   fs.chmodSync(target, 0o755);
 }
 
-// ── 로드 ────────────────────────────────────────────────────────────────
+// Load source documents.
 
 const agents = readDirMd(path.join(CORE, "agents"));
 const skills = readDirMd(path.join(CORE, "skills"));
 const entrySkills = skills.filter((s) => s.meta.kind === "entry");
 const processSkills = skills.filter((s) => s.meta.kind === "process");
-if (entrySkills.length === 0 || agents.length === 0) throw new Error("코어 원본이 비어 있습니다");
+if (entrySkills.length === 0 || agents.length === 0) throw new Error("Core prompt sources are empty");
 
-// ── Claude Code 어댑터 (AFA-040) ────────────────────────────────────────
+// Claude Code adapter (AFA-040).
 
 const CC = path.join(DIST, "claude-code");
 fs.rmSync(CC, { recursive: true, force: true });
@@ -113,8 +135,8 @@ write(
     {
       name: "app-factory-autopilot",
       description:
-        "빈 폴더에서 Android 앱 기획→구현→검증→완료 판정까지 자동화하는 오케스트레이션 플러그인",
-      version: "0.1.4",
+        "Automates Android app planning, implementation, verification, and completion gating from an empty directory.",
+      version: VERSION,
       author: { name: "Sia Makerlab" },
     },
     null,
@@ -122,37 +144,36 @@ write(
   ) + "\n",
 );
 
-// /factory 커맨드 (라우터)
+// /factory command router.
 const factoryRouter = skills.find((s) => s.meta.name === "factory");
 write(
   path.join(CC, "commands", "factory.md"),
   `---\ndescription: "${factoryRouter.meta.description}"\n---\n\n` +
-    WARN_MD + "\n" +
-    factoryRouter.body +
-    "\n\n인자: $ARGUMENTS\n",
+    promptBody(factoryRouter.body) +
+    "\n\nArguments: $ARGUMENTS\n",
 );
 
-// Agent → 서브에이전트
+// Agent -> subagent.
 for (const a of agents) {
   const tools = (a.meta.mcp_tools ?? []).map((t) => `mcp__app-factory-core__${t}`);
   write(
     path.join(CC, "agents", `${a.meta.name}.md`),
     `---\nname: ${a.meta.name}\ndescription: "${a.meta.description}"\n` +
       (tools.length ? `tools: ${tools.join(", ")}, Read, Grep, Glob, Bash, Edit, Write\n` : "") +
-      `---\n\n` + WARN_MD + `\n${a.body}\n`,
+      `---\n\n` + promptBody(a.body) + "\n",
   );
 }
 
-// Skill 변환 (진입은 커맨드가 라우팅하므로 스킬 본문으로 배치)
+// Skill conversion. Entry skills are still shipped as skill bodies; the command routes them.
 for (const s of skills) {
   if (s.meta.name === "factory") continue;
   write(
     path.join(CC, "skills", s.meta.name, "SKILL.md"),
-    `---\nname: ${s.meta.name}\ndescription: "${s.meta.description}"\n---\n\n` + WARN_MD + `\n${s.body}\n`,
+    `---\nname: ${s.meta.name}\ndescription: "${s.meta.description}"\n---\n\n` + promptBody(s.body) + "\n",
   );
 }
 
-// MCP 등록 — 플러그인 루트 기준 상대 경로 (${CLAUDE_PLUGIN_ROOT})
+// MCP registration using paths relative to the plugin root (${CLAUDE_PLUGIN_ROOT}).
 write(
   path.join(CC, ".mcp.json"),
   JSON.stringify(
@@ -175,7 +196,7 @@ write(
   ) + "\n",
 );
 
-// Stop Hook — factory auto 실행 중이면 종료를 차단해 다음 사이클 계속 (3.17)
+// Stop Hook. Same-turn continuation fallback; cross-turn auto runner is preferred.
 write(
   path.join(CC, "hooks", "hooks.json"),
   JSON.stringify(
@@ -198,7 +219,7 @@ write(
 write(
   path.join(CC, "hooks", "factory-continue.mjs"),
   WARN_JS +
-    `// Stop Hook: factory auto run이 진행 중이면 정지를 차단하고 계속하게 한다.
+    `// Stop Hook: optionally blocks session stop while a factory auto/resume/test run is still active.
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -211,31 +232,58 @@ function latestRun(dir) {
 }
 
 const run = latestRun(path.join(process.cwd(), ".app-factory", "runs"));
-if (run && run.status === "running" && (run.command === "auto" || run.command === "resume" || run.command === "test")) {
+const sameTurn = process.env.APP_FACTORY_CONTINUE_SAME_TURN === "1";
+if (sameTurn && run && run.status === "running" && (run.command === "auto" || run.command === "resume" || run.command === "test")) {
   console.log(JSON.stringify({
     decision: "block",
-    reason: "factory auto/resume/test 공정이 완료되지 않았습니다. orchestrator_decide_next로 다음 사이클을 계속 진행하십시오 (One-Prompt Completion — 통합 명세 3.17). 종료 조건: 게이트 전체 통과 / 강제 중단 / 한도 초과.",
+    reason: "Same-turn continuation is enabled. Continue the app-factory mission until production readiness, forced stop, or limit exhaustion.",
   }));
 }
 process.exit(0);
 `,
 );
 
-// CLAUDE.md 생성기 산출물(참조 지시만 — 내용 중복 금지)
+write(
+  path.join(CC, "bin", "factory-auto-runner.sh"),
+  `#!/bin/sh
+# Generated cross-turn runner for Claude Code. Reinvokes factory prompts until a terminal state is reached.
+# Usage: factory-auto-runner.sh <project-path>
+set -e
+cd "\${1:-.}"
+DELAY="\${APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS:-30}"
+PROMPT="/factory auto"
+while :; do
+  APP_FACTORY_AUTO_RUNNER=1 claude -p "$PROMPT" || true
+  STATUS=$(node -e '
+    const fs=require("fs"),p=".app-factory/runs";
+    try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
+    const r=JSON.parse(fs.readFileSync(p+"/"+f));
+    console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
+  case "$STATUS" in
+    completed|forced_stop|limit_exceeded|user_abort|error|none) echo "finished: $STATUS"; break ;;
+    *) echo "next turn in \${DELAY}s: $STATUS"; sleep "$DELAY"; PROMPT="/factory resume" ;;
+  esac
+done
+`,
+);
+fs.chmodSync(path.join(CC, "bin", "factory-auto-runner.sh"), 0o755);
+
+// CLAUDE.md generator output. Reference rules only; do not duplicate process content.
 write(
   path.join(CC, "templates", "CLAUDE.md"),
-  WARN_MD +
+  WARN_MD + "\n" +
+    PROMPT_LANGUAGE_POLICY +
     `# CLAUDE.md
 
-이 프로젝트는 App Factory Autopilot이 관리합니다.
+This project is managed by App Factory Autopilot.
 
-- **공통 규칙의 단일 원본은 \`APP_FACTORY_RULES.md\`입니다. 먼저 읽으십시오.**
-- 상태 변경은 app-factory-core MCP 도구로만 수행합니다 (\`.app-factory/\` 직접 수정 금지).
-- 명령: \`/factory config|plan|init|auto|resume|test|review|status|doctor\`
+- **The single source of shared project rules is \`APP_FACTORY_RULES.md\`. Read it first.**
+- Change state only through app-factory-core MCP tools. Do not edit \`.app-factory/\` directly.
+- Commands: \`/factory config|plan|init|auto|resume|test|review|status|doctor\`
 `,
 );
 
-// 서버·코어 동봉
+// Bundle server and core sources.
 copyDir(CORE, path.join(CC, "core"));
 copyMcpServer(path.join(CC, "mcp-server"));
 copyRenderSupport(CC);
@@ -269,7 +317,7 @@ It does not edit unrelated user files. After installing, restart Claude Code and
 - Claude plugin manifest: \`.claude-plugin/plugin.json\`
 - /factory command router
 - Factory agents and skills
-- Stop Hook for auto/resume/test continuation
+- Cross-turn auto runner and optional Stop Hook continuation fallback
 - app-factory-core MCP server bundle
 - Android project templates and render scripts
 
@@ -292,7 +340,7 @@ writeInstallScript(path.join(CC, "install-local.sh"), [
   'echo "Restart Claude Code, then run: /factory doctor"',
 ]);
 
-// ── Codex 어댑터 (AFA-041) ──────────────────────────────────────────────
+// Codex adapter (AFA-041).
 
 const CX = path.join(DIST, "codex");
 fs.rmSync(CX, { recursive: true, force: true });
@@ -302,7 +350,7 @@ write(
   JSON.stringify(
     {
       name: "app-factory-autopilot",
-      version: "0.1.4",
+      version: VERSION,
       description: "Android app planning, implementation, verification, and emulator testing autopilot.",
       author: { name: "Sia Makerlab" },
       skills: "./skills/",
@@ -328,53 +376,53 @@ write(
   ) + "\n",
 );
 
-// $factory 프롬프트 (Codex 커스텀 프롬프트 — 인자 라우팅 포함)
+// $factory prompt. Codex custom prompt with argument routing.
 write(
   path.join(CX, "prompts", "factory.md"),
-  WARN_MD + factoryRouter.body + "\n\n인자: $ARGUMENTS\n",
+  promptBody(factoryRouter.body) + "\n\nArguments: $ARGUMENTS\n",
 );
 for (const s of entrySkills) {
   if (s.meta.name === "factory") continue;
-  write(path.join(CX, "prompts", `${s.meta.name}.md`), WARN_MD + s.body + "\n");
+  write(path.join(CX, "prompts", `${s.meta.name}.md`), promptBody(s.body) + "\n");
 }
 
-// AGENTS.md 생성기 산출물 (참조 지시만)
+// AGENTS.md generator output. Reference rules only.
 write(
   path.join(CX, "templates", "AGENTS.md"),
-  WARN_MD +
+  WARN_MD + "\n" +
+    PROMPT_LANGUAGE_POLICY +
     `# AGENTS.md
 
-이 프로젝트는 App Factory Autopilot이 관리합니다.
+This project is managed by App Factory Autopilot.
 
-- **공통 규칙의 단일 원본은 \`APP_FACTORY_RULES.md\`입니다. 먼저 읽으십시오.**
-- 역할 정의: \`.app-factory-codex/agents/\` (worker/verifier 분리 원칙 — 구현
-  세션과 검증 세션을 분리 실행한다. 서브에이전트 미지원 환경에서는 역할
-  전환 프롬프트로 강등하되 동일 세션에서 구현·검증 겸임 금지).
-- 명령: \`$factory config|plan|init|auto|resume|test|review|status|doctor\`
+- **The single source of shared project rules is \`APP_FACTORY_RULES.md\`. Read it first.**
+- Role definitions: \`.app-factory-codex/agents/\`. Keep worker and verifier roles separate.
+  If subagents are unavailable, use role-switching prompts, but never let the same session both implement and verify the same work.
+- Commands: \`$factory config|plan|init|auto|resume|test|review|status|doctor\`
 `,
 );
 
-// Agent 정의 (Codex는 프롬프트 파일로 배치)
+// Agent definitions. Codex ships these as prompt files.
 for (const a of agents) {
   write(
     path.join(CX, "agents", `${a.meta.name}.md`),
-    WARN_MD + `# ${a.meta.name}\n\n(사용 MCP 도구: ${(a.meta.mcp_tools ?? []).join(", ") || "없음"})\n\n${a.body}\n`,
+    promptBody(`# ${a.meta.name}\n\nMCP tools: ${(a.meta.mcp_tools ?? []).join(", ") || "none"}\n\n${a.body}`) + "\n",
   );
 }
 for (const s of processSkills) {
   write(
     path.join(CX, "skills", s.meta.name, "SKILL.md"),
-    `---\nname: ${s.meta.name}\ndescription: "${s.meta.description}"\n---\n\n` + WARN_MD + `\n${s.body}\n`,
+    `---\nname: ${s.meta.name}\ndescription: "${s.meta.description}"\n---\n\n` + promptBody(s.body) + "\n",
   );
 }
 
-// MCP 설정 (config.toml 스니펫)
+// MCP config.toml snippet.
 write(
   path.join(CX, "config", "mcp.toml"),
-  `# 자동 생성 — Codex config.toml에 병합
+  `# Generated snippet. Merge into Codex config.toml.
 [mcp_servers.app-factory-core]
 command = "node"
-args = ["<설치 경로>/mcp-server/dist/index.js", "--project-root", ".", "--core-dir", "<설치 경로>/core"]
+args = ["<install-path>/mcp-server/dist/index.js", "--project-root", ".", "--core-dir", "<install-path>/core"]
 `,
 );
 write(
@@ -399,29 +447,31 @@ write(
   ) + "\n",
 );
 
-// 실행 래퍼 — 공정 완료까지 사이클 자동 반복 (AFA-026 연동)
+// Execution runner. Starts separate provider invocations until the workflow reaches a terminal state.
 write(
-  path.join(CX, "bin", "factory-auto-loop.sh"),
+  path.join(CX, "bin", "factory-auto-runner.sh"),
   `#!/bin/sh
-# 자동 생성 — Codex용 무중단 래퍼: 종료 조건 도달까지 $factory auto 재호출
-# 사용: factory-auto-loop.sh <프로젝트 경로>
+# Generated cross-turn runner for Codex. Reinvokes factory prompts until a terminal state is reached.
+# Usage: factory-auto-runner.sh <project-path>
 set -e
 cd "\${1:-.}"
+DELAY="\${APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS:-30}"
+PROMPT="\\$factory auto"
 while :; do
-  codex exec "\\$factory auto" || true
+  APP_FACTORY_AUTO_RUNNER=1 codex exec "$PROMPT" || true
   STATUS=$(node -e '
     const fs=require("fs"),p=".app-factory/runs";
     try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
     const r=JSON.parse(fs.readFileSync(p+"/"+f));
     console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
   case "$STATUS" in
-    completed|forced_stop|limit_exceeded|user_abort|none) echo "종료: $STATUS"; break ;;
-    *) echo "계속: $STATUS" ;;
+    completed|forced_stop|limit_exceeded|user_abort|error|none) echo "finished: $STATUS"; break ;;
+    *) echo "next turn in \${DELAY}s: $STATUS"; sleep "$DELAY"; PROMPT="\\$factory resume" ;;
   esac
 done
 `,
 );
-fs.chmodSync(path.join(CX, "bin", "factory-auto-loop.sh"), 0o755);
+fs.chmodSync(path.join(CX, "bin", "factory-auto-runner.sh"), 0o755);
 
 copyDir(CORE, path.join(CX, "core"));
 copyMcpServer(path.join(CX, "mcp-server"));
@@ -525,6 +575,6 @@ console.log("Updated Codex marketplace: " + marketplacePath);
 );
 fs.chmodSync(path.join(CX, "scripts", "install-codex-marketplace.mjs"), 0o755);
 
-console.log("빌드 완료:");
-console.log(`- claude-code: 에이전트 ${agents.length}, 스킬 ${skills.length - 1}, 커맨드 1, 훅 1`);
-console.log(`- codex: 프롬프트 ${entrySkills.length}, 에이전트 ${agents.length}, 스킬 ${processSkills.length}`);
+console.log("Build completed:");
+console.log(`- claude-code: agents ${agents.length}, skills ${skills.length - 1}, commands 1, hooks 1`);
+console.log(`- codex: prompts ${entrySkills.length}, agents ${agents.length}, skills ${processSkills.length}`);

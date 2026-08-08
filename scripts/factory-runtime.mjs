@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MCP_DIST = path.join(ROOT, "mcp-server", "dist");
-const COMMANDS = new Set(["doctor", "status", "config", "test", "help", "--help", "-h"]);
+const COMMANDS = new Set(["doctor", "status", "config", "test", "auto", "auto-loop", "help", "--help", "-h"]);
 
 function usage() {
   return `App Factory Runtime CLI
@@ -20,10 +20,15 @@ Usage:
   factory config [--json]
   factory config --set key=true [--set other=false]
   factory test prepare [--json]
+  factory auto [codex|claude-code] [project-path]
 
 Provider commands still provide the full agent workflow:
   Claude Code: /factory plan|init|auto|resume|test|review
   Codex:       $factory plan|init|auto|resume|test|review
+
+Use factory auto when you want the provider to continue the production-readiness
+mission across separate turns. The default delay between turns is 30 seconds;
+override it with APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS.
 `;
 }
 
@@ -92,6 +97,18 @@ function commandAvailable(command) {
   if (result.status === 0) return true;
   const fallback = spawnSync(command, ["version"], { stdio: "ignore" });
   return fallback.status === 0;
+}
+
+function latestRunStatus(projectRoot) {
+  const runsDir = path.join(projectRoot, ".app-factory", "runs");
+  try {
+    const file = fs.readdirSync(runsDir).filter((name) => /^R-\d{8}-\d+\.json$/.test(name)).sort().pop();
+    if (!file) return "none";
+    const run = JSON.parse(fs.readFileSync(path.join(runsDir, file), "utf-8"));
+    return run.status === "finished" ? run.exit_reason : "running";
+  } catch {
+    return "none";
+  }
 }
 
 function checkPath(id, label, candidates) {
@@ -199,6 +216,51 @@ async function testCommand(args) {
   }
 }
 
+function parseDelay() {
+  const raw = process.env.APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS || "30";
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n >= 0 ? n : 30;
+}
+
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function autoCommand(args) {
+  const provider = args[0] && !args[0].startsWith("-") ? args[0] : "codex";
+  if (provider !== "codex" && provider !== "claude-code") {
+    throw new Error("factory auto provider must be codex or claude-code");
+  }
+  const projectRoot = path.resolve(args[1] || process.cwd());
+  const delay = parseDelay();
+  const maxTurns = Number.parseInt(process.env.APP_FACTORY_AUTO_LOOP_MAX_TURNS || "0", 10);
+  let prompt = provider === "codex" ? "$factory auto" : "/factory auto";
+  let turns = 0;
+
+  process.stdout.write(`factory auto: ${provider}, delay ${delay}s, project ${projectRoot}\n`);
+  for (;;) {
+    turns += 1;
+    const env = { ...process.env, APP_FACTORY_AUTO_RUNNER: "1" };
+    const result = provider === "codex"
+      ? spawnSync("codex", ["exec", prompt], { cwd: projectRoot, stdio: "inherit", env })
+      : spawnSync("claude", ["-p", prompt], { cwd: projectRoot, stdio: "inherit", env });
+    if (result.error) throw result.error;
+
+    const status = latestRunStatus(projectRoot);
+    if (["completed", "forced_stop", "limit_exceeded", "user_abort", "error", "none"].includes(status)) {
+      process.stdout.write(`finished: ${status}\n`);
+      return;
+    }
+    if (maxTurns > 0 && turns >= maxTurns) {
+      process.stdout.write(`paused: max turns reached (${turns}); latest status ${status}\n`);
+      return;
+    }
+    process.stdout.write(`next turn in ${delay}s: ${status}\n`);
+    sleep(delay * 1000);
+    prompt = provider === "codex" ? "$factory resume" : "/factory resume";
+  }
+}
+
 async function main() {
   const [command = "help", ...args] = process.argv.slice(2);
   if (!COMMANDS.has(command)) throw new Error(`Unknown command: ${command}\n\n${usage()}`);
@@ -210,6 +272,7 @@ async function main() {
   if (command === "status") return status(args);
   if (command === "config") return configCommand(args);
   if (command === "test") return testCommand(args);
+  if (command === "auto" || command === "auto-loop") return autoCommand(args);
 }
 
 main().catch((error) => {

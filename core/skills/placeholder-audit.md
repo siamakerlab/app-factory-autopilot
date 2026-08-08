@@ -1,16 +1,19 @@
 ---
 name: placeholder-audit
-description: Placeholder 잔존 스캔 — 정규식 단일 기준, 릴리스 차단 목록 갱신
+description: Scans remaining placeholders with one regex source of truth and updates release-blocking placeholder lists
 kind: process
 ---
 
 # placeholder-audit
 
-1. 정규식 `\$\{PLACEHOLDER_[A-Z0-9_]+\}` 하나로 코드·리소스·설정 전체를
-   스캔한다 (placeholder-policy.yaml SSOT).
-2. 발견 위치를 각 Placeholder의 locations에 갱신한다. 등록되지 않은
-   Placeholder 발견 시 `placeholder_create`로 등록한다 (kind 추정 + 확인).
-3. `placeholder_list_blocking`으로 릴리스 차단 목록을 갱신·보고한다.
-4. 릴리스 빌드 산출물(APK/AAB) 검사 시: Placeholder 문자열 잔존 또는
-   테스트 광고 ID 잔존 → blocker finding (Placeholder 게이트 차단).
-5. PLACEHOLDERS.md를 갱신한다 (상태·차단 여부·해결 시점별 정렬).
+1. Scan code, resources, and settings with the single regex
+   `\$\{PLACEHOLDER_[A-Z0-9_]+\}` from `placeholder-policy.yaml`.
+2. Update each placeholder's locations. If an unregistered placeholder is found,
+   register it with `placeholder_create`, inferring kind when possible and
+   requiring confirmation when needed.
+3. Refresh and report release-blocking placeholders with
+   `placeholder_list_blocking`.
+4. In release APK/AAB inspection, leftover placeholder strings or test ad IDs are
+   blocker findings.
+5. Update `PLACEHOLDERS.md`, sorted by status, blocking flag, and expected
+   resolution timing.

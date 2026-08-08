@@ -1,25 +1,26 @@
 ---
 name: capability-audit
-description: 공정 프리플라이트 역량 점검 — required 부재 시 설치 제안 (진행은 차단하지 않음)
+description: Lightweight workflow preflight capability check; proposes installs for missing required capabilities without blocking progress
 kind: process
 ---
 
-# capability-audit (프리플라이트)
+# capability-audit
 
-plan/init/auto 시작 시 자동 수행되는 경량 점검입니다. factory doctor의
-전체 절차 중 점검·제안만 수행합니다.
+Run this lightweight preflight at the start of `plan`, `init`, and `auto`. It
+performs only the scan and proposal subset of `factory doctor`.
 
-1. 어댑터가 설치 목록을 탐지해 `capability_scan`에 전달한다.
-2. 어댑터가 Android SDK, adb, emulator, Gradle/Wrapper, AVD/연결 디바이스,
-   mobile-mcp 같은 실행 환경을 점검해 `capability_record_environment`에
-   전달한다. 점검은 현재 사용자 환경 기준이며, 개발 당시 머신의 상태를
-   완료 근거로 삼지 않는다.
-3. missing_required가 있으면 설치 제안을 표시한다 (factory-doctor 3~6단계
-   흐름으로 위임 가능). 사용자가 아무것도 선택하지 않아도 **공정은 계속
-   진행한다** — 경고와 품질 영향(어떤 단계에서 어떤 역량이 아쉬운지)만
-   기록한다.
-4. 환경 부족분은 사용자 조치 안내로 표시하고, 해당 기능 실행 시점에만
-   차단한다.
-5. 거절 항목은 `capability_mark_declined` — 같은 세션 반복 제안 금지.
-6. 결과는 `.app-factory/config/capabilities.yaml`에 기록되어 이후 공정에서
-   Agent가 사용 가능 역량을 판단하는 근거가 된다.
+1. The adapter detects installed capabilities and passes them to
+   `capability_scan`.
+2. The adapter checks the current user environment, including Android SDK, adb,
+   emulator, Gradle or Wrapper, runnable AVD or connected device, and mobile-mcp,
+   then passes results to `capability_record_environment`. Use the current user
+   environment only; never treat the development machine state as evidence.
+3. If required capabilities are missing, show install proposals. The full
+   factory-doctor flow may handle the installation. If the user selects nothing,
+   continue the workflow and record warnings plus expected quality impact.
+4. Show environment gaps as user-action guidance. Block only when the missing
+   capability is required for the feature being executed.
+5. Record declined items with `capability_mark_declined` so they are not
+   repeatedly proposed in the same session.
+6. Save results in `.app-factory/config/capabilities.yaml` so later agents can
+   decide which capabilities are available.

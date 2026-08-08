@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### 2026-08-08 — Enforce prompt language policy
+
+- Prepared `app-factory-autopilot@0.1.5` as a patch release for provider prompt
+  language behavior
+- Injected an English prompt-language policy into all generated Claude Code and
+  Codex command, prompt, skill, agent, and project instruction artifacts
+- Required user-facing responses, progress reports, questions, warnings, and
+  summaries to be written in the user's current language
+- Added quiet automation rules so `factory auto` avoids internal-procedure
+  narration and reports only material work, blockers, decisions, evidence, and
+  results
+- Unified unattended production automation under `factory auto`; the CLI now
+  starts separate provider turns, waits the configured delay, and resumes until
+  the run reaches `completed`, `forced_stop`, `limit_exceeded`, `user_abort`, or
+  `error`
+- Marked runner-launched provider turns with `APP_FACTORY_AUTO_RUNNER=1` and
+  clarified that `/factory auto` and `$factory auto` are bounded work-unit
+  prompts when used inside the runner
+
 ### 2026-08-08 — Automate provider activation after npm install
 
 - Prepared `app-factory-autopilot@0.1.4` as a patch release for one-command

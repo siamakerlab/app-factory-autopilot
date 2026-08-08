@@ -31,6 +31,7 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.ok(first.has("claude-code/.claude-plugin/plugin.json"));
   assert.ok(first.has("claude-code/commands/factory.md"));
   assert.ok(first.has("claude-code/hooks/hooks.json"));
+  assert.ok(first.has("claude-code/bin/factory-auto-runner.sh"));
   assert.ok(first.has("claude-code/.mcp.json"));
   assert.ok(first.has("claude-code/mcp-server/dist/index.js"));
   assert.ok(first.has("claude-code/mcp-server/package.json"));
@@ -40,7 +41,7 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.ok(first.has("codex/.codex-plugin/plugin.json"));
   assert.ok(first.has("codex/.mcp.json"));
   assert.ok(first.has("codex/config/mcp.toml"));
-  assert.ok(first.has("codex/bin/factory-auto-loop.sh"));
+  assert.ok(first.has("codex/bin/factory-auto-runner.sh"));
   assert.ok(first.has("codex/mcp-server/dist/index.js"));
   assert.ok(first.has("codex/mcp-server/package.json"));
   assert.ok(first.has("codex/project-template/android/settings.gradle.kts.mustache"));
@@ -55,14 +56,21 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   const codexManifest = JSON.parse(first.get("codex/.codex-plugin/plugin.json"));
   assert.equal(codexManifest.name, "app-factory-autopilot");
   assert.equal(codexManifest.mcpServers, "./.mcp.json");
+  assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /APP_FACTORY_CONTINUE_SAME_TURN/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /decision: "block"/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "resume"/);
   assert.match(first.get("claude-code/hooks/factory-continue.mjs"), /run\.command === "test"/);
+  assert.match(first.get("claude-code/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS/);
+  assert.match(first.get("claude-code/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_RUNNER=1/);
+  assert.match(first.get("claude-code/bin/factory-auto-runner.sh"), /\/factory resume/);
   assert.match(first.get("claude-code/.mcp.json"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("claude-code/.mcp.json"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/config/mcp.toml"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("codex/config/mcp.toml"), /mcp-server\/index\.js/);
-  assert.match(first.get("codex/bin/factory-auto-loop.sh"), /\$factory auto/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /\$factory auto/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_RUNNER=1/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /\$factory resume/);
   assert.match(first.get("codex/install-local.sh"), /marketplace\.json/);
   assert.match(first.get("codex/install-local.sh"), /\$HOME\/plugins/);
   assert.match(first.get("codex/install-local.sh"), /\$HOME\/\.agents\/plugins\/marketplace\.json/);
@@ -73,9 +81,31 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/INSTALL.md"), /\/factory doctor/);
   assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|test\|review/);
   assert.match(first.get("codex/templates/AGENTS.md"), /auto\|resume\|test\|review/);
+  for (const file of [
+    "claude-code/commands/factory.md",
+    "claude-code/agents/factory-orchestrator.md",
+    "claude-code/skills/factory-auto/SKILL.md",
+    "claude-code/templates/CLAUDE.md",
+    "codex/prompts/factory.md",
+    "codex/prompts/factory-auto.md",
+    "codex/agents/factory-orchestrator.md",
+    "codex/skills/roadmap-implement/SKILL.md",
+    "codex/templates/AGENTS.md",
+  ]) {
+    assert.match(first.get(file), /Prompt Language and User Output Policy/);
+    assert.match(first.get(file), /User-facing responses, progress reports, questions, warnings, and final summaries must be written in the user's language/);
+    assert.match(first.get(file), /Quiet Automation Policy/);
+    assert.match(first.get(file), /Do not narrate internal routing, skill names, prompt rules, policy clauses/);
+  }
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /production readiness/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /factory auto \[codex\|claude-code\] \[project-path\]/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Treat `factory auto` as an execution mode, not a tutorial/);
+  assert.match(first.get("codex/prompts/factory.md"), /Route silently and report only concrete outcomes/);
 
-  const mode = fs.statSync(path.join(ROOT, "dist/codex/bin/factory-auto-loop.sh")).mode & 0o777;
+  const mode = fs.statSync(path.join(ROOT, "dist/codex/bin/factory-auto-runner.sh")).mode & 0o777;
   assert.equal(mode, 0o755);
+  const claudeLoopMode = fs.statSync(path.join(ROOT, "dist/claude-code/bin/factory-auto-runner.sh")).mode & 0o777;
+  assert.equal(claudeLoopMode, 0o755);
   const codexInstallMode = fs.statSync(path.join(ROOT, "dist/codex/install-local.sh")).mode & 0o777;
   assert.equal(codexInstallMode, 0o755);
   const claudeInstallMode = fs.statSync(path.join(ROOT, "dist/claude-code/install-local.sh")).mode & 0o777;
@@ -85,13 +115,13 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
 test("plugin packaging emits provider archives and checksums", () => {
   execFileSync("node", ["scripts/package-plugin.mjs"], { cwd: ROOT, stdio: "pipe" });
   const packages = path.join(ROOT, "packages");
-  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.4.tar.gz");
-  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.4.tar.gz");
+  const claudeArchive = path.join(packages, "app-factory-autopilot-claude-code-v0.1.5.tar.gz");
+  const codexArchive = path.join(packages, "app-factory-autopilot-codex-v0.1.5.tar.gz");
   assert.ok(fs.existsSync(claudeArchive));
   assert.ok(fs.existsSync(codexArchive));
   const sums = fs.readFileSync(path.join(packages, "SHA256SUMS"), "utf-8");
-  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.4\.tar\.gz/);
-  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.4\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-claude-code-v0\.1\.5\.tar\.gz/);
+  assert.match(sums, /app-factory-autopilot-codex-v0\.1\.5\.tar\.gz/);
   assert.match(fs.readFileSync(path.join(packages, "README.md"), "utf-8"), /install-local\.sh/);
 });
 
@@ -125,6 +155,12 @@ test("common factory runtime CLI exposes local status, config, doctor, and test 
     });
     assert.match(help, /factory doctor/);
     assert.match(help, /factory config --set key=true/);
+    assert.match(help, /factory auto \[codex\|claude-code\]/);
+    const runtime = fs.readFileSync(path.join(ROOT, "scripts/factory-runtime.mjs"), "utf-8");
+    assert.match(runtime, /APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS/);
+    assert.match(runtime, /APP_FACTORY_AUTO_RUNNER/);
+    assert.match(runtime, /\$factory resume/);
+    assert.match(runtime, /\/factory resume/);
 
     const config = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "config", "--set", "ads=true", "--json"], {
       cwd: project,

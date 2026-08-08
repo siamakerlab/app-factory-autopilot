@@ -1,6 +1,6 @@
 ---
 name: factory-resume
-description: 토큰 한도·시스템 종료·세션 강제 종료 등으로 중단된 factory 실행을 상태 저장소 기준으로 재개
+description: Resumes an interrupted factory run from state-store evidence after token limits, shutdowns, forced session exits, or other interruption causes
 kind: entry
 uses_agents: [factory-orchestrator, implementation-worker, completion-verifier]
 uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate]
@@ -8,28 +8,30 @@ uses_skills: [capability-audit, roadmap-implement, completion-verify, final-gate
 
 # factory resume
 
-작업 세션이 어떤 이유로든 중단된 경우 명시적으로 재개합니다. `factory auto`도
-재진입 가능하지만, `resume`은 복구 의도를 run 기록에 남기고 중단 지점 탐색을
-우선 수행합니다.
+Explicitly resume a factory workflow that stopped for any reason. `factory auto`
+is also reentrant, but `resume` records recovery intent in the run history and
+first searches for the interruption point.
 
-## 절차
+## Procedure
 
-1. `capability-audit` 프리플라이트.
-2. `.app-factory` 상태 저장소 존재 확인:
-   - 없으면 중단 지점을 찾을 수 없으므로 `factory plan` 또는 `factory init`
-     안내 후 종료
-3. `factory_recover_stale_claims`로 세션 종료 중 남은 claimed/in_progress 작업을
-   회수한다.
-4. 최신 run, task queue, roadmap 상태, gate 결과, pending decision을 읽어
-   재개 지점을 결정한다.
-5. `driveAuto`와 같은 무중단 드라이버를 `command=resume`으로 실행한다.
-6. 매 사이클 종료 시 3.15 진행 보고 4요소를 기록하고, 완료·강제 중단·한도
-   초과 중 하나에 도달할 때까지 사용자 입력 없이 계속한다.
+1. Run `capability-audit` preflight.
+2. Confirm that `.app-factory` exists. If not, there is no interruption point;
+   tell the user to run `factory plan` or `factory init`.
+3. Recover claimed or in-progress tasks left by ended sessions with
+   `factory_recover_stale_claims`.
+4. Read the latest run, task queue, roadmap status, gate results, and pending
+   decisions to determine the resume point.
+5. Run the same bounded work-unit procedure as `factory auto` with
+   `command=resume`.
+6. Record the four-part progress report after the unit. If the production
+   mission is not terminal, leave state ready for the automatic next provider
+   turn.
 
-## 원칙
+## Principles
 
-- 대화 이력은 신뢰하지 않고 `.app-factory` 상태 저장소만 기준으로 재개한다.
-- 완료된 작업은 재수행하지 않는다.
-- stale claim은 회수하되, 정상 실행 중인 다른 프로세스의 lock은 침범하지 않는다.
-- 위험 작업 승인, Placeholder, evidence, gate 정책은 `factory auto`와 동일하게
-  적용한다.
+- Use only `.app-factory` state store as the resume source. Do not trust
+  conversation history.
+- Do not redo completed work.
+- Recover stale claims, but do not break locks for other live processes.
+- Approval, placeholder, evidence, and gate policies are identical to
+  `factory auto`.
