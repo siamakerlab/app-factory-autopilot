@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Harden factory auto continuation
+
+- Prepared `app-factory-autopilot@0.1.11` as a patch release for automatic
+  continuation reliability
+- Removed the remaining `auto-loop` command alias and internal option naming so
+  `factory auto` is the single unattended continuation command
+- Made provider runners fail loudly when Codex or Claude exits before writing
+  factory state, instead of silently reporting `finished: none`
+- Added regression coverage proving `factory auto` reinvokes `factory resume`
+  until a terminal run state is recorded
+
 ### 2026-08-09 — Remove stale planning duplicate and derive adapter versions
 
 - Prepared `app-factory-autopilot@0.1.10` as a patch release for packaging

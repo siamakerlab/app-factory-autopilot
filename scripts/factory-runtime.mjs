@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MCP_DIST = path.join(ROOT, "mcp-server", "dist");
-const COMMANDS = new Set(["doctor", "status", "config", "test", "auto", "auto-loop", "help", "--help", "-h"]);
+const COMMANDS = new Set(["doctor", "status", "config", "test", "auto", "help", "--help", "-h"]);
 
 function usage() {
   return `App Factory Runtime CLI
@@ -233,7 +233,7 @@ function autoCommand(args) {
   }
   const projectRoot = path.resolve(args[1] || process.cwd());
   const delay = parseDelay();
-  const maxTurns = Number.parseInt(process.env.APP_FACTORY_AUTO_LOOP_MAX_TURNS || "0", 10);
+  const maxTurns = Number.parseInt(process.env.APP_FACTORY_AUTO_MAX_TURNS || "0", 10);
   let prompt = provider === "codex" ? "$factory auto" : "/factory auto";
   let turns = 0;
 
@@ -247,6 +247,9 @@ function autoCommand(args) {
     if (result.error) throw result.error;
 
     const status = latestRunStatus(projectRoot);
+    if (result.status !== 0 && status === "none") {
+      throw new Error(`provider command failed before factory state was written: ${provider} exit ${result.status ?? "unknown"}`);
+    }
     if (["completed", "forced_stop", "limit_exceeded", "user_abort", "error", "none"].includes(status)) {
       process.stdout.write(`finished: ${status}\n`);
       return;
@@ -272,7 +275,7 @@ async function main() {
   if (command === "status") return status(args);
   if (command === "config") return configCommand(args);
   if (command === "test") return testCommand(args);
-  if (command === "auto" || command === "auto-loop") return autoCommand(args);
+  if (command === "auto") return autoCommand(args);
 }
 
 main().catch((error) => {

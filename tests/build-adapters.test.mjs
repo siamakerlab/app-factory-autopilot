@@ -177,6 +177,7 @@ test("common factory runtime CLI exposes local status, config, doctor, and test 
     assert.match(runtime, /APP_FACTORY_AUTO_RUNNER/);
     assert.match(runtime, /\$factory resume/);
     assert.match(runtime, /\/factory resume/);
+    assert.doesNotMatch(runtime, /auto-loop|AUTO_LOOP/);
 
     const config = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "config", "--set", "ads=true", "--json"], {
       cwd: project,
@@ -198,6 +199,77 @@ test("common factory runtime CLI exposes local status, config, doctor, and test 
     assert.ok(fs.existsSync(path.join(project, ".app-factory")));
   } finally {
     fs.rmSync(project, { recursive: true, force: true });
+  }
+});
+
+test("factory auto runner repeats with resume until a terminal run state", () => {
+  const project = fs.mkdtempSync(path.join(ROOT, ".tmp-auto-runner-"));
+  const bin = fs.mkdtempSync(path.join(ROOT, ".tmp-provider-bin-"));
+  try {
+    const codex = path.join(bin, process.platform === "win32" ? "codex.cmd" : "codex");
+    fs.writeFileSync(
+      codex,
+      `#!/bin/sh
+set -eu
+mkdir -p .app-factory/runs
+count_file=.app-factory/codex-count
+count=0
+if [ -f "$count_file" ]; then count=$(cat "$count_file"); fi
+count=$((count + 1))
+echo "$count" > "$count_file"
+if [ "$count" -eq 1 ]; then
+  test "$1" = "exec"
+  test "$2" = '$factory auto'
+  printf '{"id":"R-20260809-1","status":"running","command":"auto"}\\n' > .app-factory/runs/R-20260809-1.json
+else
+  test "$1" = "exec"
+  test "$2" = '$factory resume'
+  printf '{"id":"R-20260809-1","status":"finished","command":"resume","exit_reason":"completed"}\\n' > .app-factory/runs/R-20260809-1.json
+fi
+`,
+      "utf-8",
+    );
+    fs.chmodSync(codex, 0o755);
+    const output = execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "auto", "codex", project], {
+      cwd: ROOT,
+      encoding: "utf-8",
+      env: {
+        ...process.env,
+        PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+        APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS: "0",
+      },
+    });
+    assert.match(output, /next turn in 0s: running/);
+    assert.match(output, /finished: completed/);
+    assert.equal(fs.readFileSync(path.join(project, ".app-factory", "codex-count"), "utf-8").trim(), "2");
+  } finally {
+    fs.rmSync(project, { recursive: true, force: true });
+    fs.rmSync(bin, { recursive: true, force: true });
+  }
+});
+
+test("factory auto runner fails when provider exits before writing state", () => {
+  const project = fs.mkdtempSync(path.join(ROOT, ".tmp-auto-runner-"));
+  const bin = fs.mkdtempSync(path.join(ROOT, ".tmp-provider-bin-"));
+  try {
+    const codex = path.join(bin, process.platform === "win32" ? "codex.cmd" : "codex");
+    fs.writeFileSync(codex, "#!/bin/sh\nexit 42\n", "utf-8");
+    fs.chmodSync(codex, 0o755);
+    assert.throws(
+      () => execFileSync("node", [path.join(ROOT, "scripts/factory-runtime.mjs"), "auto", "codex", project], {
+        cwd: ROOT,
+        encoding: "utf-8",
+        env: {
+          ...process.env,
+          PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+          APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS: "0",
+        },
+      }),
+      /provider command failed before factory state was written/,
+    );
+  } finally {
+    fs.rmSync(project, { recursive: true, force: true });
+    fs.rmSync(bin, { recursive: true, force: true });
   }
 });
 

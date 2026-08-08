@@ -253,12 +253,19 @@ cd "\${1:-.}"
 DELAY="\${APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS:-30}"
 PROMPT="/factory auto"
 while :; do
-  APP_FACTORY_AUTO_RUNNER=1 claude -p "$PROMPT" || true
+  set +e
+  APP_FACTORY_AUTO_RUNNER=1 claude -p "$PROMPT"
+  PROVIDER_STATUS=$?
+  set -e
   STATUS=$(node -e '
     const fs=require("fs"),p=".app-factory/runs";
     try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
     const r=JSON.parse(fs.readFileSync(p+"/"+f));
     console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
+  if [ "$PROVIDER_STATUS" -ne 0 ] && [ "$STATUS" = "none" ]; then
+    echo "provider command failed before factory state was written: claude exit $PROVIDER_STATUS" >&2
+    exit "$PROVIDER_STATUS"
+  fi
   case "$STATUS" in
     completed|forced_stop|limit_exceeded|user_abort|error|none) echo "finished: $STATUS"; break ;;
     *) echo "next turn in \${DELAY}s: $STATUS"; sleep "$DELAY"; PROMPT="/factory resume" ;;
@@ -509,12 +516,19 @@ cd "\${1:-.}"
 DELAY="\${APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS:-30}"
 PROMPT="\\$factory auto"
 while :; do
-  APP_FACTORY_AUTO_RUNNER=1 codex exec "$PROMPT" || true
+  set +e
+  APP_FACTORY_AUTO_RUNNER=1 codex exec "$PROMPT"
+  PROVIDER_STATUS=$?
+  set -e
   STATUS=$(node -e '
     const fs=require("fs"),p=".app-factory/runs";
     try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
     const r=JSON.parse(fs.readFileSync(p+"/"+f));
     console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
+  if [ "$PROVIDER_STATUS" -ne 0 ] && [ "$STATUS" = "none" ]; then
+    echo "provider command failed before factory state was written: codex exit $PROVIDER_STATUS" >&2
+    exit "$PROVIDER_STATUS"
+  fi
   case "$STATUS" in
     completed|forced_stop|limit_exceeded|user_abort|error|none) echo "finished: $STATUS"; break ;;
     *) echo "next turn in \${DELAY}s: $STATUS"; sleep "$DELAY"; PROMPT="\\$factory resume" ;;
