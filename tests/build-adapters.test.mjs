@@ -74,6 +74,11 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/install-local.sh"), /claude plugin update app-factory-autopilot/);
   assert.match(first.get("claude-code/.mcp.json"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("claude-code/.mcp.json"), /mcp-server\/index\.js/);
+  const codexMcp = JSON.parse(first.get("codex/.mcp.json"));
+  assert.ok(codexMcp.mcpServers["app-factory-core"]);
+  assert.equal(codexMcp.mcp_servers, undefined);
+  assert.doesNotMatch(first.get("codex/.mcp.json"), /CODEX_PLUGIN_ROOT/);
+  assert.match(first.get("codex/.mcp.json"), /<install-path>\/mcp-server\/dist\/index\.js/);
   assert.match(first.get("codex/config/mcp.toml"), /mcp-server\/dist\/index\.js/);
   assert.doesNotMatch(first.get("codex/config/mcp.toml"), /mcp-server\/index\.js/);
   assert.match(first.get("codex/bin/factory-auto-runner.sh"), /\$factory auto/);
@@ -87,6 +92,12 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("codex/install-local.sh"), /\$HOME\/plugins/);
   assert.match(first.get("codex/install-local.sh"), /\$HOME\/\.agents\/plugins\/marketplace\.json/);
   assert.match(first.get("codex/install-local.sh"), /apply-codex-cachebuster\.mjs/);
+  assert.match(first.get("codex/install-local.sh"), /materialize-codex-mcp\.mjs/);
+  assert.match(first.get("codex/install-local.sh"), /enable-codex-mcp-config\.mjs/);
+  assert.ok(
+    first.get("codex/install-local.sh").indexOf("codex plugin add app-factory-autopilot@personal") <
+      first.get("codex/install-local.sh").indexOf("enable-codex-mcp-config.mjs"),
+  );
   assert.match(first.get("codex/install-local.sh"), /npm ci --omit=dev/);
   assert.match(first.get("codex/install-local.sh"), /codex plugin remove app-factory-autopilot@personal/);
   assert.match(first.get("codex/install-local.sh"), /codex plugin add app-factory-autopilot@personal/);
@@ -94,6 +105,10 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.doesNotMatch(first.get("codex/install-local.sh"), /echo "Restart Codex, then run: \$factory doctor"/);
   assert.doesNotMatch(first.get("codex/INSTALL.md"), /~\/.agents\/plugins\/app-factory-autopilot/);
   assert.match(first.get("codex/INSTALL.md"), /\$factory doctor/);
+  assert.match(first.get("codex/scripts/materialize-codex-mcp.mjs"), /mcpServers/);
+  assert.match(first.get("codex/scripts/materialize-codex-mcp.mjs"), /path\.join\(root, "mcp-server", "dist", "index\.js"\)/);
+  assert.match(first.get("codex/scripts/enable-codex-mcp-config.mjs"), /app-factory-autopilot@personal/);
+  assert.match(first.get("codex/scripts/enable-codex-mcp-config.mjs"), /mcp_servers\.app-factory-core/);
   assert.match(first.get("claude-code/INSTALL.md"), /\/factory doctor/);
   assert.match(first.get("claude-code/templates/CLAUDE.md"), /auto\|resume\|test\|review/);
   assert.match(first.get("codex/templates/AGENTS.md"), /auto\|resume\|test\|review/);
@@ -324,11 +339,20 @@ test("npm CLI installs Codex package under the current user's configured paths",
     assert.equal(manifest.version, `${PACKAGE_VERSION}+codex.test-token`);
     assert.ok(fs.existsSync(path.join(destination, "mcp-server", "node_modules", "@modelcontextprotocol", "sdk")));
     assert.ok(fs.existsSync(path.join(destination, "mcp-server", "dist", "index.js")));
+    const mcp = JSON.parse(fs.readFileSync(path.join(destination, ".mcp.json"), "utf-8"));
+    assert.ok(mcp.mcpServers["app-factory-core"]);
+    assert.equal(mcp.mcp_servers, undefined);
+    assert.equal(mcp.mcpServers["app-factory-core"].args[0], path.join(destination, "mcp-server", "dist", "index.js"));
+    assert.equal(mcp.mcpServers["app-factory-core"].args[4], path.join(destination, "core"));
     const registry = JSON.parse(fs.readFileSync(marketplace, "utf-8"));
     const entry = registry.plugins.find((item) => item.name === "app-factory-autopilot");
     assert.equal(entry.source.path, "./plugins/app-factory-autopilot");
+    const codexConfig = fs.readFileSync(path.join(home, ".codex", "config.toml"), "utf-8");
+    assert.match(codexConfig, /\[plugins\."app-factory-autopilot@personal"\.mcp_servers\.app-factory-core\]/);
+    assert.match(codexConfig, /enabled = true/);
     assert.match(output, /Restart Codex, then run: \$factory doctor/);
     assert.match(output, new RegExp(`Updated Codex plugin manifest version: ${PACKAGE_VERSION.replaceAll(".", "\\.")}\\+codex\\.test-token`));
+    assert.match(output, /Codex plugin MCP config:/);
     assert.match(output, /Activation pending: Codex plugin cache refresh skipped/);
     assert.doesNotMatch(output, /parameter not set/);
   } finally {

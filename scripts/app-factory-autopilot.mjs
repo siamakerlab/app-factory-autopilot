@@ -131,6 +131,38 @@ function applyCodexCachebuster(destination) {
   return manifest.version;
 }
 
+function materializeCodexMcpConfig(destination) {
+  writeJson(path.join(destination, ".mcp.json"), {
+    mcpServers: {
+      "app-factory-core": {
+        command: "node",
+        args: [
+          path.join(destination, "mcp-server", "dist", "index.js"),
+          "--project-root",
+          ".",
+          "--core-dir",
+          path.join(destination, "core"),
+        ],
+      },
+    },
+  });
+}
+
+function ensureCodexMcpEnabled(home) {
+  const configPath = path.join(home, ".codex", "config.toml");
+  const section = '[plugins."app-factory-autopilot@personal".mcp_servers.app-factory-core]';
+  const body = `${section}
+enabled = true
+`;
+  let current = "";
+  if (fs.existsSync(configPath)) current = fs.readFileSync(configPath, "utf-8");
+  if (current.includes(section)) return { changed: false, path: configPath };
+  const prefix = current.trimEnd();
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.writeFileSync(configPath, `${prefix ? `${prefix}\n\n` : ""}${body}`, "utf-8");
+  return { changed: true, path: configPath };
+}
+
 function updateCodexMarketplace(marketplacePath) {
   const entry = {
     name: "app-factory-autopilot",
@@ -239,6 +271,7 @@ function installCodex() {
   const destination = path.join(pluginParent, "app-factory-autopilot");
   copyPluginPackage(source, destination);
   installBundledMcpRuntime(destination);
+  materializeCodexMcpConfig(destination);
   const manifestVersion = applyCodexCachebuster(destination);
   updateCodexMarketplace(marketplacePath);
   process.stdout.write(`Installed App Factory Autopilot for Codex: ${destination}\n`);
@@ -246,6 +279,8 @@ function installCodex() {
   process.stdout.write(`Updated Codex marketplace: ${marketplacePath}\n`);
   const activation = activateCodex();
   process.stdout.write(`${activation.ok ? "Activated" : "Activation pending"}: ${activation.detail}\n`);
+  const mcpEnable = ensureCodexMcpEnabled(home);
+  process.stdout.write(`${mcpEnable.changed ? "Enabled" : "Confirmed"} Codex plugin MCP config: ${mcpEnable.path}\n`);
   process.stdout.write("Restart Codex, then run: $factory doctor\n");
 }
 

@@ -101,7 +101,7 @@ sh -n scripts/emulator-smoke.sh
 
 ### Option A. Install From npm
 
-The package is published on npm as `app-factory-autopilot@0.1.14`.
+The package is published on npm as `app-factory-autopilot`.
 Install the CLI with:
 
 ```bash
@@ -138,7 +138,9 @@ Codex installs to
 `~/plugins/app-factory-autopilot` by default and updates
 `~/.agents/plugins/marketplace.json`. Each Codex install also updates the copied
 plugin manifest with a `+codex.<cachebuster>` version suffix, which forces Codex
-to observe refreshed local plugin contents after npm package updates.
+to observe refreshed local plugin contents after npm package updates. The Codex
+installer also materializes bundled MCP paths for the current machine and enables
+the plugin MCP server in `~/.codex/config.toml`.
 
 Codex install paths can be overridden:
 
@@ -178,6 +180,31 @@ factory test prepare
 Full implementation workflows still run inside the provider command surface:
 `/factory plan|init|auto|resume|test|review` in Claude Code or
 `$factory plan|init|auto|resume|test|review` in Codex.
+
+## Capability Usage
+
+App Factory should inspect and use the capabilities available in the current
+provider before it starts planning, implementation, review, or test work. If a
+required capability is missing, it should explain what is missing and ask before
+installing anything that changes the user's environment.
+
+For plugin, skill, agent, and MCP authoring work in Codex, App Factory should
+actively use these installed system skills when available:
+
+- `plugin-creator` for Codex plugin manifests, marketplace entries, cache refresh,
+  and reinstall/update flows.
+- `skill-creator` for `SKILL.md` design, progressive disclosure, references,
+  scripts, and assets.
+- `skill-installer` for curated or GitHub-hosted skill installation.
+- `openai-docs` for official Codex, plugin, MCP, skill, settings, and automation
+  documentation.
+- `review-agent` for independent review of plugin packaging, MCP loading, skill
+  routing, and release readiness.
+
+For Android implementation, dependency, and API work, App Factory should use
+mobile docs MCP first, context7 as a secondary source when installed, and direct
+official web documentation only when those tools are unavailable or insufficient.
+For emulator/device scenario testing, it should use mobile-mcp when installed.
 
 ### Option B. Install From This Repository
 

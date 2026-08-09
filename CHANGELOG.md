@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Fix Codex plugin MCP manifest loading
+
+- Prepared `app-factory-autopilot@0.1.17` as a patch release for Codex bundled
+  MCP startup
+- Materialized installed Codex MCP paths to absolute paths during npm and local
+  archive installation, avoiding unsupported `${CODEX_PLUGIN_ROOT}` placeholder
+  expansion in Codex MCP args
+- Enabled the bundled Codex plugin MCP server in `~/.codex/config.toml` during
+  installation without rewriting unrelated user config
+- Documented active use of installed provider authoring skills and MCP helpers
+  in README, the capability catalog, roadmap, and generated project rules
+- Added install-time regression coverage proving the installed Codex MCP config
+  points to the actual bundled server and core directory and is enabled for
+  Codex plugin loading
+
 ### 2026-08-09 — Tolerate legacy state directories
 
 - Prepared `app-factory-autopilot@0.1.16` as a patch release for projects with

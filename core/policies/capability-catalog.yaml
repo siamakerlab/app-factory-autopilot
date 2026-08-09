@@ -143,9 +143,14 @@ skills:
     verified: { repo: "https://github.com/skydoves/android-testing-skills", date: 2026-08-05 }
     guidance_doc: "테스트 작성 시 android-testing-skills 스킬 세트를 사용한다."
 
-# Claude Code 내장 스킬 — 설치 불필요. doctor는 존재 점검만 수행하고
-# 부재 시(다른 Provider 등) 설치 제안 대신 "내장 기능 없음"으로 보고한다.
+# Provider 내장/시스템 스킬 — 설치 불필요. doctor는 존재 점검만 수행하고
+# 부재 시(다른 Provider 등) 설치 제안 또는 "내장 기능 없음"으로 보고한다.
 builtin_skills:
+  - { id: plugin-creator,           provider: codex, category: plugin-authoring, purpose: "Codex 플러그인 scaffold·manifest·marketplace·cachebuster·재설치 흐름" }
+  - { id: skill-creator,            provider: codex, category: plugin-authoring, purpose: "SKILL.md 작성·progressive disclosure·참조 리소스 설계" }
+  - { id: skill-installer,          provider: codex, category: plugin-authoring, purpose: "curated/GitHub 스킬 설치와 설치 가능 목록 확인" }
+  - { id: openai-docs,              provider: codex, category: provider-docs, purpose: "Codex 플러그인·MCP·설정·스킬 공식 문서 확인" }
+  - { id: review-agent,             provider: codex, category: independent-review, purpose: "플러그인 패키징·MCP·스킬 품질 독립 리뷰" }
   - { id: dataviz,                   category: artifact-visualization, purpose: "차트/데이터 시각화" }
   - { id: artifact-design,           category: artifact-visualization, purpose: "아티팩트 디자인" }
   - { id: artifact-capabilities,     category: artifact-visualization, purpose: "아티팩트 런타임 기능" }

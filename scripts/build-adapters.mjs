@@ -492,11 +492,11 @@ write(
         "app-factory-core": {
           command: "node",
           args: [
-            "${CODEX_PLUGIN_ROOT}/mcp-server/dist/index.js",
+            "<install-path>/mcp-server/dist/index.js",
             "--project-root",
             ".",
             "--core-dir",
-            "${CODEX_PLUGIN_ROOT}/core",
+            "<install-path>/core",
           ],
         },
       },
@@ -608,6 +608,7 @@ writeInstallScript(path.join(CX, "install-local.sh"), [
   'rm -rf "$DEST"',
   'cp -R "$SRC" "$DEST"',
   '(cd "$DEST/mcp-server" && npm ci --omit=dev)',
+  'node "$DEST/scripts/materialize-codex-mcp.mjs"',
   'node "$DEST/scripts/apply-codex-cachebuster.mjs"',
   'node "$DEST/scripts/install-codex-marketplace.mjs" "$MARKETPLACE"',
   'echo "Installed App Factory Autopilot for Codex: $DEST"',
@@ -620,6 +621,7 @@ writeInstallScript(path.join(CX, "install-local.sh"), [
   'else',
   '  echo "Activation pending: codex CLI not found; run codex plugin add app-factory-autopilot@personal manually."',
   'fi',
+  'node "$DEST/scripts/enable-codex-mcp-config.mjs"',
   'echo \'Restart Codex, then run: $factory doctor\'',
 ]);
 write(
@@ -641,6 +643,56 @@ console.log("Updated Codex plugin manifest version: " + manifest.version);
 `,
 );
 fs.chmodSync(path.join(CX, "scripts", "apply-codex-cachebuster.mjs"), 0o755);
+
+write(
+  path.join(CX, "scripts", "materialize-codex-mcp.mjs"),
+  `#!/usr/bin/env node
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const config = {
+  mcpServers: {
+    "app-factory-core": {
+      command: "node",
+      args: [
+        path.join(root, "mcp-server", "dist", "index.js"),
+        "--project-root",
+        ".",
+        "--core-dir",
+        path.join(root, "core"),
+      ],
+    },
+  },
+};
+fs.writeFileSync(path.join(root, ".mcp.json"), JSON.stringify(config, null, 2) + "\\n", "utf-8");
+console.log("Materialized Codex MCP config: " + path.join(root, ".mcp.json"));
+`,
+);
+fs.chmodSync(path.join(CX, "scripts", "materialize-codex-mcp.mjs"), 0o755);
+write(
+  path.join(CX, "scripts", "enable-codex-mcp-config.mjs"),
+  `#!/usr/bin/env node
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+
+const configPath = path.join(os.homedir(), ".codex", "config.toml");
+const section = '[plugins."app-factory-autopilot@personal".mcp_servers.app-factory-core]';
+const body = section + "\\nenabled = true\\n";
+let current = "";
+if (fs.existsSync(configPath)) current = fs.readFileSync(configPath, "utf-8");
+if (!current.includes(section)) {
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  const prefix = current.trimEnd();
+  fs.writeFileSync(configPath, (prefix ? prefix + "\\n\\n" : "") + body, "utf-8");
+  console.log("Enabled Codex plugin MCP config: " + configPath);
+} else {
+  console.log("Confirmed Codex plugin MCP config: " + configPath);
+}
+`,
+);
+fs.chmodSync(path.join(CX, "scripts", "enable-codex-mcp-config.mjs"), 0o755);
 write(
   path.join(CX, "scripts", "install-codex-marketplace.mjs"),
   `#!/usr/bin/env node
