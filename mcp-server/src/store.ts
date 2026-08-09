@@ -27,6 +27,11 @@ function pad(n: number, width: number): string {
   return String(n).padStart(width, "0");
 }
 
+function readDirIfExists(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir);
+}
+
 export class StateStore {
   readonly root: string;
 
@@ -248,8 +253,7 @@ export class StateStore {
 
   listTasks(): Task[] {
     const dir = path.join(this.root, "task-queue");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => /^T-\d+\.json$/.test(f))
       .map((f) => this.readJson<Task>(path.join(dir, f)))
       .sort((a, b) => a.id.localeCompare(b.id));
@@ -270,8 +274,7 @@ export class StateStore {
 
   listFindings(): Finding[] {
     const dir = path.join(this.root, "findings");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => /^F-\d+\.json$/.test(f))
       .map((f) => this.readJson<Finding>(path.join(dir, f)))
       .sort((a, b) => a.id.localeCompare(b.id));
@@ -291,8 +294,7 @@ export class StateStore {
 
   listRuns(): Run[] {
     const dir = path.join(this.root, "runs");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => /^R-\d{8}-\d+\.json$/.test(f))
       .map((f) => this.readJson<Run>(path.join(dir, f)))
       .sort((a, b) => a.id.localeCompare(b.id));
@@ -320,8 +322,7 @@ export class StateStore {
 
   listPlaceholders(): Placeholder[] {
     const dir = path.join(this.root, "state", "placeholders");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => f.endsWith(".json"))
       .map((f) => this.readJson<Placeholder>(path.join(dir, f)))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -341,10 +342,15 @@ export class StateStore {
 
   listEvidence(): EvidenceMeta[] {
     const dir = path.join(this.root, "evidence");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => /^E-\d+$/.test(f))
-      .map((f) => this.loadEvidence(f))
+      .flatMap((f) => {
+        try {
+          return [this.loadEvidence(f)];
+        } catch {
+          return [];
+        }
+      })
       .sort((a, b) => a.id.localeCompare(b.id));
   }
 
@@ -362,8 +368,7 @@ export class StateStore {
 
   listApprovals(): Approval[] {
     const dir = path.join(this.root, "approvals");
-    return fs
-      .readdirSync(dir)
+    return readDirIfExists(dir)
       .filter((f) => /^A-\d+\.json$/.test(f))
       .map((f) => this.readJson<Approval>(path.join(dir, f)))
       .sort((a, b) => a.id.localeCompare(b.id));

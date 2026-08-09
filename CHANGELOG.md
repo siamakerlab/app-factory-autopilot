@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Tolerate legacy state directories
+
+- Prepared `app-factory-autopilot@0.1.16` as a patch release for projects with
+  older `.app-factory` state stores
+- Fixed `factory status` and MCP status reads so missing optional directories
+  such as `.app-factory/findings`, `approvals`, `runs`, `evidence`, and
+  placeholder folders are treated as empty lists instead of startup failures
+- Added regression coverage for legacy state stores with missing list
+  directories
+
 ### 2026-08-09 — Harden Codex auto execution checkpoints
 
 - Prepared `app-factory-autopilot@0.1.15` as a patch release for real-project

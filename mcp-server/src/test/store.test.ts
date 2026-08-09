@@ -89,3 +89,20 @@ test("원자적 쓰기 — 임시 파일이 남지 않는다", () => {
     cleanup();
   }
 });
+
+test("list 계열 조회는 이전 상태 저장소의 누락 디렉터리를 빈 목록으로 처리한다", () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    for (const d of ["findings", "approvals", "runs", "evidence", "task-queue", "state/placeholders"]) {
+      fs.rmSync(path.join(ctx.store.root, d), { recursive: true, force: true });
+    }
+    assert.deepEqual(ctx.store.listFindings(), []);
+    assert.deepEqual(ctx.store.listApprovals(), []);
+    assert.deepEqual(ctx.store.listRuns(), []);
+    assert.deepEqual(ctx.store.listEvidence(), []);
+    assert.deepEqual(ctx.store.listTasks(), []);
+    assert.deepEqual(ctx.store.listPlaceholders(), []);
+  } finally {
+    cleanup();
+  }
+});
