@@ -24,10 +24,13 @@ skill.
 
 - If the command is unsupported or missing, show the table as help and stop.
 - Keep the router thin. Do not put workflow logic here.
-- For unattended completion after `plan`, prefer the npm CLI form
-  `factory auto [codex|claude-code] [project-path]`. Provider prompts
-  `/factory auto` and `$factory auto` are bounded work-unit prompts that the CLI
-  runner reinvokes automatically.
+- For unattended completion after `plan`, `factory auto [codex|claude-code]
+  [project-path]` is the CLI runner. Provider prompts `/factory auto` and
+  `$factory auto` must not mark a one-unit boundary as terminal. If
+  `APP_FACTORY_AUTO_RUNNER=1`, finish exactly one bounded unit and leave the run
+  `running` unless production readiness, forced stop, limit exhaustion, user
+  abort, or error is real. If not launched by the runner, continue selecting and
+  executing the next bounded unit in the same provider session.
 - Before `plan`, `init`, `auto`, `resume`, or `test`, run `capability-audit` as
   preflight. Missing required capabilities should be proposed, but installs must
   not run without user confirmation.

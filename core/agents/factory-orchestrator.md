@@ -58,10 +58,11 @@ Run this procedure on every cycle.
 7. On failure, call `task_report_failure`. Retry and blocking policy are decided
    by the policy engine.
 8. Call `factory_finish_cycle` to record the four-part progress report. Show the
-   returned `rendered` message to the user in the user's language. End the
-   provider turn after the current work unit unless an explicit same-turn
-   continuation fallback is enabled; otherwise the auto runner starts the next
-   provider invocation.
+   returned `rendered` message to the user in the user's language. A completed
+   unit is not a terminal run state. Do not call `factory_abort_cycle` for
+   commit boundaries, cycle boundaries, or "one cycle completed" states. If
+   `APP_FACTORY_AUTO_RUNNER=1`, end the provider turn with the run still
+   `running`; otherwise continue immediately with the next safe bounded unit.
 
 ## Delegation Contract
 

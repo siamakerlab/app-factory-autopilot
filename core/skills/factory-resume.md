@@ -26,8 +26,11 @@ first searches for the interruption point.
    agent/subagent only, structured subagent reports, 5-minute delayed-response
    watchdog, and durable checkpointing before moving to the next unit.
 6. Record the four-part progress report after the unit. If the production
-   mission is not terminal, leave state ready for the automatic next provider
-   turn.
+   mission is not terminal, leave the run `running` for the automatic next
+   provider turn or continue immediately in a manual provider session.
+7. Never call `factory_abort_cycle` for a normal unit boundary. Only use terminal
+   reasons `completed`, `forced_stop`, `limit_exceeded`, `user_abort`, or
+   `error`.
 
 ## Principles
 

@@ -4,6 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeCtx } from "./helpers.js";
 import {
+  factoryAbortCycle,
   factoryClaimTask,
   factoryCompleteTask,
   factoryCreateTask,
@@ -74,6 +75,27 @@ test("verify 작업은 verifier만, implement는 worker만 클레임 가능", as
     await assert.rejects(
       factoryClaimTask(ctx, { task_id: veri.task_id, role: "worker", agent: "w" }),
     );
+  } finally {
+    cleanup();
+  }
+});
+
+test("factory_abort_cycle은 단위 사이클 경계를 terminal 종료 사유로 받지 않는다", async () => {
+  const { ctx, cleanup } = makeCtx();
+  try {
+    const { run_id } = await factoryStartCycle(ctx, {
+      command: "auto",
+      provider: "cli",
+      phase: "구현",
+    });
+    await assert.rejects(
+      factoryAbortCycle(ctx, {
+        run_id,
+        exit_reason: "cycle_complete_commit_boundary" as never,
+      }),
+      /지원하지 않는 종료 사유/,
+    );
+    assert.equal(ctx.store.loadRun(run_id).status, "running");
   } finally {
     cleanup();
   }

@@ -105,7 +105,9 @@ function latestRunStatus(projectRoot) {
     const file = fs.readdirSync(runsDir).filter((name) => /^R-\d{8}-\d+\.json$/.test(name)).sort().pop();
     if (!file) return "none";
     const run = JSON.parse(fs.readFileSync(path.join(runsDir, file), "utf-8"));
-    return run.status === "finished" ? run.exit_reason : "running";
+    if (run.status !== "finished") return "running";
+    const terminal = new Set(["completed", "forced_stop", "limit_exceeded", "user_abort", "error"]);
+    return terminal.has(run.exit_reason) ? run.exit_reason : "running";
   } catch {
     return "none";
   }

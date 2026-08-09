@@ -261,7 +261,8 @@ while :; do
     const fs=require("fs"),p=".app-factory/runs";
     try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
     const r=JSON.parse(fs.readFileSync(p+"/"+f));
-    console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
+    const t=new Set(["completed","forced_stop","limit_exceeded","user_abort","error"]);
+    console.log(r.status==="finished"&&t.has(r.exit_reason)?r.exit_reason:"running");}catch(e){console.log("none")}')
   if [ "$PROVIDER_STATUS" -ne 0 ] && [ "$STATUS" = "none" ]; then
     echo "provider command failed before factory state was written: claude exit $PROVIDER_STATUS" >&2
     exit "$PROVIDER_STATUS"
@@ -524,7 +525,8 @@ while :; do
     const fs=require("fs"),p=".app-factory/runs";
     try{const f=fs.readdirSync(p).filter(x=>/^R-/.test(x)).sort().pop();
     const r=JSON.parse(fs.readFileSync(p+"/"+f));
-    console.log(r.status==="finished"?r.exit_reason:"running");}catch(e){console.log("none")}')
+    const t=new Set(["completed","forced_stop","limit_exceeded","user_abort","error"]);
+    console.log(r.status==="finished"&&t.has(r.exit_reason)?r.exit_reason:"running");}catch(e){console.log("none")}')
   if [ "$PROVIDER_STATUS" -ne 0 ] && [ "$STATUS" = "none" ]; then
     echo "provider command failed before factory state was written: codex exit $PROVIDER_STATUS" >&2
     exit "$PROVIDER_STATUS"

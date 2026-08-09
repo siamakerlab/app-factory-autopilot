@@ -109,7 +109,7 @@ export function buildServer(ctx: Ctx): McpServer {
     factory_reopen_task: z.object({ task_id: z.string(), reason: z.string() }),
     factory_start_cycle: z.object({
       command: z.enum(["plan", "init", "auto", "resume", "test", "review", "status", "doctor", "config"]),
-      provider: z.enum(["claude-code", "codex", "local"]),
+      provider: z.enum(["claude-code", "codex", "cli"]),
       phase: z.string(),
       task_ids: stringArraySchema.optional(),
     }),
@@ -139,7 +139,11 @@ export function buildServer(ctx: Ctx): McpServer {
       status: z.enum(["running", "stopped", "no_response", "stale_owner", "limit_exceeded"]),
       detail: z.string().optional(),
     }),
-    factory_abort_cycle: z.object({ run_id: z.string().optional(), exit_reason: z.string(), reason: z.string().optional() }),
+    factory_abort_cycle: z.object({
+      run_id: z.string().optional(),
+      exit_reason: z.enum(["completed", "forced_stop", "limit_exceeded", "user_abort", "error"]),
+      reason: z.string().optional(),
+    }),
     factory_recover_stale_claims: z.object({ stale_minutes: z.number().positive().optional() }),
     factory_config_update: z.object({ automation: z.record(z.string(), z.boolean()).optional(), config: looseRecordSchema.optional() }),
     plan_get_next_questions: z.object({ max_questions: z.number().int().positive().optional() }),

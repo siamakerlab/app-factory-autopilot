@@ -188,6 +188,7 @@ test("common factory runtime CLI exposes local status, config, doctor, and test 
     const runtime = fs.readFileSync(path.join(ROOT, "scripts/factory-runtime.mjs"), "utf-8");
     assert.match(runtime, /APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS/);
     assert.match(runtime, /APP_FACTORY_AUTO_RUNNER/);
+    assert.match(runtime, /terminal\.has\(run\.exit_reason\)/);
     assert.match(runtime, /\$factory resume/);
     assert.match(runtime, /\/factory resume/);
     assert.doesNotMatch(runtime, /auto-loop|AUTO_LOOP/);
@@ -233,7 +234,11 @@ echo "$count" > "$count_file"
 if [ "$count" -eq 1 ]; then
   test "$1" = "exec"
   test "$2" = '$factory auto'
-  printf '{"id":"R-20260809-1","status":"running","command":"auto"}\\n' > .app-factory/runs/R-20260809-1.json
+  printf '{"id":"R-20260809-1","status":"finished","command":"auto","exit_reason":"cycle_complete_commit_boundary"}\\n' > .app-factory/runs/R-20260809-1.json
+elif [ "$count" -eq 2 ]; then
+  test "$1" = "exec"
+  test "$2" = '$factory resume'
+  printf '{"id":"R-20260809-1","status":"running","command":"resume"}\\n' > .app-factory/runs/R-20260809-1.json
 else
   test "$1" = "exec"
   test "$2" = '$factory resume'
@@ -254,7 +259,7 @@ fi
     });
     assert.match(output, /next turn in 0s: running/);
     assert.match(output, /finished: completed/);
-    assert.equal(fs.readFileSync(path.join(project, ".app-factory", "codex-count"), "utf-8").trim(), "2");
+    assert.equal(fs.readFileSync(path.join(project, ".app-factory", "codex-count"), "utf-8").trim(), "3");
   } finally {
     fs.rmSync(project, { recursive: true, force: true });
     fs.rmSync(bin, { recursive: true, force: true });

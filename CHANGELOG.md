@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Keep manual auto sessions running after unit boundaries
+
+- Prepared `app-factory-autopilot@0.1.14` as a patch release for in-session
+  auto continuation
+- Prevented non-terminal unit/cycle boundaries such as
+  `cycle_complete_commit_boundary` from being recorded as finished run exit
+  reasons
+- Updated provider prompts so manual `/factory auto` and `$factory auto`
+  continue with the next bounded unit, while runner-launched turns leave the run
+  `running` for automatic resume
+- Hardened runner terminal-state detection so unknown finished exit reasons are
+  treated as non-terminal and resume continues
+
 ### 2026-08-09 — Persist autopilot delegation records
 
 - Prepared `app-factory-autopilot@0.1.13` as a patch release for durable

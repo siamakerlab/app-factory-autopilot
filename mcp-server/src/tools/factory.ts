@@ -440,6 +440,9 @@ export async function factoryAbortCycle(
   input: { run_id: string; exit_reason: NonNullable<Run["exit_reason"]>; reason?: string },
 ): Promise<{ run_id: string; status: string }> {
   return ctx.store.withLock("factory_abort_cycle", () => {
+    if (!["completed", "forced_stop", "limit_exceeded", "user_abort", "error"].includes(input.exit_reason)) {
+      throw new ToolError("INVALID_INPUT", `지원하지 않는 종료 사유입니다: ${input.exit_reason}`);
+    }
     const run = ctx.store.loadRun(input.run_id);
     run.status = "finished";
     run.exit_reason = input.exit_reason;

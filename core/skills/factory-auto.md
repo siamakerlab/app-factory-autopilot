@@ -50,11 +50,17 @@ to the roadmap/task queue and continue.
    - `factory auto [codex|claude-code] [project-path]` is the unattended
      production-readiness command. It starts provider turns, waits the configured
      delay, and reinvokes `factory resume` until a terminal state.
-   - `/factory auto` and `$factory auto` are provider-turn prompts. When launched
-     by the auto runner, they perform the current bounded unit and let the runner
-     start the next turn. When launched manually, they still leave state ready
-     for `factory auto` to continue, and should keep running in-session when
-     the provider supports subagents, goals, or long-running execution.
+   - `/factory auto` and `$factory auto` are provider-turn prompts. When
+     `APP_FACTORY_AUTO_RUNNER=1`, perform the current bounded unit, call
+     `factory_finish_cycle`, leave the run `running` for non-terminal unit
+     boundaries, and let the runner start the next turn. When launched manually,
+     continue immediately with the next bounded unit in the same provider
+     session until production readiness, forced stop, limit exhaustion, user
+     abort, or error.
+   - Never call `factory_abort_cycle` or write `run.status=finished` for a
+     normal commit boundary, cycle boundary, or "one unit completed" state.
+     Valid terminal reasons are only `completed`, `forced_stop`,
+     `limit_exceeded`, `user_abort`, and `error`.
 1. Run `capability-audit` preflight.
 2. Prepare resume state with `factory_recover_stale_claims`, then read the state
    store in the order defined by `state-store.md`. If `.app-factory` is missing:
@@ -92,8 +98,9 @@ to the roadmap/task queue and continue.
      verification only in the final report.
    - On build or test failure, call `task_report_failure` and let retry policy
      decide.
-5. Before ending the turn, commit and push completed changes when source files
-   changed and repository remotes are available.
+5. Before ending each unit, commit and push completed changes when source files
+   changed and repository remotes are available. This is a checkpoint, not a
+   terminal run state.
 6. At the turn boundary, report:
    - `completed`: all gates passed plus evidence list;
    - `unit_complete`: completed unit, evidence, commit/push status, and that the
@@ -119,11 +126,10 @@ to the roadmap/task queue and continue.
 - If the next action is obvious and safe, execute it instead of asking or
   explaining. Ask only for blocking product decisions, credentials, legal/store
   policy, signing, ads/billing, emulator preparation, or dangerous operations.
-- End the provider turn after one completed unit, but do not end the overall
-  autopilot mission. In manual sessions, continue through the main-session
-  orchestrator when the provider can keep running. In CLI mode, the next turn
-  must resume automatically when the provider environment supports the auto
-  runner or a continuation hook.
+- In CLI runner mode, end the provider turn after one completed unit and keep
+  the run `running` so the runner can reinvoke `factory resume`.
+- In a manual provider session, do not stop after "1 cycle completed"; continue
+  through the main-session orchestrator with the next safe bounded unit.
 
 ## Prohibited
 
