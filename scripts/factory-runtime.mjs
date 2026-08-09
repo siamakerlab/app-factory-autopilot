@@ -228,6 +228,52 @@ function sleep(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
+function splitArgs(raw) {
+  if (!raw) return [];
+  const args = [];
+  let current = "";
+  let quote = "";
+  let escaped = false;
+  for (const ch of raw) {
+    if (escaped) {
+      current += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = "";
+      else current += ch;
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      quote = ch;
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      if (current) {
+        args.push(current);
+        current = "";
+      }
+      continue;
+    }
+    current += ch;
+  }
+  if (current) args.push(current);
+  return args;
+}
+
+function codexExecArgs(prompt) {
+  if (process.env.APP_FACTORY_CODEX_BYPASS_SANDBOX === "1") {
+    return ["exec", "--dangerously-bypass-approvals-and-sandbox", prompt];
+  }
+  const extra = splitArgs(process.env.APP_FACTORY_CODEX_EXEC_ARGS || "--sandbox workspace-write");
+  return ["exec", ...extra, prompt];
+}
+
 function autoCommand(args) {
   const provider = args[0] && !args[0].startsWith("-") ? args[0] : "codex";
   if (provider !== "codex" && provider !== "claude-code") {
@@ -244,7 +290,7 @@ function autoCommand(args) {
     turns += 1;
     const env = { ...process.env, APP_FACTORY_AUTO_RUNNER: "1" };
     const result = provider === "codex"
-      ? spawnSync("codex", ["exec", prompt], { cwd: projectRoot, stdio: "inherit", env })
+      ? spawnSync("codex", codexExecArgs(prompt), { cwd: projectRoot, stdio: "inherit", env })
       : spawnSync("claude", ["-p", prompt], { cwd: projectRoot, stdio: "inherit", env });
     if (result.error) throw result.error;
 

@@ -66,6 +66,10 @@ to the roadmap/task queue and continue.
    store in the order defined by `state-store.md`. If `.app-factory` is missing:
    - if no plan artifact exists, tell the user to run `factory plan`;
    - if plan artifacts exist, import them and continue.
+   If the app-factory-core MCP tools are not callable in the current provider
+   session, stop before changing `.app-factory`, report that provider MCP
+   activation is missing, and recommend `factory doctor` or provider restart.
+   Do not hand-edit state files as a fallback.
 3. Follow `core/policies/delegation.yaml` for the in-session autopilot model:
    - the main session does not code directly;
    - choose exactly one agent/skill from the delegation matrix;
@@ -99,8 +103,11 @@ to the roadmap/task queue and continue.
    - On build or test failure, call `task_report_failure` and let retry policy
      decide.
 5. Before ending each unit, commit and push completed changes when source files
-   changed and repository remotes are available. This is a checkpoint, not a
-   terminal run state.
+   changed and repository remotes are available. This is a required checkpoint,
+   not a terminal run state. A provider turn is not unit-complete until
+   `git status`, `git commit`, and `git push` have been attempted and the
+   commit/push result is included in the progress report. If commit or push
+   cannot run, record the blocker/failure evidence instead of silently stopping.
 6. At the turn boundary, report:
    - `completed`: all gates passed plus evidence list;
    - `unit_complete`: completed unit, evidence, commit/push status, and that the
@@ -114,6 +121,9 @@ to the roadmap/task queue and continue.
 - Treat `factory auto` as an execution mode, not a tutorial. Do not describe
   internal skill routing, prompt rules, state-machine phases, or why a step
   exists unless the user asks.
+- Do not print full diffs, generated files, full roadmaps, large checklists, or
+  skill/prompt text in chat. Save details to files or evidence and summarize the
+  outcome, file paths, and verification result.
 - Normal updates should be short and outcome-oriented:
   - current concrete work;
   - evidence or result, such as files changed, test result, finding ID, commit,

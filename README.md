@@ -361,6 +361,22 @@ turns, then continues with `factory resume` until the app reaches a terminal sta
 `completed`, `forced_stop`, `limit_exceeded`, `user_abort`, or `error`.
 Override the delay with `APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS`.
 
+For Codex, the runner invokes `codex exec --sandbox workspace-write` by default
+so implementation turns can edit the target project. If a host sandbox prevents
+Gradle, Android tooling, or emulator commands from running, explicitly opt into
+Codex's full-access execution for that run:
+
+```bash
+APP_FACTORY_CODEX_BYPASS_SANDBOX=1 factory auto codex .
+```
+
+Advanced Codex exec flags can be supplied with `APP_FACTORY_CODEX_EXEC_ARGS`.
+For example:
+
+```bash
+APP_FACTORY_CODEX_EXEC_ARGS="--sandbox workspace-write" factory auto codex .
+```
+
 ## Typical Workflows
 
 ### New App

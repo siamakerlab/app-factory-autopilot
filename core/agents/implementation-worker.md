@@ -45,6 +45,10 @@ Violations are recorded as findings automatically.
 6. Submit with `factory_submit_result` using the claim token. Include changed
    files, `build_ok`, `test_ok`, `requested_status`, and `evidence_ids`.
 7. Request roadmap transition to `IMPLEMENTED`. Include the linked `task_id`.
+8. Before reporting a unit as ready for checkpoint, run `git status --short`.
+   If there are source changes and a remote is configured, the orchestrator must
+   commit and push them before the provider turn ends. Include `commit_ready:
+   true` only when tests passed and the change is suitable for commit.
 
 ## String And Resource Rules For Target Apps
 
@@ -56,3 +60,5 @@ Violations are recorded as findings automatically.
 ## Output Contract
 
 Use the same result shape as `factory_submit_result` in `task.schema.json`.
+Do not include full diffs or full file contents in the chat response; list
+changed paths, evidence IDs, verification commands, and remaining risks.

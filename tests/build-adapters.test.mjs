@@ -79,6 +79,9 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("codex/bin/factory-auto-runner.sh"), /\$factory auto/);
   assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS/);
   assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_AUTO_RUNNER=1/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /--sandbox workspace-write/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_CODEX_BYPASS_SANDBOX/);
+  assert.match(first.get("codex/bin/factory-auto-runner.sh"), /APP_FACTORY_CODEX_EXEC_ARGS/);
   assert.match(first.get("codex/bin/factory-auto-runner.sh"), /\$factory resume/);
   assert.match(first.get("codex/install-local.sh"), /marketplace\.json/);
   assert.match(first.get("codex/install-local.sh"), /\$HOME\/plugins/);
@@ -129,6 +132,10 @@ test("adapter build emits required Claude Code and Codex artifacts deterministic
   assert.match(first.get("claude-code/skills/final-gate/SKILL.md"), /factory auto` must not stop at this gate if production-readiness evidence is\s+missing/);
   assert.match(first.get("claude-code/skills/final-gate/SKILL.md"), /production_readiness/);
   assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Treat `factory auto` as an execution mode, not a tutorial/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /Do not hand-edit state files as a fallback/);
+  assert.match(first.get("claude-code/skills/factory-auto/SKILL.md"), /A provider turn is not unit-complete until/);
+  assert.match(first.get("codex/agents/factory-orchestrator.md"), /do not edit `.app-factory` directly/);
+  assert.match(first.get("codex/agents/implementation-worker.md"), /Do not include full diffs/);
   assert.match(first.get("codex/prompts/factory.md"), /Route silently and report only concrete outcomes/);
 
   const mode = fs.statSync(path.join(ROOT, "dist/codex/bin/factory-auto-runner.sh")).mode & 0o777;
@@ -231,17 +238,21 @@ count=0
 if [ -f "$count_file" ]; then count=$(cat "$count_file"); fi
 count=$((count + 1))
 echo "$count" > "$count_file"
+prompt=""
+for arg in "$@"; do prompt="$arg"; done
 if [ "$count" -eq 1 ]; then
   test "$1" = "exec"
-  test "$2" = '$factory auto'
+  test "$2" = "--sandbox"
+  test "$3" = "workspace-write"
+  test "$prompt" = '$factory auto'
   printf '{"id":"R-20260809-1","status":"finished","command":"auto","exit_reason":"cycle_complete_commit_boundary"}\\n' > .app-factory/runs/R-20260809-1.json
 elif [ "$count" -eq 2 ]; then
   test "$1" = "exec"
-  test "$2" = '$factory resume'
+  test "$prompt" = '$factory resume'
   printf '{"id":"R-20260809-1","status":"running","command":"resume"}\\n' > .app-factory/runs/R-20260809-1.json
 else
   test "$1" = "exec"
-  test "$2" = '$factory resume'
+  test "$prompt" = '$factory resume'
   printf '{"id":"R-20260809-1","status":"finished","command":"resume","exit_reason":"completed"}\\n' > .app-factory/runs/R-20260809-1.json
 fi
 `,

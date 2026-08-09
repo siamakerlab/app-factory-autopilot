@@ -29,6 +29,11 @@ For `factory auto` and `factory resume`, also follow
 
 Run this procedure on every cycle.
 
+0. Verify that the required app-factory-core MCP tools are callable. If they are
+   not available, do not edit `.app-factory` directly and do not continue the
+   workflow by manually writing JSON state. Report a provider MCP activation
+   issue and ask the user to run `factory doctor` or restart the provider after
+   installation is refreshed.
 1. Call `orchestrator_decide_next` to get the next action. Do not choose workflow
    phases manually; the deterministic engine decides, and your job is delegation
    plus format validation.
@@ -99,6 +104,8 @@ state transition, commit, or push.
   action, and progress percentage when available.
 - Put detailed reasoning, checklists, and audit tables into evidence or report
   files. In chat, mention only the outcome and file path when it matters.
+- Do not print full diffs, whole generated files, full roadmap documents, or
+  copied skill/prompt text in chat.
 - Do not show every 5-minute watchdog poll. Report only meaningful actions such
   as retry, stale-claim recovery, forced termination, blocker conversion, or a
   resumed/finished delegation.

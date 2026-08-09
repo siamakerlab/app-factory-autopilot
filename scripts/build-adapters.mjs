@@ -518,7 +518,14 @@ DELAY="\${APP_FACTORY_AUTO_CONTINUE_DELAY_SECONDS:-30}"
 PROMPT="\\$factory auto"
 while :; do
   set +e
-  APP_FACTORY_AUTO_RUNNER=1 codex exec "$PROMPT"
+  if [ "\${APP_FACTORY_CODEX_BYPASS_SANDBOX:-0}" = "1" ]; then
+    APP_FACTORY_AUTO_RUNNER=1 codex exec --dangerously-bypass-approvals-and-sandbox "$PROMPT"
+  elif [ -n "\${APP_FACTORY_CODEX_EXEC_ARGS:-}" ]; then
+    eval "set -- $APP_FACTORY_CODEX_EXEC_ARGS"
+    APP_FACTORY_AUTO_RUNNER=1 codex exec "$@" "$PROMPT"
+  else
+    APP_FACTORY_AUTO_RUNNER=1 codex exec --sandbox workspace-write "$PROMPT"
+  fi
   PROVIDER_STATUS=$?
   set -e
   STATUS=$(node -e '

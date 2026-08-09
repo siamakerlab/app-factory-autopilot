@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### 2026-08-09 — Harden Codex auto execution checkpoints
+
+- Prepared `app-factory-autopilot@0.1.15` as a patch release for real-project
+  `factory auto` execution
+- Made the Codex auto runner use `--sandbox workspace-write` by default, with
+  `APP_FACTORY_CODEX_BYPASS_SANDBOX=1` and `APP_FACTORY_CODEX_EXEC_ARGS` for
+  host-specific execution requirements
+- Strengthened provider-turn instructions so MCP state tools must be available
+  before `.app-factory` changes, state files are not hand-edited as a fallback,
+  and unit completion requires git status, commit, and push attempts
+- Tightened quiet automation guidance to prevent full diffs, generated files,
+  roadmaps, or prompt text from being dumped into chat during auto runs
+
 ### 2026-08-09 — Keep manual auto sessions running after unit boundaries
 
 - Prepared `app-factory-autopilot@0.1.14` as a patch release for in-session
